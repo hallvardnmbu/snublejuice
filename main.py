@@ -9,9 +9,6 @@ from database import load
 from getset import initialise, set_data, set_focus, set_store, set_country, set_district, set_subdistrict, set_category, set_subcategory, set_volume, reset_selection, set_next_page, set_previous_page, set_page_one, set_page
 
 
-_discounts = sorted([col for col in load(amount=1)[0].columns if col.startswith('prisendring ')],
-                    key=lambda x: datetime.date(*[int(y) for y in x.split(' ')[-1].split('-')]))
-
 STATE = writer.init_state({
 
     # side
@@ -106,18 +103,12 @@ STATE = writer.init_state({
     'data': {
         'antall': 10,
         'stigende': ['True'],
-        'fokus': _discounts[-1],
-        'prisendring': {
-            'valg': _discounts[-2],
-            'mulig': {
-                discounted: discounted.split(' ')[-1] for discounted in _discounts
-            }
-        },
+        'fokus': 'prisendring',
         'dropdown': {
-            _discounts[-1]: 'Prisendring',
+            'prisendring': 'Prisendring',
             'literpris': 'Literpris',
             'alkoholpris': 'Alkoholpris',
-            _discounts[-1].replace('endring', ''): 'Pris',
+            'pris': 'Pris',
             'navn': 'Navn',
             'volum': 'Volum',
             'alkohol': 'Alkohol',

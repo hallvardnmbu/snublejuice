@@ -22,7 +22,6 @@ COLOUR = {
 
 def graph(
     df: pd.DataFrame,
-    prices: list[str]
 ) -> pd.Series:
     """
     Creates the price plot for the given data.
@@ -31,27 +30,30 @@ def graph(
     ----------
     df : pd.DataFrame
         The data to plot.
-    prices : list[str]
-        The columns to plot.
 
     Returns
     -------
     pd.Series
         The plots, with the same index as `df`.
     """
-    dates = [pd.Timestamp(price.split(' ')[1]) for price in prices] + [pd.Timestamp.now()]
-
     figures = []
 
     for _, record in df.iterrows():
-        diff = 0 if len(prices) < 2 else record[prices[-1]] - record[prices[-2]]
+
+        dates = pd.date_range(
+            end=pd.Timestamp.now() + pd.DateOffset(months=1),
+            periods=len(record['priser']) + 1,
+            freq='MS',
+        )
+
+        diff = 0 if len(record['priser']) < 2 else record['priser'][-1] - record['priser'][-2]
 
         fig = go.Figure()
         fig.add_trace(go.Scatter(
             name=record['navn'],
 
             x=dates,
-            y=[record[price] for price in prices] + [record[prices[-1]]],
+            y=record['priser'] + [record['priser'][-1]],
 
             mode='lines+markers',
             line={
@@ -126,7 +128,7 @@ def graph(
                     'color': COLOUR['black'],
                 },
                 'ticksuffix': ' kr',
-                'tickvals': sorted(set(prices)),
+                'tickvals': sorted(set(record['priser'])),
                 'showgrid': False,
             },
         )

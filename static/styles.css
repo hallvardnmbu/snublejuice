@@ -26,36 +26,14 @@
     font-style: normal;
 }
 
-.CoreHTML {
-    font-family: "JB-B", monospace !important;
-}
-
-.BaseInputWrapper {
-    font-family: "JB-B", monospace !important;
-}
-
-.BaseContainer {
-    font-family: "JB-B", monospace !important;
-}
-
-.CoreTab {
-    font-family: "JB-L", monospace !important;
-}
-
-.CoreTags {
-    font-family: "JB-L", monospace !important;
-}
-
-.CoreLink {
-    font-family: "JB-L", monospace !important;
-}
-
-.CoreText {
-    font-family: "JB-R", monospace !important;
-}
-
+.CoreHTML,
+.BaseInputWrapper,
+.BaseContainer,
+.CoreTab,
+.CoreTags,
+.BaseContainer. .CoreText,
 .CoreHeading {
-    font-family: "JB-B", monospace !important;
+    font-family: "JB-R", monospace !important;
 }
 
 .CoreSeparator {
@@ -76,11 +54,25 @@
     justify-content:;
 }
 
+/* CoreSidebar collapsed wf-type-sidebar component */
 .sidebarContainer {
+    display: flex !important;
     flex-direction: column !important;
 }
 
 .CoreSidebar {
     overflow: visible !important;
     position: static !important;
+    border-bottom: 1px solid black !important;
+    box-sizing: border-box !important;
+}
+
+a {
+    color: #666666 !important;
+    font-weight: bold;
+    text-decoration-thickness: 2px;
+}
+a:hover {
+    color: black !important;
+    background-color: #eeeeee;
 }

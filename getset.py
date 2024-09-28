@@ -344,20 +344,9 @@ def _discounts(state, data: pd.DataFrame):
     data : pd.DataFrame
         The currently selected data.
     """
-    prices = sorted([col for col in data.columns
-                     if col.startswith('pris ')],
-                    key=lambda x: pd.Timestamp(x.split(' ')[1]))
-    data['pris'] = data[prices[-1]]
+    data['plot'] = graph(data)
 
-    data['plot'] = graph(data, prices)
-
-    chosen = state['data']['prisendring']['valg']
-    if len(prices) < 2:
-        data['pris_gammel'] = data['pris'].copy()
-    else:
-        data['pris_gammel'] = data[chosen.replace('endring', '') if chosen else prices[-2]]
-    data['prisendring'] = data[chosen].apply(lambda x: int(x) if x else 0)
-
+    data['prisendring'] = data['prisendring'].apply(lambda x: int(x) if x else 0)
     data['literpris'] = data['literpris'].apply(lambda x: round(x, 2) if x else 0)
     data['alkoholpris'] = data['alkoholpris'].apply(lambda x: round(x, 2) if x else 0)
     data['volum'] = data['volum'].apply(lambda x: round(x, 2) if x else 0)

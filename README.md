@@ -1,13 +1,6 @@
-# Snublejuice
+# snublejuice
 
-Kildekode til [snublejuice](https://snublejuice.no) – en applikasjon for å utforske og sammenlikne [vinmonopolets](https://www.vinmonopolet.no) utvalg og prisendringer.
-
-<h1 align="center">
-  <img src="./static/logo.jpg" style="width: 50%;" alt="neurons">
-  <br>
-</h1>
-
----
+Original kildekode til [snublejuice](https://snublejuice.no) – en applikasjon for å utforske og sammenlikne [vinmonopolets](https://www.vinmonopolet.no) utvalg og prisendringer.
 
 ## Informasjon
 

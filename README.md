@@ -5,8 +5,7 @@ Original kildekode til [snublejuice](https://snublejuice.no) – en applikasjon 
 ## Informasjon
 
 Applikasjonen bruker [Writer Framework](https://dev.writer.com/framework/introduction)
-(tidligere [StreamSync](https://pypi.org/project/streamsync/)). Python brukes dermed for
-funksjonaliteten til [snublejuice](https://snublejuice.no).
+(tidligere [StreamSync](https://pypi.org/project/streamsync/)).
 
 <details>
   <summary>Kjør applikasjonen lokalt</summary>
@@ -37,21 +36,5 @@ export MONGO_PWD=<password>
 
   Første gang applikasjonen kjøres lokalt må databasen initialiseres. Dette gjøres ved å kjøre
   funksjonene i `./scrape/` (etter å ha oppretted databasen `vinskraper` og collection `varer`).
-
-</details>
-
-<details>
-  <summary>DigitalOcean</summary>
-
-  I tillegg til å kunne kjøres lokalt, er applikasjonen kjørt i "skyen" – ved bruk av
-  [DigitalOcean](https://www.digitalocean.com).
-
-  Baktanken her er å gjøre applikasjonen tilgjengelig for navngitte personer via internett, samt bli bedre kjent med fjern-løsninger.
-
-  Hver dag kjøres `./scrape/available.py` for å oppdatere databasen med tilgjengelige produkter.
-
-  Annenhver uke kjøres `./scrape/new.py` for å oppdatere databasen med ny informasjon om produkter.
-
-  Hver månedsskifte kjøres `./scrape/price.py` for å oppdatere databasen med prisendringer.
 
 </details>

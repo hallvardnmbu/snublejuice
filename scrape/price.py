@@ -1,7 +1,5 @@
 """
 Update the database with the latest prices.
-
-CRON JOB: 0 06 1 * *
 """
 
 import os

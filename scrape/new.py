@@ -2,8 +2,6 @@
 Fetch new products.
 Fetch detailed information about products.
 Update the discount information.
-
-CRON JOB: 0 05 1,2,14 * *
 """
 
 import os

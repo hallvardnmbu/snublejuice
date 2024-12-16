@@ -5,14 +5,11 @@
 
       <input type="hidden" name="page" value="<%= page %>">
       <input type="hidden" name="ascending" value="<%= ascending %>">
-      <input type="hidden" name="news" value="<%= news %>">
 
       <div class="filterSelection">
-        <button id="info">?</button>
-
         <div class="mainSelection">
           <select name="category" id="category" onchange="applyFilters(true)">
-            <option value="null" <%= category === 'null' ? 'selected' : '' %>>Alle kategorier</option>
+            <option value="null" <%= category === 'null' ? 'selected' : '' %>>Velg kategori</option>
             <option value="aromatisert" <%= category === 'aromatisert' ? 'selected' : '' %>>Aromatisert vin</option>
             <option value="brennevin" <%= category === 'brennevin' ? 'selected' : '' %>>Brennevin</option>
             <option value="fruktvin" <%= category === 'fruktvin' ? 'selected' : '' %>>Fruktvin</option>
@@ -38,21 +35,20 @@
             </select>
 
             <button id="sortButton">
-              <%= ascending === true ? '↑' : '↓' %>
+              <%= ascending === true ? 'stigende' : 'synkende' %>
             </button>
           </div>
 
           <select name="store" id="store" onchange="applyFilters(true)">
             <!-- Options will be dynamically populated by `public/scripts/stores.js`. -->
           </select>
-
-          <div id="clearAll">
-            <button id="clearFilters">x</button>
-          </div>
         </div>
 
-        <button id="toggleAdvanced">+</button>
-
+        <div class="mainButtons">
+          <button id="info">informasjon</button>
+          <button id="clearFilters">nullstill</button>
+          <button id="toggleAdvanced">flere valg</button>
+        </div>
       </div>
 
       <div id="advancedSelection" class="advancedSelection" style="display: none;">
@@ -84,9 +80,6 @@
           <label></label>
         </div>
 
-        <button id="newsButton">
-          <%= news ? 'Kun nyheter' : 'Alle produkter' %>
-        </button>
       </div>
     </form>
   </header>
@@ -110,7 +103,10 @@
       <span class="exit">x</span>
     </div>
     <div style="line-height: 1.5;">
-      Vinmonopolet justerer prisene hvert månedsskifte. For å gjøre livet ditt litt enklere holder vi styr på prishistorikken til varer, og gir en oversikt over tilbudsvarer.
+      Her finner du Vinmonopolets hemmelige tilbud samt varers prishistorikk.
+    </div>
+    <div style="line-height: 1.5;">
+      Vinmonopolet justerer nemlig prisene hvert månedsskifte. For å gjøre livet ditt litt enklere holder vi styr på prishistorikken til varer, og gir en oversikt over tilbudsvarer.
     </div>
     <div style="line-height: 1.5;">
       Lagerbeholdning oppdateres jevnlig, så avvik kan forekomme. Alltid dobbeltsjekk på produktets side.

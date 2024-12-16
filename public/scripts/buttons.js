@@ -39,7 +39,7 @@ document.getElementById("toggleAdvanced").onclick = function (event) {
 
   // Set the button text based on visibility.
   document.getElementById("toggleAdvanced").innerHTML =
-    section.style.display === "flex" ? "&divide;" : "+";
+    section.style.display === "flex" ? "skjul valg" : "flere valg";
 
   // Save the visibility state to session storage.
   sessionStorage.setItem("advancedSelection", section.style.display === "flex");
@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const element = document.getElementById("advancedSelection");
   const isVisible = sessionStorage.getItem("advancedSelection") === "true";
   element.style.display = isVisible ? "flex" : "none";
-  document.getElementById("toggleAdvanced").innerHTML = isVisible ? "&divide;" : "+";
+  document.getElementById("toggleAdvanced").innerHTML = isVisible ? "skjul valg" : "flere valg";
 });
 
 // Volume, alcohol and search change.
@@ -66,14 +66,6 @@ document.getElementById("iyear").addEventListener("change", function () {
 document.getElementById("fsearch").addEventListener("change", function () {
   applyFilters(true);
 });
-
-// New products toggle.
-document.getElementById("newsButton").onclick = function (event) {
-  event.preventDefault();
-  const newsInput = document.querySelector('input[name="news"]');
-  newsInput.value = newsInput.value === "true" ? "false" : "true";
-  applyFilters();
-};
 
 // Information toggle.
 document.getElementById("info").onclick = function (event) {

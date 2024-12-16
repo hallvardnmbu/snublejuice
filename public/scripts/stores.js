@@ -1,4 +1,4 @@
-const _DEFAULT = ["Kan bestilles", "Tilgjengelig i butikk"];
+const _DEFAULT = ["Velg butikk"];
 
 async function fetchStores() {
   try {

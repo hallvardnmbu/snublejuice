@@ -37,6 +37,7 @@
     --image: 100px;
     --logo: 70px;
     --margin: 25px;
+    --shadow: 2px;
 
     --background: #ffffff;
     --text: #000000;
@@ -70,7 +71,7 @@ body {
 a,
 a:visited {
     color: var(--dimtext);
-    text-decoration-thickness: 2px;
+    text-decoration-thickness: var(--shadow);
 }
 a:hover {
     color: var(--text);
@@ -82,15 +83,17 @@ footer {
     flex-direction: row;
     justify-content: space-between;
     align-items: flex-end;
+
     gap: calc(2 * var(--padding));
     padding: var(--padding);
-    color: var(--dimtext);
-    font-size: var(--font-description);
-    line-height: 1.2rem;
     margin-top: auto;
 
-    border-top: var(--padding) solid var(--dimmed);
+    color: var(--dimtext);
     background-color: var(--faint);
+    border-top: var(--padding) solid var(--dimmed);
+
+    font-size: var(--font-description);
+    line-height: 1.2rem;
 }
 footer button {
     font-size: var(--font-description);
@@ -114,15 +117,18 @@ input,
 button {
     font-family: "Fixedsys", monospace;
     font-size: var(--font-normal);
+    text-align: left;
+
     color: var(--dimtext);
     background-color: transparent;
+
     appearance: none;
     border-radius: 0;
-    border: none;
-    cursor: pointer;
-    text-align: left;
-    border-bottom: 2px solid var(--dimtext);
     padding: 0;
+    border: none;
+    border-bottom: var(--shadow) solid var(--dimtext);
+
+    cursor: pointer;
 }
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
@@ -132,15 +138,6 @@ input[type="number"]::-webkit-inner-spin-button {
 input[type="number"] {
     -moz-appearance: textfield;
 }
-#info,
-#sortButton,
-#toggleAdvanced,
-#clearFilters {
-    color: var(--text);
-    padding-left: var(--padding);
-    padding-right: var(--padding);
-}
-
 select {
     width: 100%;
     padding-right: calc(var(--padding) * 2);
@@ -157,12 +154,11 @@ header form input:hover {
 
 .filterSelection {
     display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: flex-end;
+    flex-direction: column;
+    align-items: center;
 
     padding: var(--padding);
-    gap: calc(2 * var(--margin));
+    gap: var(--padding);
     border-bottom: var(--padding) solid var(--dimmed);
 
     background-color: var(--faint);
@@ -174,6 +170,7 @@ header form input:hover {
     align-items: center;
 
     padding: var(--padding);
+    padding-bottom: calc(2 * var(--padding));
     gap: var(--padding);
 
     font-size: var(--font-normal);
@@ -220,24 +217,23 @@ header form input:hover {
 .mainSelection div {
     display: flex;
     justify-content: space-between;
+    gap: var(--padding);
     align-items: center;
 }
-.mainSelection div > * {
+.mainButtons {
     width: 100%;
-}
-.mainSelection div button {
+    max-width: 350px;
+
     display: flex;
-    justify-content: center;
-    width: var(--padding);
-    margin-left: var(--padding);
+    flex-direction: row;
+    justify-content: space-between;
+    gap: var(--padding);
 }
-#clearAll {
-    display: flex;
-    justify-content: center;
-}
-#clearFilters {
-    width: 28px;
-    margin-right: var(--padding);
+.mainButtons button,
+#sortButton {
+    border: var(--shadow) solid var(--dimtext);
+    padding: var(--shadow);
+    box-shadow: var(--shadow) var(--shadow) 0 0 var(--dimtext);
 }
 
 .message {
@@ -249,8 +245,10 @@ header form input:hover {
 section {
     display: flex;
     flex-direction: row;
+
     margin: var(--margin) var(--padding) var(--margin) var(--padding);
     padding-bottom: var(--padding);
+
     border-bottom: var(--padding) solid var(--highlight);
     background-color: var(--background);
 }
@@ -344,8 +342,7 @@ p {
     width: 100%;
     height: 100%;
     overflow: auto;
-    backdrop-filter: saturate(0) blur(2px);
-    /* background-color: var(--dimmed); */
+    backdrop-filter: saturate(0) blur(var(--shadow));
 }
 .infobox {
     display: flex;
@@ -633,7 +630,12 @@ hr {
     }
 }
 
-@media (max-width: 300px) {
+@media (max-width: 310px) {
+    .mainButtons {
+        flex-direction: column;
+        align-items: center;
+        gap: var(--padding);
+    }
     footer {
         flex-direction: column;
         align-items: center;

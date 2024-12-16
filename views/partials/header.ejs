@@ -25,6 +25,10 @@
             <option value="øl" <%= category === 'øl' ? 'selected' : '' %>>Øl</option>
           </select>
 
+          <select name="store" id="store" onchange="applyFilters(true)">
+            <!-- Options will be dynamically populated by `public/scripts/stores.js`. -->
+          </select>
+
           <div>
             <select name="sort" id="sort" onchange="applyFilters()">
               <option value="discount" <%= sort === 'discount' ? 'selected' : '' %>>Prisendring</option>
@@ -35,13 +39,9 @@
             </select>
 
             <button id="sortButton">
-              <%= ascending === true ? 'stigende' : 'synkende' %>
+              <%= ascending === true ? '↑' : '↓' %>
             </button>
           </div>
-
-          <select name="store" id="store" onchange="applyFilters(true)">
-            <!-- Options will be dynamically populated by `public/scripts/stores.js`. -->
-          </select>
         </div>
 
         <div class="mainButtons">
@@ -52,6 +52,8 @@
       </div>
 
       <div id="advancedSelection" class="advancedSelection" style="display: none;">
+        <input type="search" id="fsearch" name="search" value="<%= search || null %>" placeholder="Søk etter navn ...">
+
         <select name="country" id="country" onchange="applyFilters(true)">
           <!-- Options will be dynamically populated by `public/scripts/countries.js`. -->
         </select>
@@ -73,13 +75,6 @@
           <input type="number" id="iyear" name="year" min="1900" step="10" value="<%= year || null %>">
           <label>a.D.</label>
         </div>
-
-        <div>
-          <label>Navn ink.</label>
-          <input type="search" id="fsearch" name="search" value="<%= search || null %>">
-          <label></label>
-        </div>
-
       </div>
     </form>
   </header>
@@ -117,15 +112,15 @@
     <div onclick="window.location.href='/?fresh=false'">SNUBLEJUICE.no</div>
     <img src="images/snublejuice.png" alt="SNUBLEJUICE.no" onclick="window.location.href='/?fresh=false'">
 
-    <div>
+    <div class="pages">
       <% if (page > 1) { %>
-          <a href="#" onclick="changePage(<%= page - 1 %>)">FORRIGE</a>
+          <a href="#" onclick="changePage(<%= page - 1 %>)"><-</a>
       <% } %>
 
       <span><%= page %> av <%= totalPages %></span>
 
       <% if (page < totalPages) { %>
-          <a href="#" onclick="changePage(<%= page + 1 %>)">NESTE</a>
+          <a href="#" onclick="changePage(<%= page + 1 %>)">-></a>
       <% } %>
     </div>
   </div>

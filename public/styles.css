@@ -111,6 +111,23 @@ footer button {
 .pagination img {
     max-width: var(--logo);
 }
+.pages {
+    color: var(--dimtext);
+    font-size: var(--font-body);
+    display: flex;
+    flex-direction: row;
+    gap: var(--padding);
+    justify-content: center;
+    align-items: center;
+}
+.pages a {
+    color: var(--green);
+    text-decoration: none;
+}
+.pages a:hover {
+    color: var(--red);
+    background-color: transparent;
+}
 
 select,
 input,
@@ -178,7 +195,8 @@ header form input:hover {
 
     background-color: var(--dimmed);
 }
-.advancedSelection select {
+.advancedSelection select,
+.advancedSelection input {
     width: 100%;
     max-width: 350px;
 }
@@ -229,11 +247,22 @@ header form input:hover {
     justify-content: space-between;
     gap: var(--padding);
 }
-.mainButtons button,
-#sortButton {
-    border: var(--shadow) solid var(--dimtext);
+.mainButtons button {
+    font-size: var(--font-normal);
+    text-decoration: none;
+
+    border: none;
     padding: var(--shadow);
+
+    color: var(--dimtext);
+    background-color: var(--dimmed);
     box-shadow: var(--shadow) var(--shadow) 0 0 var(--dimtext);
+}
+.mainButtons button:hover {
+    background-color: var(--block);
+}
+#sortButton {
+    padding: 0 calc(var(--padding) / 2) 0 calc(var(--padding) / 2);
 }
 
 .message {

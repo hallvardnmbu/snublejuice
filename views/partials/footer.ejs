@@ -2,15 +2,15 @@
     <div class="pagination" id="bottom">
       <div onclick="window.location.href='/?fresh=false'">SNUBLEJUICE.no</div>
       <img src="images/snublejuice.png" alt="SNUBLEJUICE.no" onclick="window.location.href='/?fresh=false'">
-      <div>
+      <div class="pages">
         <% if (page > 1) { %>
-            <a href="#" onclick="changePage(<%= page - 1 %>)">FORRIGE</a>
+            <a href="#" onclick="changePage(<%= page - 1 %>)"><-</a>
         <% } %>
 
         <span><%= page %> av <%= totalPages %></span>
 
         <% if (page < totalPages) { %>
-            <a href="#" onclick="changePage(<%= page + 1 %>)">NESTE</a>
+            <a href="#" onclick="changePage(<%= page + 1 %>)">-></a>
         <% } %>
       </div>
     </div>

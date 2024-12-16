@@ -59,9 +59,12 @@ function graphPrice(index) {
   var canvas = document.getElementById(`graph-${index}`);
   var ctx = canvas.getContext("2d");
 
+  // Check if all prices are the same
+  const allPricesEqual = prices.every((price) => price === prices[0]);
+
   // Resize canvas to fit container
   canvas.width = canvas.parentElement.clientWidth;
-  canvas.height = canvas.parentElement.clientHeight;
+  canvas.height = allPricesEqual ? 70 : canvas.parentElement.clientHeight;
 
   // Calculate margins and plot area
   var margin = { top: 20, right: 10, bottom: 40, left: 50 };
@@ -72,6 +75,8 @@ function graphPrice(index) {
   var xScale = plotWidth / (dates.length - 1);
   var yMax = Math.max(...prices);
   var yMin = Math.min(...prices);
+
+  // Check if all prices are the same
   var yScale = plotHeight / (yMax - yMin === 0 ? 1 : yMax - yMin);
 
   // Draw line

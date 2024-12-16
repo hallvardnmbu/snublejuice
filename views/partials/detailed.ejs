@@ -177,13 +177,13 @@
     <hr>
 
     <!-- Price chart. -->
-    <div style="height:200px;">
+    <div style="max-height:200px;">
       <b>PRISHISTORIKK</b>
       <canvas id="graph-<%= index %>"></canvas>
     </div>
 
     <script>
-      var prices = <%= JSON.stringify(item.prices) %>;
+    var prices = <%= JSON.stringify(item.prices) %>.map(price => Math.ceil(price));
       if (!prices || prices.length === 0) {
         prices = [0, 0];
       }

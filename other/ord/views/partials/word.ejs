@@ -25,11 +25,30 @@
 
       <hr />
 
-      <% function renderDefinitions(data, indent = 1) { %>
+      <%
+      // Dictionary-specific key mappings
+      const keyMappings = {
+        'nn': {
+          'eksempel': 'døme',
+          'forklaring': 'tyding og bruk',
+          'underartikkel': 'faste uttrykk'
+        }
+      };
+
+      // Helper function to translate keys based on dictionary type
+      function translateKey(key, dictionaryType) {
+        if (dictionaryType && keyMappings[dictionaryType] && keyMappings[dictionaryType][key]) {
+          return keyMappings[dictionaryType][key];
+        }
+        return key;
+      }
+      %>
+
+      <% function renderDefinitions(data, indent = 1, dictionaryType = "bm") { %>
           <% if (Array.isArray(data)) { %>
               <% data.forEach(item => { %>
                   <% if (typeof item === 'object' && item !== null) { %>
-                      <%= renderDefinitions(item, indent) %>
+                      <%= renderDefinitions(item, indent, dictionaryType) %>
                   <% } else { %>
                       <div class="definition" style="--indent: <%= indent %>;"><%- item %></div>
                   <% } %>
@@ -37,18 +56,19 @@
           <% } else if (typeof data === 'object' && data !== null) { %>
               <% for (const [key, value] of Object.entries(data)) { %>
                 <% indent += 1 %>
-                <div class="define" style="--indent: <%= indent %>;"><b><%= key %></b></div>
+                <% const translatedKey = translateKey(key, dictionaryType) %>
+                <div class="define" style="--indent: <%= indent %>;"><b><%= translatedKey %></b></div>
                 <% if (key === "underartikkel") { %>
                   <% for (const element of value) { %>
                     <div class="definition" style="--indent: <%= indent %>;">
                       <a href="https://ordbokene.no/nob/bm/<%= element.id %>" target="_blank"><%= element.word %></a>
                     </div>
-                    <%= renderDefinitions(element.definitions, indent) %>
+                    <%= renderDefinitions(element.definitions, indent, dictionaryType) %>
                   <% } %>
                 <% } else if (key === "eksempel") { %>
-                  <%= renderDefinitions(value, indent) %>
+                  <%= renderDefinitions(value, indent, dictionaryType) %>
                 <% } else { %>
-                  <%= renderDefinitions(value, indent) %>
+                  <%= renderDefinitions(value, indent, dictionaryType) %>
                 <% } %>
               <% } %>
           <% } else { %>
@@ -58,16 +78,17 @@
 
       <% if (word.definitions) { %>
         <% for (const [type, values] of Object.entries(word.definitions)) { %>
-            <div class="define"><b><%= type %></b></div>
+            <% const translatedType = translateKey(type, word.dictionary) %>
+            <div class="define"><b><%= translatedType %></b></div>
             <% if (type === "underartikkel") { %>
               <% for (const element of values) { %>
                 <div class="define" style="--indent: 2;">
                   <a href="https://ordbokene.no/nob/bm/<%= element.id %>" target="_blank"><%= element.word %></a>
                 </div>
-                <%= renderDefinitions(element.definitions) %>
+                <%= renderDefinitions(element.definitions, 1, word.dictionary) %>
               <% } %>
             <% } else { %>
-              <%= renderDefinitions(values) %>
+              <%= renderDefinitions(values, 1, word.dictionary) %>
             <% } %>
         <% } %>
       <% } %>
@@ -92,13 +113,75 @@
         }
         </script>
 
+        <%
+        // Dictionary-specific key mappings
+        const inflectionMappings = {
+          'bm': {
+            'Inf': 'infinitiv',
+            'Pres': 'presens',
+            'Past': 'preteritum',
+            'Imp': 'imperativ',
+            '<PerfPart>': 'perfektum partisipp',
+            'PerfPart': 'perfektum partisipp',
+            'Perf Part': 'perfektum partisipp',
+            'Sing': 'entall',
+            'Pos': '',
+            'Ind': '',
+            'Pass': 'passiv',
+            'Plur': 'flertall',
+            'Masc': 'hankjønn',
+            'Fem': 'hunkjønn',
+            'Masc/Fem': 'hankjønn/hunkjønn',
+            'Neut': 'intetkjønn',
+            'Neuter': 'intetkjønn',
+            'Def': 'bestemt',
+            'Indef': 'ubestemt'
+          },
+          'nn': {
+            'Inf': 'infinitiv',
+            'Pres': 'presens',
+            'Past': 'preteritum',
+            'Imp': 'imperativ',
+            '<PerfPart>': 'perfektum partisipp',
+            'PerfPart': 'perfektum partisipp',
+            'Perf Part': 'perfektum partisipp',
+            'Sing': 'eintal',
+            'Pos': '',
+            'Ind': '',
+            'Pass': 'passiv',
+            'Plur': 'fleirtal',
+            'Masc': 'hankjønn',
+            'Fem': 'hokjønn',
+            'Masc/Fem': 'hankjønn/hokjønn',
+            'Neut': 'inkjekjønn',
+            'Neuter': 'inkjekjønn',
+            'Def': 'bunden',
+            'Indef': 'ubunden'
+          },
+        };
+
+        // Helper function to translate keys based on dictionary type
+        function processInflection(tag, dictionary) {
+          let updatedTag = tag;
+
+          const tags = tag.split(" ");
+          for (const key of tags) {
+            if (inflectionMappings[dictionary].hasOwnProperty(key)) {
+                updatedTag = updatedTag.replace(key, inflectionMappings[dictionary][key]);
+            }
+          }
+
+          return updatedTag.trim().trim();
+        }
+        %>
+
         <table class="inflection" style="display: none;" id="inflection-<%= word.dictionary %>">
           <tbody>
             <% word.inflection[0].forEach(function(inflect) { %>
               <% if (inflect.word_form && !(inflect.tags ? inflect.tags.join(' ') : '').includes(' <')) { %>
                 <tr>
                   <td class="word-cell"><%= inflect.word_form %></td>
-                  <td class="form-cell"><%= inflect.tags ? inflect.tags.join(' ') : '' %></td>
+                  <td class="form-cell"><%= processInflection(inflect.tags ? inflect.tags.join(' ') : '', word.dictionary) %></td>
                 </tr>
               <% } %>
             <% }); %>

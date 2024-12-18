@@ -5,7 +5,7 @@ Icon?
 **/__pycache__/
 **/*.pattern
 
-database/backup/
+database/
 fetch/remote/
 
 **/node_modules/

@@ -13,6 +13,7 @@ async function fetchStores() {
 
 function populateStores(stores) {
   const storeSelect = document.getElementById("store");
+  const storeSearch = document.getElementById("ssearch");
 
   // Clear existing options
   storeSelect.innerHTML = "";
@@ -46,22 +47,17 @@ function populateStores(stores) {
   // Add event listener to save the selected store to local storage
   storeSelect.addEventListener("change", () => {
     sessionStorage.setItem("selectedStore", storeSelect.value);
-    displayMessage(storeSelect.value);
+    displayMessage(!_DEFAULT.includes(storeSelect.value) || storeSearch.value);
   });
 
   // Display message if a store other than "null" is selected on page load
-  displayMessage(storeSelect.value);
+  displayMessage(!_DEFAULT.includes(storeSelect.value) || storeSearch.value);
 }
 
 // Function to display a message if a store other than "null" is selected
-function displayMessage(selectedValue) {
+function displayMessage(active = false) {
   const messageElement = document.getElementById("message-stores");
-  if (!_DEFAULT.includes(selectedValue)) {
-    // Set the style to block to display the message
-    messageElement.style.display = "block";
-  } else {
-    messageElement.style.display = "none";
-  }
+  messageElement.style.display = active ? "block" : "none";
 }
 
 // Fetch stores on page load or use cached data

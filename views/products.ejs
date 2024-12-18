@@ -62,6 +62,19 @@
               <div style="font-size: 12px;"><%= item.subdistrict %></div>
             <% } %>
           </div>
+
+          <div class="country">
+            <% if (storelike) { %>
+              <% const storeRegex = new RegExp(`(^|[^a-zæøåA-ZÆØÅ])${storelike}([^a-zæøåA-ZÆØÅ]|$)`, 'i') %>
+              <% const matchingStores = item.stores.filter(store => storeRegex.test(store)) %>
+              <% matchingStores.forEach((store, index) => { %>
+                <div style="font-size: 16px;"><%= store %></div>
+                <% if (index !== matchingStores.length - 1) { %>
+                  <div id="dot" style="font-size: 10px;">●</div>
+                <% } %>
+              <% }) %>
+            <% } %>
+          </div>
         </div>
 
         <div class="description">

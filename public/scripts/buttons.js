@@ -63,7 +63,10 @@ document.getElementById("falcohol").addEventListener("change", function () {
 document.getElementById("iyear").addEventListener("change", function () {
   applyFilters(true);
 });
-document.getElementById("fsearch").addEventListener("change", function () {
+document.getElementById("nsearch").addEventListener("change", function () {
+  applyFilters(true);
+});
+document.getElementById("ssearch").addEventListener("change", function () {
   applyFilters(true);
 });
 
@@ -92,7 +95,6 @@ function changeModal(currentModal, newModal, event) {
   document.getElementById(`detailed-${currentModal}`).style.display = "none";
   document.getElementById(`detailed-${newModal}`).style.display = "block";
 
-  console.log("changeModal(" + newModal + ")");
   graphPrice(newModal);
 }
 

@@ -8,6 +8,8 @@
 
       <div class="filterSelection">
         <div class="mainSelection">
+          <button type="submit" style="display: none"></button>
+
           <select name="category" id="category" onchange="applyFilters(true)">
             <option value="null" <%= category === 'null' ? 'selected' : '' %>>Velg kategori</option>
             <option value="aromatisert" <%= category === 'aromatisert' ? 'selected' : '' %>>Aromatisert vin</option>
@@ -25,12 +27,10 @@
             <option value="øl" <%= category === 'øl' ? 'selected' : '' %>>Øl</option>
           </select>
 
-          <select name="store" id="store" onchange="applyFilters(true)">
-            <!-- Options will be dynamically populated by `public/scripts/stores.js`. -->
-          </select>
+          <input type="search" id="ssearch" name="storelike" value="<%= storelike || null %>" placeholder="Butikk (e.g., Stavanger) ...">
 
           <div>
-            <select name="sort" id="sort" onchange="applyFilters()">
+            <select name="sort" id="sort" onchange="applyFilters(true)">
               <option value="discount" <%= sort === 'discount' ? 'selected' : '' %>>Prisendring</option>
               <option value="price" <%= sort === 'price' ? 'selected' : '' %>>Pris</option>
               <option value="literprice" <%= sort === 'literprice' ? 'selected' : '' %>>Literpris</option>
@@ -52,7 +52,11 @@
       </div>
 
       <div id="advancedSelection" class="advancedSelection" style="display: none;">
-        <input type="search" id="fsearch" name="search" value="<%= search || null %>" placeholder="Søk etter navn ...">
+        <input type="search" id="nsearch" name="search" value="<%= search || null %>" placeholder="Søk etter navn ...">
+
+        <select name="store" id="store" onchange="applyFilters(true)">
+          <!-- Options will be dynamically populated by `public/scripts/stores.js`. -->
+        </select>
 
         <select name="country" id="country" onchange="applyFilters(true)">
           <!-- Options will be dynamically populated by `public/scripts/countries.js`. -->

@@ -95,6 +95,7 @@ async function load({
 
   // Search for name;
   search = null,
+  storelike = null,
 
   // Calculate total pages;
   fresh = true,
@@ -131,6 +132,17 @@ async function load({
     });
   }
 
+  if (storelike) {
+    pipeline.push({
+      $match: {
+        stores: {
+          $regex: `(^|[^a-zæøåA-ZÆØÅ])${storelike}([^a-zæøåA-ZÆØÅ]|$)`,
+          $options: "i",
+        },
+      },
+    });
+  }
+
   let matchStage = {
     // Only include buyablem and updated products.
     buyable: true,
@@ -148,12 +160,12 @@ async function load({
 
     // Parameters that are arrays are matched using the $in operator.
     // ...(description.length && !search ? { "description.short": { $in: description } } : {}),
-    ...(store && !search ? { stores: { $in: [store] } } : {}),
+    ...(store && !search && !storelike ? { stores: { $in: [store] } } : {}),
     // ...(pair.length && !search ? { pair: { $in: pair } } : {}),
   };
 
   let updated = null;
-  if (!store) {
+  if (!store && !storelike) {
     if (orderable) {
       matchStage["orderable"] = true;
     }
@@ -291,10 +303,9 @@ snublejuice.get("/", async (req, res) => {
     }
   }
 
-  // If the year is 2025, reroute to maintenance page.
-  if (currentDate.getFullYear() >= 2025) {
-    return res.redirect(301, "/maintenance");
-  }
+  // if (currentDate.getFullYear() >= 2025) {
+  //   return res.redirect(301, "/maintenance");
+  // }
 
   const page = parseInt(req.query.page) || 1;
   const sort = req.query.sort || "discount";
@@ -305,9 +316,10 @@ snublejuice.get("/", async (req, res) => {
   const alcohol = parseFloat(req.query.alcohol) || null;
   const year = parseInt(req.query.year) || null;
   const search = req.query.search || null;
-  let store = req.query.store || "Velg butikk";
+  const storelike = req.query.storelike || null;
+  let store = req.query.store || "Velg spesifikk butikk";
 
-  let orderable = store === "Velg butikk";
+  let orderable = store === "Velg spesifikk butikk";
   if (orderable) {
     store = null;
   }
@@ -351,6 +363,7 @@ snublejuice.get("/", async (req, res) => {
 
       // Search for name;
       search: search,
+      storelike: storelike === "null" ? null : storelike,
 
       // Calculate total pages;
       fresh: true,
@@ -372,6 +385,7 @@ snublejuice.get("/", async (req, res) => {
       alcohol: alcohol,
       year: year,
       search: search,
+      storelike: storelike,
       store: store,
     });
   } catch (err) {
@@ -390,6 +404,7 @@ snublejuice.get("/", async (req, res) => {
       alcohol: alcohol,
       year: year,
       search: search,
+      storelike: storelike,
       store: store,
     });
   }

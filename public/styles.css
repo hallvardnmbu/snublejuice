@@ -78,6 +78,21 @@ a:hover {
     background-color: var(--block);
 }
 
+.header {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--padding);
+    padding: var(--padding);
+
+    font-size: var(--font-description);
+    color: var(--dimtext);
+
+    background-color: var(--dimmed);
+}
+.header button {
+    font-size: var(--font-description);
+}
+
 footer {
     display: flex;
     flex-direction: row;
@@ -380,7 +395,7 @@ p {
     gap: var(--padding);
     border-bottom: var(--padding) solid var(--dimmed);
 }
-.header {
+.head {
     display: flex;
     flex-direction: row;
     justify-content: space-between;

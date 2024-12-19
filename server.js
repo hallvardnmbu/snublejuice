@@ -122,7 +122,6 @@ snublejuice.post("/register", async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: _PRODUCTION, // Only send over HTTPS in production
       maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
     });
 
@@ -163,7 +162,6 @@ snublejuice.post("/login", async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: _PRODUCTION, // Only send over HTTPS in production
       maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
     });
 

@@ -118,13 +118,13 @@ snublejuice.post("/register", async (req, res) => {
       password: hashedPassword,
     });
 
-    const token = jwt.sign({ username: username }, process.env.JWT_KEY, { expiresIn: "1h" });
+    const token = jwt.sign({ username: username }, process.env.JWT_KEY, { expiresIn: "365d" });
 
     res.cookie("token", token, {
       httpOnly: true,
-      // secure: process.env.NODE_ENV === "production", // Only send over HTTPS in production
+      secure: _PRODUCTION, // Only send over HTTPS in production
       sameSite: "strict",
-      maxAge: 3600000, // 1 hour in milliseconds
+      maxAge: 31536000000, // 1 year
     });
 
     res.status(201).json({
@@ -160,13 +160,13 @@ snublejuice.post("/login", async (req, res) => {
       });
     }
 
-    const token = jwt.sign({ username: user.username }, process.env.JWT_KEY, { expiresIn: "1h" });
+    const token = jwt.sign({ username: user.username }, process.env.JWT_KEY, { expiresIn: "365d" });
 
     res.cookie("token", token, {
       httpOnly: true,
-      // secure: process.env.NODE_ENV === "production", // Only send over HTTPS in production
+      secure: _PRODUCTION, // Only send over HTTPS in production
       sameSite: "strict",
-      maxAge: 3600000, // 1 hour in milliseconds
+      maxAge: 31536000000, // 1 year
     });
 
     res.status(201).json({

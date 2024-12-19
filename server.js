@@ -121,7 +121,7 @@ snublejuice.post("/register", async (req, res) => {
     const token = jwt.sign({ username: username }, process.env.JWT_KEY, { expiresIn: "365d" });
 
     res.cookie("token", token, {
-      httpOnly: true,
+      httpOnly: false,
       secure: _PRODUCTION,
       sameSite: "strict",
       maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
@@ -165,7 +165,7 @@ snublejuice.post("/login", async (req, res) => {
     const token = jwt.sign({ username: user.username }, process.env.JWT_KEY, { expiresIn: "365d" });
 
     res.cookie("token", token, {
-      httpOnly: true,
+      httpOnly: false,
       secure: _PRODUCTION,
       sameSite: "strict",
       maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year

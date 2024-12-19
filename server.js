@@ -88,11 +88,7 @@ snublejuice.get("/maintenance", async (req, res) => {
 
 snublejuice.post("/register", async (req, res) => {
   try {
-    console.log("Registering");
-
     const { username, email, password } = req.body;
-
-    console.log(username, email);
 
     // Check if user already exists.
     const existingUsername = await users.findOne({
@@ -104,8 +100,6 @@ snublejuice.post("/register", async (req, res) => {
       });
     }
 
-    console.log("Username ok");
-
     // Check if email already exists.
     const existingEmail = await users.findOne({
       email: email,
@@ -116,8 +110,6 @@ snublejuice.post("/register", async (req, res) => {
       });
     }
 
-    console.log("Email ok");
-
     // Store the user in the database.
     const hashedPassword = await bcrypt.hash(password, 10);
     await users.insertOne({
@@ -126,12 +118,7 @@ snublejuice.post("/register", async (req, res) => {
       password: hashedPassword,
     });
 
-    console.log("Password ok");
-
     const token = jwt.sign({ username: username }, process.env.JWT_KEY, { expiresIn: "365d" });
-
-    console.log("Token ok");
-
     res.cookie("token", token, {
       httpOnly: true,
       secure: _PRODUCTION,
@@ -139,8 +126,6 @@ snublejuice.post("/register", async (req, res) => {
       maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
       path: "/",
     });
-
-    console.log("Cookie ok");
 
     res.status(201).json({
       message: "Grattis, nå er du registrert!",

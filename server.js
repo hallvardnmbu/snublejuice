@@ -122,7 +122,11 @@ snublejuice.post("/register", async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
+      secure: _PRODUCTION,
+      sameSite: "strict",
       maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
+      path: "/",
+      domain: "snublejuice.no",
     });
 
     res.status(201).json({
@@ -162,7 +166,11 @@ snublejuice.post("/login", async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
+      secure: _PRODUCTION,
+      sameSite: "strict",
       maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
+      path: "/",
+      domain: "snublejuice.no",
     });
 
     res.status(201).json({

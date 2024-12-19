@@ -1,100 +1,98 @@
 <div class="header">
   <div><%= visitors %> besøkende denne måneden.</div>
   <% if (!user) { %>
-    <button onclick="openLoginModal()">
-      Logg inn / Registrer
-    </button>
+    <div>
+      <button onclick="loginModal()">
+        Logg inn
+      </button>
+      <span> | </span>
+      <button onclick="registerModal()">
+        Registrer
+      </button>
+    </div>
   <% } else { %>
-    <button onclick="window.location.href='/profile'">
-      <%= user.username %>
-    </button>
+    <div>
+      <button onclick="profileModal()">
+        <%= user?.username %>
+      </button>
+      <span> | </span>
+      <button onclick="logout()">
+        Logg ut
+      </button>
+    </div>
   <% } %>
 </div>
 
-<div id="loginModal" class="modal">
-  <div class="heading">
-    <div>
-      Logg inn / Registrer
-    </div>
-    <div class="close" id="closeLogin">x</div>
-  </div>
+<div id="loginModal" class="signupModal">
+  <form id="loginForm" class="signup">
+    <table>
+      <tr>
+        <td>Brukernavn&nbsp;</td>
+        <td><input type="text" id="usernameLOG" name="username" minlength="2" required></td>
+      </tr>
+      <tr>
+        <td>Passord</td>
+        <td><input type="password" id="passwordLOG" name="password" minlength="4" required></td>
+      </tr>
+    </table>
 
-  <div id="loginMessage"></div>
-  <form id="loginForm">
-    <div class="form-group">
-      <label for="email">Email:</label>
-      <input type="email" id="email" name="email" required>
+    <div>
+      <span class="close" index="loginModal">x</span>
+      <button type="submit" style="text-wrap: nowrap;">Logg inn</button>
     </div>
-    <div class="form-group">
-      <label for="username">Brukernavn:</label>
-      <input type="text" id="username" name="username" required>
-    </div>
-    <div class="form-group">
-      <label for="password">Passord:</label>
-      <input type="password" id="password" name="password" required>
-    </div>
-    <button type="submit">Logg inn</button>
   </form>
+
+  <div class="userMessage" id="loginMessage"></div>
 </div>
 
-<script>
-const modal = document.getElementById("loginModal");
-const closeBtn = document.getElementById("closeLogin");
-const loginForm = document.getElementById("loginForm");
-const loginMessage = document.getElementById("loginMessage");
+<div id="registerModal" class="signupModal">
+  <form id="registerForm" class="signup">
+    <table>
+      <tr>
+        <td>E-post</td>
+        <td><input type="email" id="emailSUP" name="email" required></td>
+      </tr>
+      <tr>
+        <td>Brukernavn&nbsp;</td>
+        <td><input type="text" id="usernameSUP" name="username" minlength="2" required></td>
+      </tr>
+      <tr>
+        <td>Passord</td>
+        <td><input type="password" id="passwordSUP" name="password" minlength="4" required></td>
+      </tr>
+    </table>
 
-function openLoginModal() {
-  modal.style.display = "block";
-}
+    <div>
+      <span class="close" index="registerModal">x</span>
+      <button type="submit">Registrer</button>
+    </div>
+  </form>
 
-closeBtn.onclick = function() {
-  modal.style.display = "none";
-}
+  <div class="userMessage" id="registerMessage"></div>
+</div>
 
-window.onclick = function(event) {
-  if (event.target == modal) {
-    modal.style.display = "none";
-  }
-}
+<div id="profileModal" class="signupModal">
+  <form id="deleteUserForm" class="signup">
+    <input type="hidden" id="usernameDEL" name="username" value="<%= user?.username %>">
 
-loginForm.onsubmit = async function(e) {
-  e.preventDefault();
+    <table>
+      <tr>
+        <td>Brukernavn&nbsp;</td>
+        <td><%= user?.username %></td>
+      </tr>
+      <tr>
+        <td>Passord</td>
+        <td><input type="password" id="passwordDEL" name="password" minlength="4" required></td>
+      </tr>
+    </table>
 
-  const formData = {
-    email: document.getElementById("email").value,
-    username: document.getElementById("username").value,
-    password: document.getElementById("password").value
-  };
+    <div>
+      <span class="close" index="profileModal">x</span>
+      <button type="submit" style="text-wrap: nowrap;">Slett bruker</button>
+    </div>
+  </form>
 
-  try {
-    const response = await fetch('/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData)
-    });
+  <div class="userMessage" id="profileMessage"></div>
+</div>
 
-    const data = await response.json();
-
-    if (response.ok) {
-      loginMessage.className = 'success';
-      loginMessage.textContent = 'Innlogging vellykket!';
-
-      // Store the token
-      localStorage.setItem('token', data.token);
-
-      // Reload the page after successful login
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
-    } else {
-      loginMessage.className = 'error';
-      loginMessage.textContent = data.message || 'Innlogging mislyktes';
-    }
-  } catch (error) {
-    loginMessage.className = 'error';
-    loginMessage.textContent = 'En feil oppstod. Vennligst prøv igjen.';
-  }
-};
-</script>
+<script src="scripts/user.js"></script>

@@ -133,7 +133,7 @@ function graphPrice(index) {
 
 window.addEventListener("resize", function () {
   for (let i = 0; i < _PER_PAGE; i++) {
-    const modal = document.getElementById(`detailed-${i}`);
+    const modal = document.getElementById(i);
     if (modal && modal.style.display === "block") {
       graphPrice(i);
       break;

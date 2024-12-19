@@ -93,6 +93,43 @@ a:hover {
     font-size: var(--font-description);
 }
 
+.signupModal {
+    display: none;
+    padding: var(--padding) 0 0 0;
+    align-self: center;
+
+    width: 100%;
+    max-width: 350px;
+}
+.signupModal form {
+    padding-bottom: var(--padding);
+}
+.signup {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: var(--padding);
+}
+.signup * {
+    color: var(--dimtext);
+    font-size: var(--font-description);
+}
+.signup div {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+.signup table input {
+    width: 100%;
+}
+.userMessage {
+    display: none;
+    color: var(--dimtext);
+    padding: var(--padding);
+    background-color: var(--negative);
+}
+
 footer {
     display: flex;
     flex-direction: row;
@@ -179,7 +216,7 @@ select {
 }
 header form select:hover,
 button:hover,
-header form input:hover {
+form input:hover {
     color: var(--text);
     background-color: var(--block);
 }
@@ -262,20 +299,6 @@ header form input:hover {
     justify-content: space-between;
     gap: var(--padding);
 }
-.mainButtons button {
-    font-size: var(--font-normal);
-    text-decoration: none;
-
-    border: none;
-    padding: var(--shadow);
-
-    color: var(--dimtext);
-    background-color: var(--dimmed);
-    box-shadow: var(--shadow) var(--shadow) 0 0 var(--dimtext);
-}
-.mainButtons button:hover {
-    background-color: var(--block);
-}
 #sortButton {
     padding: 0 calc(var(--padding) / 2) 0 calc(var(--padding) / 2);
 }
@@ -317,7 +340,6 @@ p {
 }
 .text b {
     font-family: "m04", monospace;
-    font-weight: bold;
     color: var(--text);
 }
 #percent {
@@ -456,7 +478,6 @@ p {
     color: var(--dimtext);
     float: right;
     font-size: var(--font-pagination);
-    font-weight: bold;
 }
 .exit:hover,
 .exit:focus,
@@ -511,7 +532,6 @@ p {
 
     font-size: var(--font-title);
     color: var(--dimtext);
-    font-weight: bold;
     line-height: 1.05;
 }
 .detailed .heading .link a:hover {
@@ -639,6 +659,7 @@ hr {
         --font-description: 16px;
     }
 
+    .header,
     .cookieSelection,
     .filterSelection,
     .advancedSelection,

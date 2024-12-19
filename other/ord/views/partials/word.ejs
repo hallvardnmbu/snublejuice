@@ -124,9 +124,16 @@
             '<PerfPart>': 'perfektum partisipp',
             'PerfPart': 'perfektum partisipp',
             'Perf Part': 'perfektum partisipp',
+            '<PresPart>': 'presens partisipp',
+            'PresPart': 'presens partisipp',
+            'Pres Part': 'presens partisipp',
             'Sing': 'entall',
             'Pos': '',
             'Ind': '',
+            'Adj': '',
+            '<SPass>': '',
+            'Cmp': 'komparativ',
+            'Sup': 'superlativ',
             'Pass': 'passiv',
             'Plur': 'flertall',
             'Masc': 'hankjønn',
@@ -145,9 +152,16 @@
             '<PerfPart>': 'perfektum partisipp',
             'PerfPart': 'perfektum partisipp',
             'Perf Part': 'perfektum partisipp',
+            '<PresPart>': 'presens partisipp',
+            'PresPart': 'presens partisipp',
+            'Pres Part': 'presens partisipp',
             'Sing': 'eintal',
             'Pos': '',
             'Ind': '',
+            'Adj': '',
+            '<SPass>': '',
+            'Cmp': 'komparativ',
+            'Sup': 'superlativ',
             'Pass': 'passiv',
             'Plur': 'fleirtal',
             'Masc': 'hankjønn',
@@ -167,7 +181,7 @@
           const tags = tag.split(" ");
           for (const key of tags) {
             if (inflectionMappings[dictionary].hasOwnProperty(key)) {
-                updatedTag = updatedTag.replace(key, inflectionMappings[dictionary][key]);
+              updatedTag = updatedTag.replace(key, inflectionMappings[dictionary][key]);
             }
           }
 
@@ -178,7 +192,7 @@
         <table class="inflection" style="display: none;" id="inflection-<%= word.dictionary %>">
           <tbody>
             <% word.inflection[0].forEach(function(inflect) { %>
-              <% if (inflect.word_form && !(inflect.tags ? inflect.tags.join(' ') : '').includes(' <')) { %>
+              <% if (inflect.word_form && !(inflect.tags ? inflect.tags.join(' ') : '').includes(' Pass')) { %>
                 <tr>
                   <td class="word-cell"><%= inflect.word_form %></td>
                   <td class="form-cell"><%= processInflection(inflect.tags ? inflect.tags.join(' ') : '', word.dictionary) %></td>

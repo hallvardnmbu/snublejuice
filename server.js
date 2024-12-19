@@ -7,6 +7,7 @@ import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import cookieParser from "cookie-parser";
 
 import { categories, load } from "./fetch.js";
 import { apiAPP } from "./other/api/app.js";
@@ -38,6 +39,9 @@ const snublejuice = express();
 snublejuice.set("view engine", "ejs");
 snublejuice.set("views", path.join(__dirname, "views"));
 snublejuice.use(express.static(path.join(__dirname, "public")));
+
+snublejuice.use(express.json());
+snublejuice.use(cookieParser());
 
 let client;
 try {
@@ -106,18 +110,26 @@ snublejuice.post("/register", async (req, res) => {
       });
     }
 
-    // Hash password.
+    // Store the user in the database.
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Store the new user.
     await users.insertOne({
       username,
       email,
       password: hashedPassword,
     });
 
+    const token = jwt.sign({ username: username }, process.env.JWT_KEY, { expiresIn: "1h" });
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      // secure: process.env.NODE_ENV === "production", // Only send over HTTPS in production
+      sameSite: "strict",
+      maxAge: 3600000, // 1 hour in milliseconds
+    });
+
     res.status(201).json({
       message: "Grattis, nå er du registrert!",
+      username: username,
     });
   } catch (error) {
     res.status(500).json({
@@ -131,34 +143,79 @@ snublejuice.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // Find user
-    const user = await users.findOne({ username });
-
+    // Check if user exists.
+    const user = await users.findOne({ username: username });
     if (!user) {
-      return res.status(401).json({
-        message: "Hmm. Du har visst glemt brukernavnet ditt.",
+      return res.status(400).json({
+        message:
+          "Hmm. Du har visst glemt brukernavnet ditt. Eller kanskje du ikke enda er registrert?",
       });
     }
 
-    // Check password
+    // Check if password is correct.
     const isMatch = await bcrypt.compare(password, user.password);
-
     if (!isMatch) {
       return res.status(401).json({
         message: "Hallo du, feil passord!",
       });
     }
 
-    // Generate JWT token
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_KEY, { expiresIn: "1h" });
+    const token = jwt.sign({ username: user.username }, process.env.JWT_KEY, { expiresIn: "1h" });
 
-    res.json({
-      token,
-      userId: user._id,
+    res.cookie("token", token, {
+      httpOnly: true,
+      // secure: process.env.NODE_ENV === "production", // Only send over HTTPS in production
+      sameSite: "strict",
+      maxAge: 3600000, // 1 hour in milliseconds
+    });
+
+    res.status(201).json({
+      message: "Logget inn!",
+      username: username,
     });
   } catch (error) {
     res.status(500).json({
-      message: "Login failed",
+      message:
+        "Hmm. Du har visst glemt brukernavnet ditt. Eller kanskje du ikke enda er registrert?",
+      error: error.message,
+    });
+  }
+});
+
+snublejuice.post("/logout", async (req, res) => {
+  res.clearCookie("token");
+  res.json({ ok: true });
+});
+
+snublejuice.post("/delete", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    // Check if user exists.
+    const user = await users.findOne({ username: username });
+    if (!user) {
+      return res.status(400).json({
+        message:
+          "Hmm. Du har visst glemt brukernavnet ditt. Eller kanskje du ikke enda er registrert?",
+      });
+    }
+
+    // Check if password is correct.
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({
+        message: "Hallo du, feil passord!",
+      });
+    }
+
+    await users.deleteOne({ username: username });
+    res.clearCookie("token");
+    res.status(201).json({
+      message: "Brukeren er slettet!",
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Fikk ikke slettet brukeren. Skrev du riktig passord?",
       error: error.message,
     });
   }
@@ -167,24 +224,20 @@ snublejuice.post("/login", async (req, res) => {
 // Authentication Middleware
 const authMiddleware = async (req, res, next) => {
   try {
-    const token = req.header("Authorization").replace("Bearer ", "");
+    const token = req.cookies.token;
+
     if (!token) {
       req.user = null;
       return next();
     }
-
     const decoded = jwt.verify(token, process.env.JWT_KEY);
 
-    // Fetch user from database
-    const user = await users.findOne({ _id: decoded.userId });
+    const user = await users.findOne({ username: decoded.username });
     if (!user) {
       req.user = null;
       return next();
     }
-
-    // Add user info to request object
     req.user = {
-      userId: decoded.userId,
       username: user.username,
     };
 
@@ -197,11 +250,14 @@ const authMiddleware = async (req, res, next) => {
 
 snublejuice.get("/profile", authMiddleware, async (req, res) => {
   try {
-    const user = await users.findOne({ _id: req.userId }, { projection: { password: 0 } });
+    const user = await users.findOne(
+      { username: req.user.username },
+      { projection: { password: 0 } },
+    );
     res.json(user);
   } catch (error) {
     res.status(500).json({
-      message: "Error fetching profile",
+      message: "Noe gikk galt her i bakgrunnen når vi skulle hente profilinfo.",
     });
   }
 });

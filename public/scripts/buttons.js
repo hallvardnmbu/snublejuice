@@ -39,7 +39,7 @@ document.getElementById("toggleAdvanced").onclick = function (event) {
 
   // Set the button text based on visibility.
   document.getElementById("toggleAdvanced").innerHTML =
-    section.style.display === "flex" ? "skjul valg" : "flere valg";
+    section.style.display === "flex" ? "Skjul valg" : "Flere valg";
 
   // Save the visibility state to session storage.
   sessionStorage.setItem("advancedSelection", section.style.display === "flex");
@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const element = document.getElementById("advancedSelection");
   const isVisible = sessionStorage.getItem("advancedSelection") === "true";
   element.style.display = isVisible ? "flex" : "none";
-  document.getElementById("toggleAdvanced").innerHTML = isVisible ? "skjul valg" : "flere valg";
+  document.getElementById("toggleAdvanced").innerHTML = isVisible ? "Skjul valg" : "Flere valg";
 });
 
 // Volume, alcohol and search change.
@@ -92,8 +92,8 @@ function changeModal(currentModal, newModal, event) {
   // Stop event from bubbling up to window
   event.stopPropagation();
 
-  document.getElementById(`detailed-${currentModal}`).style.display = "none";
-  document.getElementById(`detailed-${newModal}`).style.display = "block";
+  document.getElementById(currentModal).style.display = "none";
+  document.getElementById(newModal).style.display = "block";
 
   graphPrice(newModal);
 }
@@ -104,7 +104,7 @@ document.addEventListener("DOMContentLoaded", function () {
   productSections.forEach((section) => {
     section.addEventListener("click", function () {
       const itemIndex = this.getAttribute("index");
-      const modal = document.getElementById(`detailed-${itemIndex}`);
+      const modal = document.getElementById(itemIndex);
 
       // Prevent modal from opening if it's already open (to avoid graphing etc.)
       if (modal.style.display === "block") {
@@ -123,7 +123,7 @@ document.addEventListener("DOMContentLoaded", function () {
     button.addEventListener("click", function (event) {
       event.stopPropagation(); // Prevent bubbling to avoid modal reopening
       const itemIndex = this.getAttribute("index");
-      const modal = document.getElementById(`detailed-${itemIndex}`);
+      const modal = document.getElementById(itemIndex);
       modal.style.display = "none";
     });
   });

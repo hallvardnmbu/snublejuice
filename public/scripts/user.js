@@ -132,8 +132,6 @@ document.getElementById("deleteUserForm").onsubmit = async function (event) {
     password: document.getElementById("passwordDEL").value,
   };
 
-  console.log(formData);
-
   try {
     const response = await fetch("/delete", {
       method: "POST",
@@ -170,6 +168,9 @@ function logout() {
   fetch("/logout", {
     method: "POST",
     credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
   })
     .then((response) => response.json())
     .then((data) => {

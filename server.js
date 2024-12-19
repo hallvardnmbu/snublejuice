@@ -126,7 +126,6 @@ snublejuice.post("/register", async (req, res) => {
       sameSite: "strict",
       maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
       path: "/",
-      domain: "snublejuice.no",
     });
 
     res.status(201).json({
@@ -170,7 +169,6 @@ snublejuice.post("/login", async (req, res) => {
       sameSite: "strict",
       maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
       path: "/",
-      domain: "snublejuice.no",
     });
 
     res.status(201).json({
@@ -191,7 +189,6 @@ snublejuice.post("/logout", async (req, res) => {
     secure: _PRODUCTION,
     sameSite: "strict",
     path: "/",
-    domain: "snublejuice.no",
   });
   res.status(200).json({ ok: true });
 });
@@ -223,7 +220,6 @@ snublejuice.post("/delete", async (req, res) => {
       secure: _PRODUCTION,
       sameSite: "strict",
       path: "/",
-      domain: "snublejuice.no",
     });
     res.status(201).json({
       message: "Brukeren er slettet!",

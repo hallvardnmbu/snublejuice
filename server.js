@@ -67,7 +67,7 @@ let collection = db.collection("products");
 snublejuice.get("/api/stores", async (req, res) => {
   try {
     const stores = await collection.distinct("stores");
-    res.json(stores);
+    res.status(200).json(stores);
   } catch (err) {
     res.status(500).send(err);
   }
@@ -76,7 +76,7 @@ snublejuice.get("/api/stores", async (req, res) => {
 snublejuice.get("/api/countries", async (req, res) => {
   try {
     const countries = await collection.distinct("country");
-    res.json(countries);
+    res.status(200).json(countries);
   } catch (err) {
     res.status(500).send(err);
   }
@@ -121,7 +121,7 @@ snublejuice.post("/register", async (req, res) => {
     const token = jwt.sign({ username: username }, process.env.JWT_KEY, { expiresIn: "365d" });
 
     res.cookie("token", token, {
-      httpOnly: false,
+      httpOnly: true,
       secure: _PRODUCTION,
       sameSite: "strict",
       maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
@@ -165,7 +165,7 @@ snublejuice.post("/login", async (req, res) => {
     const token = jwt.sign({ username: user.username }, process.env.JWT_KEY, { expiresIn: "365d" });
 
     res.cookie("token", token, {
-      httpOnly: false,
+      httpOnly: true,
       secure: _PRODUCTION,
       sameSite: "strict",
       maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
@@ -186,8 +186,14 @@ snublejuice.post("/login", async (req, res) => {
 });
 
 snublejuice.post("/logout", async (req, res) => {
-  res.clearCookie("token");
-  res.json({ ok: true });
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: _PRODUCTION,
+    sameSite: "strict",
+    path: "/",
+    domain: "snublejuice.no",
+  });
+  res.status(200).json({ ok: true });
 });
 
 snublejuice.post("/delete", async (req, res) => {
@@ -212,7 +218,13 @@ snublejuice.post("/delete", async (req, res) => {
     }
 
     await users.deleteOne({ username: username });
-    res.clearCookie("token");
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: _PRODUCTION,
+      sameSite: "strict",
+      path: "/",
+      domain: "snublejuice.no",
+    });
     res.status(201).json({
       message: "Brukeren er slettet!",
     });
@@ -257,7 +269,7 @@ snublejuice.get("/profile", authMiddleware, async (req, res) => {
       { username: req.user.username },
       { projection: { password: 0 } },
     );
-    res.json(user);
+    res.status(200).json(user);
   } catch (error) {
     res.status(500).json({
       message: "Noe gikk galt her i bakgrunnen når vi skulle hente profilinfo.",

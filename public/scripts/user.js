@@ -28,6 +28,7 @@ document.getElementById("loginForm").onsubmit = async function (event) {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify(formData),
     });
 
@@ -78,6 +79,7 @@ document.getElementById("registerForm").onsubmit = async function (event) {
   try {
     const response = await fetch("/register", {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -135,6 +137,7 @@ document.getElementById("deleteUserForm").onsubmit = async function (event) {
   try {
     const response = await fetch("/delete", {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -166,6 +169,7 @@ document.getElementById("deleteUserForm").onsubmit = async function (event) {
 function logout() {
   fetch("/logout", {
     method: "POST",
+    credentials: "include",
   })
     .then((response) => response.json())
     .then((data) => {

@@ -95,20 +95,22 @@ a:hover {
 
 .signupModal {
     display: none;
-    padding: var(--padding) 0 0 0;
-    align-self: center;
+    flex-direction: column;
+    align-items: center;
 
+    padding: var(--padding) 0 0 0;
     width: 100%;
-    max-width: 350px;
-}
-.signupModal form {
-    padding-bottom: var(--padding);
+
+    background-color: var(--dimmed);
 }
 .signup {
     display: flex;
     flex-direction: row;
-    justify-content: center;
     gap: var(--padding);
+    padding-bottom: var(--padding);
+
+    width: 100%;
+    max-width: 350px;
 }
 .signup * {
     color: var(--dimtext);
@@ -125,9 +127,11 @@ a:hover {
 }
 .userMessage {
     display: none;
+    justify-content: center;
+
+    width: 100%;
     color: var(--dimtext);
     padding: var(--padding);
-    background-color: var(--negative);
 }
 
 footer {

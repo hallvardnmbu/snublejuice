@@ -6,7 +6,7 @@ function loginModal() {
   register.style.display = "none";
 
   const login = document.getElementById("loginModal");
-  login.style.display = login.style.display === "block" ? "none" : "block";
+  login.style.display = login.style.display === "flex" ? "none" : "flex";
 
   const userMessages = document.getElementsByClassName("userMessage");
   for (let i = 0; i < userMessages.length; i++) {
@@ -34,6 +34,7 @@ document.getElementById("loginForm").onsubmit = async function (event) {
 
     const data = await response.json();
     loginMessage.style.display = "flex";
+    loginMessage.style.backgroundColor = response.ok ? "var(--positive)" : "var(--negative)";
 
     if (response.ok) {
       loginMessage.textContent = data.message;
@@ -47,6 +48,7 @@ document.getElementById("loginForm").onsubmit = async function (event) {
     }
   } catch (error) {
     loginMessage.style.display = "flex";
+    loginMessage.style.backgroundColor = "var(--negative)";
     loginMessage.textContent = "Hmm, noe gikk galt...";
   }
 };
@@ -59,7 +61,7 @@ function registerModal() {
   login.style.display = "none";
 
   const register = document.getElementById("registerModal");
-  register.style.display = register.style.display === "block" ? "none" : "block";
+  register.style.display = register.style.display === "flex" ? "none" : "flex";
 
   const userMessages = document.getElementsByClassName("userMessage");
   for (let i = 0; i < userMessages.length; i++) {
@@ -88,6 +90,7 @@ document.getElementById("registerForm").onsubmit = async function (event) {
 
     const data = await response.json();
     registerMessage.style.display = "flex";
+    registerMessage.style.backgroundColor = response.ok ? "var(--positive)" : "var(--negative)";
 
     if (response.ok) {
       registerMessage.textContent = data.message;
@@ -101,6 +104,7 @@ document.getElementById("registerForm").onsubmit = async function (event) {
     }
   } catch (error) {
     registerMessage.style.display = "flex";
+    registerMessage.style.backgroundColor = "var(--negative)";
     registerMessage.textContent = "Hmm, noe gikk galt...";
   }
 };
@@ -108,20 +112,20 @@ document.getElementById("registerForm").onsubmit = async function (event) {
 // PROFILE
 // ------------------------------------------------------------------------------------------------
 
-function profileModal() {
+async function profileModal() {
   const login = document.getElementById("loginModal");
   login.style.display = "none";
 
   const register = document.getElementById("registerModal");
   register.style.display = "none";
 
-  const profile = document.getElementById("profileModal");
-  profile.style.display = profile.style.display === "block" ? "none" : "block";
-
   const userMessages = document.getElementsByClassName("userMessage");
   for (let i = 0; i < userMessages.length; i++) {
     userMessages[i].style.display = "none";
   }
+
+  const profile = document.getElementById("profileModal");
+  profile.style.display = profile.style.display === "flex" ? "none" : "flex";
 }
 
 document.getElementById("deleteUserForm").onsubmit = async function (event) {
@@ -144,6 +148,7 @@ document.getElementById("deleteUserForm").onsubmit = async function (event) {
 
     const data = await response.json();
     profileMessage.style.display = "flex";
+    profileMessage.style.backgroundColor = response.ok ? "var(--positive)" : "var(--negative)";
 
     if (response.ok) {
       profileMessage.textContent = data.message;
@@ -157,6 +162,7 @@ document.getElementById("deleteUserForm").onsubmit = async function (event) {
     }
   } catch (error) {
     profileMessage.style.display = "flex";
+    profileMessage.style.backgroundColor = "var(--negative)";
     profileMessage.textContent = "Hmm, noe gikk galt...";
   }
 };

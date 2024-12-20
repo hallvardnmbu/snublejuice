@@ -18,7 +18,7 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const _PRODUCTION = process.env.SJS_ENV === "production";
+const _PRODUCTION = process.env.NODE_ENV === "production";
 
 const port = 8080;
 const app = express();
@@ -231,8 +231,7 @@ snublejuice.post("/delete", async (req, res) => {
   }
 });
 
-// Authentication Middleware
-const authMiddleware = async (req, res, next) => {
+const authenticate = async (req, res, next) => {
   try {
     const token = req.cookies.token;
 
@@ -249,6 +248,7 @@ const authMiddleware = async (req, res, next) => {
     }
     req.user = {
       username: user.username,
+      email: user.email,
     };
 
     next();
@@ -258,21 +258,7 @@ const authMiddleware = async (req, res, next) => {
   }
 };
 
-snublejuice.get("/profile", authMiddleware, async (req, res) => {
-  try {
-    const user = await users.findOne(
-      { username: req.user.username },
-      { projection: { password: 0 } },
-    );
-    res.status(200).json(user);
-  } catch (error) {
-    res.status(500).json({
-      message: "Noe gikk galt her i bakgrunnen når vi skulle hente profilinfo.",
-    });
-  }
-});
-
-snublejuice.get("/", authMiddleware, async (req, res) => {
+snublejuice.get("/", authenticate, async (req, res) => {
   const currentDate = new Date();
   const currentMonth = currentDate.toISOString().slice(0, 7);
 
@@ -375,6 +361,7 @@ snublejuice.get("/", authMiddleware, async (req, res) => {
       user: req.user
         ? {
             username: req.user.username,
+            email: req.user.email,
             favorites: favorites.favorites,
           }
         : null,

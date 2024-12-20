@@ -41,7 +41,17 @@
 
       <div class="information">
         <div class="name">
-          <div id="name"><%= item.name %></div>
+          <div id="name">
+            <span><%= item.name %></span>
+            <% if (user) { %>
+                <img
+                    src="./images/favourite<%= user.favourites.includes(item.index) ? '-filled' : '' %>.png"
+                    alt="Favoritt"
+                    data-index="<%= item.index %>"
+                    class="favourite-toggle"
+                >
+              <% } %>
+          </div>
 
           <div class="category">
             <div>

@@ -116,6 +116,7 @@ snublejuice.post("/register", async (req, res) => {
       username,
       email,
       password: hashedPassword,
+      favourites: [],
     });
 
     const token = jwt.sign({ username: username }, process.env.JWT_KEY, { expiresIn: "365d" });
@@ -258,6 +259,41 @@ const authenticate = async (req, res, next) => {
   }
 };
 
+snublejuice.post("/favourite", authenticate, async (req, res) => {
+  try {
+    let { index } = req.body;
+    index = parseInt(index);
+
+    await users.updateOne({ username: req.user.username }, [
+      {
+        $set: {
+          favourites: {
+            $cond: {
+              if: { $in: [index, "$favourites"] },
+              then: {
+                $filter: {
+                  input: "$favourites",
+                  cond: { $ne: ["$$this", index] },
+                },
+              },
+              else: { $concatArrays: ["$favourites", [index]] },
+            },
+          },
+        },
+      },
+    ]);
+
+    res.status(201).json({
+      message: "Favoritt er oppdatert!",
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Noe gikk galt :-(",
+      error: error.message,
+    });
+  }
+});
+
 snublejuice.get("/", authenticate, async (req, res) => {
   const currentDate = new Date();
   const currentMonth = currentDate.toISOString().slice(0, 7);
@@ -352,9 +388,11 @@ snublejuice.get("/", authenticate, async (req, res) => {
 
     let visitors = (await visits.findOne({ class: "fresh" }))?.month[currentMonth] || 0;
 
-    const favorites =
-      (await users.findOne({ username: req.user?.username }, { projection: { favorites: 1 } })) ||
-      [];
+    const favourites =
+      (await users.findOne(
+        { username: req.user?.username },
+        { projection: { _id: 0, favourites: 1 } },
+      )) || [];
 
     res.render("products", {
       visitors: visitors,
@@ -362,7 +400,7 @@ snublejuice.get("/", authenticate, async (req, res) => {
         ? {
             username: req.user.username,
             email: req.user.email,
-            favorites: favorites.favorites,
+            favourites: favourites.favourites,
           }
         : null,
       updated: updated,

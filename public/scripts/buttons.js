@@ -88,6 +88,42 @@ document.getElementById("updateCookies").onclick = function (event) {
   selectCookies.style.display = "flex";
 };
 
+// Toggle favourite.
+document.querySelectorAll(".favourite-toggle").forEach((img) => {
+  img.addEventListener("click", async function (event) {
+    event.stopPropagation();
+
+    // Send POST request to server.
+    const index = this.dataset.index;
+    await fetch("/favourite", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ index: index }),
+    });
+
+    // Toggle image.
+    this.src = this.src.includes("favourite-filled.png")
+      ? "./images/favourite.png"
+      : "./images/favourite-filled.png";
+  });
+
+  // Hover events
+  img.addEventListener("mouseenter", function () {
+    this.src = this.src.includes("favourite-filled.png")
+      ? "./images/favourite.png"
+      : "./images/favourite-filled.png";
+  });
+
+  img.addEventListener("mouseleave", function () {
+    this.src = this.src.includes("favourite-filled.png")
+      ? "./images/favourite.png"
+      : "./images/favourite-filled.png";
+  });
+});
+
 function changeModal(currentModal, newModal, event) {
   // Stop event from bubbling up to window
   event.stopPropagation();

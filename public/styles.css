@@ -324,7 +324,15 @@ p {
     color: var(--dimtext);
 }
 .name #name {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--padding);
     color: var(--dimtext);
+}
+.name #name img {
+    max-height: var(--font-description);
 }
 .name b {
     font-size: var(--font-title);

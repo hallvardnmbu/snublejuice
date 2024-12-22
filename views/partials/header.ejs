@@ -2,17 +2,17 @@
   <div><%= visitors %> besøkende denne måneden.</div>
   <% if (!user) { %>
     <div>
-      <button onclick="loginModal()">
+      <button onclick="currentModal('loginModal')">
         Logg inn
       </button>
       <span> | </span>
-      <button onclick="registerModal()">
+      <button onclick="currentModal('registerModal')">
         Registrer
       </button>
     </div>
   <% } else { %>
     <div>
-      <button onclick="profileModal()">
+      <button onclick="currentModal('profileModal')">
         <%= user?.username %>
       </button>
         <span> | </span>
@@ -20,9 +20,13 @@
         Logg ut
       </button>
       <span> | </span>
-      <button onclick="favouriteModal()">
-        Favoritter
-      </button>
+      <% if (!favourites) { %>
+        <button onclick="window.location.href = '/?page=1&favourites=true'">
+          Favoritter
+        </button>
+      <% } else { %>
+        <button onclick="window.location.href = '/?page=1'">Tilbake</button>
+      <% } %>
     </div>
   <% } %>
 </div>
@@ -101,6 +105,10 @@
   </form>
 
   <div class="userMessage" id="profileMessage"></div>
+</div>
+
+<div id="favouriteModal" class="signupModal">
+  <div class="userMessage" id="favouriteMessage"></div>
 </div>
 
 <script src="scripts/user.js"></script>

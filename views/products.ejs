@@ -24,8 +24,8 @@
 </head>
 
 <body>
-  <%- include('partials/header') %>
-  <%- include('partials/forms', { updated }) %>
+  <%- include('partials/header', { favourites }) %>
+  <%- include('partials/forms', { updated, favourites }) %>
 
   <% if (data.length === 0) { %>
     <p style="text-align: center;">Ingen resultater finnes for valgt kominasjon.</p>

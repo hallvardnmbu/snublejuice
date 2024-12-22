@@ -1,18 +1,25 @@
+const _MODALS = ["loginModal", "registerModal", "profileModal"];
+
+function currentModal(modal) {
+  // Close all modals except the one that was clicked.
+  for (const arg of _MODALS.filter((m) => m !== modal)) {
+    let element = document.getElementById(arg);
+    element.style.display = "none";
+  }
+
+  // Close all messages.
+  const messages = document.getElementsByClassName("userMessage");
+  for (const message of messages) {
+    message.style.display = "none";
+  }
+
+  // Open the clicked modal.
+  let element = document.getElementById(modal);
+  element.style.display = element.style.display === "flex" ? "none" : "flex";
+}
+
 // LOGIN
 // ------------------------------------------------------------------------------------------------
-
-function loginModal() {
-  const register = document.getElementById("registerModal");
-  register.style.display = "none";
-
-  const login = document.getElementById("loginModal");
-  login.style.display = login.style.display === "flex" ? "none" : "flex";
-
-  const userMessages = document.getElementsByClassName("userMessage");
-  for (let i = 0; i < userMessages.length; i++) {
-    userMessages[i].style.display = "none";
-  }
-}
 
 document.getElementById("loginForm").onsubmit = async function (event) {
   event.preventDefault();
@@ -23,7 +30,7 @@ document.getElementById("loginForm").onsubmit = async function (event) {
   };
 
   try {
-    const response = await fetch("/login", {
+    const response = await fetch("/api/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -56,19 +63,6 @@ document.getElementById("loginForm").onsubmit = async function (event) {
 // REGISTER
 // ------------------------------------------------------------------------------------------------
 
-function registerModal() {
-  const login = document.getElementById("loginModal");
-  login.style.display = "none";
-
-  const register = document.getElementById("registerModal");
-  register.style.display = register.style.display === "flex" ? "none" : "flex";
-
-  const userMessages = document.getElementsByClassName("userMessage");
-  for (let i = 0; i < userMessages.length; i++) {
-    userMessages[i].style.display = "none";
-  }
-}
-
 document.getElementById("registerForm").onsubmit = async function (event) {
   event.preventDefault();
 
@@ -79,7 +73,7 @@ document.getElementById("registerForm").onsubmit = async function (event) {
   };
 
   try {
-    const response = await fetch("/register", {
+    const response = await fetch("/api/register", {
       method: "POST",
       credentials: "include",
       headers: {
@@ -112,22 +106,6 @@ document.getElementById("registerForm").onsubmit = async function (event) {
 // PROFILE
 // ------------------------------------------------------------------------------------------------
 
-async function profileModal() {
-  const login = document.getElementById("loginModal");
-  login.style.display = "none";
-
-  const register = document.getElementById("registerModal");
-  register.style.display = "none";
-
-  const userMessages = document.getElementsByClassName("userMessage");
-  for (let i = 0; i < userMessages.length; i++) {
-    userMessages[i].style.display = "none";
-  }
-
-  const profile = document.getElementById("profileModal");
-  profile.style.display = profile.style.display === "flex" ? "none" : "flex";
-}
-
 document.getElementById("deleteUserForm").onsubmit = async function (event) {
   event.preventDefault();
 
@@ -137,7 +115,7 @@ document.getElementById("deleteUserForm").onsubmit = async function (event) {
   };
 
   try {
-    const response = await fetch("/delete", {
+    const response = await fetch("/api/delete", {
       method: "POST",
       credentials: "include",
       headers: {
@@ -171,7 +149,7 @@ document.getElementById("deleteUserForm").onsubmit = async function (event) {
 // ------------------------------------------------------------------------------------------------
 
 function logout() {
-  fetch("/logout", {
+  fetch("/api/logout", {
     method: "POST",
     credentials: "include",
     headers: {

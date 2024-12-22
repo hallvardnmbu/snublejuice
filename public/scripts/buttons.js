@@ -8,7 +8,13 @@ function applyFilters(resetPage = false) {
 
 function changePage(newPage) {
   document.querySelector('input[name="page"]').value = newPage;
-  applyFilters();
+
+  // Handle favourites.
+  if (!window.location.href.includes("favourites=true")) {
+    applyFilters();
+  } else {
+    window.location.href = "/?page=" + newPage + "&favourites=true";
+  }
 }
 
 // Toggle sort order.
@@ -95,7 +101,7 @@ document.querySelectorAll(".favourite-toggle").forEach((img) => {
 
     // Send POST request to server.
     const index = this.dataset.index;
-    await fetch("/favourite", {
+    await fetch("/api/favourite", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -116,7 +122,6 @@ document.querySelectorAll(".favourite-toggle").forEach((img) => {
       ? "./images/favourite.png"
       : "./images/favourite-filled.png";
   });
-
   img.addEventListener("mouseleave", function () {
     this.src = this.src.includes("favourite-filled.png")
       ? "./images/favourite.png"

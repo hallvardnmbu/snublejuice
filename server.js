@@ -86,7 +86,7 @@ snublejuice.get("/maintenance", async (req, res) => {
   res.render("maintenance");
 });
 
-snublejuice.post("/register", async (req, res) => {
+snublejuice.post("/api/register", async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
@@ -140,7 +140,7 @@ snublejuice.post("/register", async (req, res) => {
   }
 });
 
-snublejuice.post("/login", async (req, res) => {
+snublejuice.post("/api/login", async (req, res) => {
   try {
     const { username, password } = req.body;
 
@@ -183,7 +183,7 @@ snublejuice.post("/login", async (req, res) => {
   }
 });
 
-snublejuice.post("/logout", async (req, res) => {
+snublejuice.post("/api/logout", async (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
     secure: _PRODUCTION,
@@ -193,7 +193,7 @@ snublejuice.post("/logout", async (req, res) => {
   res.status(200).json({ ok: true });
 });
 
-snublejuice.post("/delete", async (req, res) => {
+snublejuice.post("/api/delete", async (req, res) => {
   try {
     const { username, password } = req.body;
 
@@ -259,7 +259,7 @@ const authenticate = async (req, res, next) => {
   }
 };
 
-snublejuice.post("/favourite", authenticate, async (req, res) => {
+snublejuice.post("/api/favourite", authenticate, async (req, res) => {
   try {
     let { index } = req.body;
     index = parseInt(index);
@@ -335,6 +335,13 @@ snublejuice.get("/", authenticate, async (req, res) => {
   const search = req.query.search || null;
   const storelike = req.query.storelike || null;
   let store = req.query.store || "Velg spesifikk butikk";
+  const includeFavourites = req.query.favourites === "true";
+
+  const favourites =
+    (await users.findOne(
+      { username: req.user?.username },
+      { projection: { _id: 0, favourites: 1 } },
+    )) || [];
 
   let orderable = store === "Velg spesifikk butikk";
   if (orderable) {
@@ -345,6 +352,9 @@ snublejuice.get("/", authenticate, async (req, res) => {
     let { data, total, updated } = await load({
       collection,
       visits,
+
+      // Favourites;
+      favourites: includeFavourites ? favourites.favourites : null,
 
       // Single parameters;
       category: categories[category],
@@ -377,6 +387,7 @@ snublejuice.get("/", authenticate, async (req, res) => {
 
       // Pagination;
       page: page,
+      perPage: 15,
 
       // Search for name;
       search: search,
@@ -388,12 +399,6 @@ snublejuice.get("/", authenticate, async (req, res) => {
 
     let visitors = (await visits.findOne({ class: "fresh" }))?.month[currentMonth] || 0;
 
-    const favourites =
-      (await users.findOne(
-        { username: req.user?.username },
-        { projection: { _id: 0, favourites: 1 } },
-      )) || [];
-
     res.render("products", {
       visitors: visitors,
       user: req.user
@@ -403,6 +408,7 @@ snublejuice.get("/", authenticate, async (req, res) => {
             favourites: favourites.favourites,
           }
         : null,
+      favourites: includeFavourites,
       updated: updated,
       data: data,
       page: page,
@@ -423,6 +429,7 @@ snublejuice.get("/", authenticate, async (req, res) => {
     res.render("products", {
       visitors: "X",
       user: null,
+      favourites: false,
       updated: null,
       data: [],
       page: 1,

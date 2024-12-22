@@ -1,5 +1,3 @@
-const _PER_PAGE = 15;
-
 export const categories = {
   null: null,
   alkoholfritt: "Alkoholfritt",
@@ -21,6 +19,9 @@ export const categories = {
 export async function load({
   collection,
   visits,
+
+  // Favourites;
+  favourites = null,
 
   // Single parameters;
   category = null,
@@ -57,6 +58,7 @@ export async function load({
 
   // Pagination;
   page = 1,
+  perPage = 15,
 
   // Search for name;
   search = null,
@@ -106,6 +108,10 @@ export async function load({
         },
       },
     });
+  }
+
+  if (favourites) {
+    pipeline.push({ $match: { index: { $in: favourites } } });
   }
 
   let matchStage = {
@@ -177,7 +183,7 @@ export async function load({
     if (tot.length === 0) {
       total = 1;
     } else {
-      total = Math.floor(tot[0].amount / _PER_PAGE) + 1;
+      total = Math.floor(tot[0].amount / perPage) + 1;
     }
   } else {
     total = null;
@@ -186,7 +192,7 @@ export async function load({
   if (!search) {
     pipeline.push({ $sort: { [sort]: ascending ? 1 : -1 } });
   }
-  pipeline.push({ $skip: (page - 1) * _PER_PAGE }, { $limit: _PER_PAGE });
+  pipeline.push({ $skip: (page - 1) * perPage }, { $limit: perPage });
 
   try {
     const data = await collection.aggregate(pipeline).toArray();

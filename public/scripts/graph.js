@@ -1,5 +1,3 @@
-const _PER_PAGE = 15;
-
 // Format the date to custom string.
 function formatDateAsLocalString(date) {
   const year = date.getFullYear();
@@ -132,10 +130,11 @@ function graphPrice(index) {
 }
 
 window.addEventListener("resize", function () {
-  for (let i = 0; i < _PER_PAGE; i++) {
-    const modal = document.getElementById(i);
-    if (modal && modal.style.display === "block") {
-      graphPrice(i);
+  const modals = document.getElementsByClassName("modal");
+  for (const modal of modals) {
+    if (modal.style.display === "block") {
+      const index = parseInt(modal.id);
+      graphPrice(index);
       break;
     }
   }

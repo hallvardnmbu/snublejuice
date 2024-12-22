@@ -89,6 +89,11 @@ a:hover {
 
     background-color: var(--dimmed);
 }
+.header div {
+    display: flex;
+    flex-direction: row;
+    gap: var(--padding);
+}
 .header button {
     font-size: var(--font-description);
 }

@@ -1,8 +1,9 @@
-  <header>
+  <header style="display: <%= favourites ? 'none' : 'block' %>">
     <form action="/" method="get" id="filter">
 
       <input type="hidden" name="page" value="<%= page %>">
       <input type="hidden" name="ascending" value="<%= ascending %>">
+      <input type="hidden" name="favourites" value="">
 
       <div class="filterSelection">
         <div class="mainSelection">

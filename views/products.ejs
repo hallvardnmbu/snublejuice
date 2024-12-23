@@ -32,7 +32,7 @@
   <% } %>
 
   <% data.forEach((item, index) => { %>
-    <%- include('partials/product', { index, item, user, storelike }) %>
+    <%- include('partials/product', { index, item, user, storelike, maxIndex: data.length - 1 }) %>
   <% }) %>
 
   <%- include('partials/footer') %>

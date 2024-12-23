@@ -116,21 +116,20 @@ document.querySelectorAll(".favourite-toggle").forEach((img) => {
       : "./images/favourite-filled.png";
   });
 
-  // Hover events
-  img.addEventListener("mouseenter", function () {
-    this.src = this.src.includes("favourite-filled.png")
-      ? "./images/favourite.png"
-      : "./images/favourite-filled.png";
-  });
-  img.addEventListener("mouseleave", function () {
-    this.src = this.src.includes("favourite-filled.png")
-      ? "./images/favourite.png"
-      : "./images/favourite-filled.png";
-  });
+  // // Hover events
+  // img.addEventListener("mouseenter", function () {
+  //   this.src = this.src.includes("favourite-filled.png")
+  //     ? "./images/favourite.png"
+  //     : "./images/favourite-filled.png";
+  // });
+  // img.addEventListener("mouseleave", function () {
+  //   this.src = this.src.includes("favourite-filled.png")
+  //     ? "./images/favourite.png"
+  //     : "./images/favourite-filled.png";
+  // });
 });
 
 function changeModal(currentModal, newModal, event) {
-  // Stop event from bubbling up to window
   event.stopPropagation();
 
   document.getElementById(currentModal).style.display = "none";

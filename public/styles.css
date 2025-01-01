@@ -583,6 +583,11 @@ p {
     padding: 0 var(--padding) var(--padding) var(--padding);
 }
 
+canvas {
+    height: 200px;
+    max-height: 200px;
+}
+
 hr {
     border: 0;
     height: var(--padding);

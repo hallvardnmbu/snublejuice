@@ -1,3 +1,5 @@
+const _RESOLUTION = 4;
+
 // Format the date to custom string.
 function formatDateAsLocalString(date) {
   const year = date.getFullYear();
@@ -61,11 +63,18 @@ function graphPrice(index) {
   const allPricesEqual = prices.every((price) => price === prices[0]);
 
   // Resize canvas to fit container
-  canvas.width = canvas.parentElement.clientWidth;
-  canvas.height = allPricesEqual ? 70 : canvas.parentElement.clientHeight;
+  canvas.width = canvas.parentElement.clientWidth * _RESOLUTION;
+  canvas.height = (allPricesEqual ? 70 : canvas.parentElement.clientHeight) * _RESOLUTION;
+  canvas.style.width = `${canvas.width / _RESOLUTION}px`;
+  canvas.style.height = `${canvas.height / _RESOLUTION}px`;
 
   // Calculate margins and plot area
-  var margin = { top: 20, right: 10, bottom: 40, left: 50 };
+  var margin = {
+    top: 20 * _RESOLUTION,
+    right: 10 * _RESOLUTION,
+    bottom: 20 * _RESOLUTION,
+    left: 40 * _RESOLUTION,
+  };
   var plotWidth = canvas.width - margin.left - margin.right;
   var plotHeight = canvas.height - margin.top - margin.bottom;
 
@@ -93,17 +102,17 @@ function graphPrice(index) {
     );
   }
   ctx.strokeStyle = color.line;
-  ctx.lineWidth = 10;
+  ctx.lineWidth = 10 * _RESOLUTION;
   ctx.stroke();
 
   // Draw markers
   for (var i = 0; i < prices.length; i++) {
     ctx.beginPath();
     ctx.rect(
-      margin.left + i * xScale - 5,
-      canvas.height - margin.bottom - (prices[i] - yMin) * yScale - 5,
-      10,
-      10,
+      margin.left + i * xScale - 5 * _RESOLUTION,
+      canvas.height - margin.bottom - (prices[i] - yMin) * yScale - 5 * _RESOLUTION,
+      10 * _RESOLUTION,
+      10 * _RESOLUTION,
     );
     ctx.fillStyle = color.marker;
     ctx.fill();
@@ -112,9 +121,13 @@ function graphPrice(index) {
   // Draw labels
   ctx.fillStyle = "black";
   ctx.textAlign = "center";
-  ctx.font = "14px alpha-beta";
+  ctx.font = `${14 * _RESOLUTION}px alpha-beta`;
   for (var i = 0; i < dates.length; i++) {
-    ctx.fillText(dates[i], margin.left + i * xScale, canvas.height - margin.bottom + 20);
+    ctx.fillText(
+      dates[i],
+      margin.left + i * xScale,
+      canvas.height - margin.bottom + 20 * _RESOLUTION,
+    );
   }
   ctx.fillStyle = "black";
   ctx.textAlign = "right";
@@ -123,10 +136,64 @@ function graphPrice(index) {
     var yValue = yMin + ((yMax - yMin) * i) / 5;
     ctx.fillText(
       yValue.toFixed(0),
-      margin.left - 10,
+      margin.left - 10 * _RESOLUTION,
       canvas.height - margin.bottom - yScale * (yValue - yMin),
     );
   }
+
+  // Hoverinfo
+  let hoverLayer = document.createElement("canvas");
+  hoverLayer.style.position = "absolute";
+  hoverLayer.style.left = canvas.offsetLeft + "px";
+  hoverLayer.style.top = canvas.offsetTop + "px";
+  hoverLayer.width = canvas.width;
+  hoverLayer.height = canvas.height;
+  hoverLayer.style.width = canvas.style.width;
+  hoverLayer.style.height = canvas.style.height;
+  hoverLayer.style.pointerEvents = "none"; // Allow events to pass through to canvas underneath
+  canvas.parentElement.appendChild(hoverLayer);
+  let hoverCtx = hoverLayer.getContext("2d");
+
+  // Add the listeners to the main canvas
+  canvas.addEventListener("mousemove", function (event) {
+    const rect = canvas.getBoundingClientRect();
+    const x = (event.clientX - rect.left) * _RESOLUTION;
+    const y = (event.clientY - rect.top) * _RESOLUTION;
+
+    const hoverIndex = Math.floor((x - margin.left) / xScale);
+    if (hoverIndex >= 0 && hoverIndex < prices.length) {
+      const hoverPrice = prices[hoverIndex];
+      const hoverDate = dates[hoverIndex];
+
+      // Clear previous hover info
+      hoverCtx.clearRect(0, 0, hoverLayer.width, hoverLayer.height);
+
+      // Draw hover info
+      hoverCtx.fillStyle = "black";
+      hoverCtx.textAlign = "left";
+      hoverCtx.font = `${14 * _RESOLUTION}px alpha-beta`;
+      hoverCtx.fillText(
+        `${hoverPrice} kr (${hoverDate})`,
+        x + 10 * _RESOLUTION,
+        y - 10 * _RESOLUTION,
+      );
+
+      // Draw vertical line at mouse position
+      hoverCtx.beginPath();
+      hoverCtx.moveTo(x, 0);
+      hoverCtx.lineTo(x, canvas.height);
+      hoverCtx.strokeStyle = color.line;
+      hoverCtx.lineWidth = 10 * _RESOLUTION;
+      hoverCtx.stroke();
+    } else {
+      hoverCtx.clearRect(0, 0, hoverLayer.width, hoverLayer.height);
+    }
+  });
+
+  // Clear hover info when mouse leaves the canvas
+  canvas.addEventListener("mouseleave", function () {
+    hoverCtx.clearRect(0, 0, hoverLayer.width, hoverLayer.height);
+  });
 }
 
 window.addEventListener("resize", function () {

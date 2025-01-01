@@ -144,7 +144,7 @@ export async function load({
       matchStage["instores"] = true;
     }
   } else {
-    const date = await visits.findOne({ class: "updated" }, { _id: 0 });
+    const date = await visits.findOne({ class: "stores" }, { _id: 0 });
     // Set the `updated` variable as the difference wrt. today as text.
     if (date) {
       const ONE_DAY = 1000 * 60 * 60 * 24;

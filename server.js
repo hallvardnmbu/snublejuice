@@ -349,10 +349,8 @@ snublejuice.get("/", authenticate, async (req, res) => {
   }
 
   // Check if items have `updated = false` or if it is a new month and price updates are not yet completed
-  const itemsNotUpdated = await collection.findOne({ updated: false });
   const priceUpdatesCompleted = await visits.findOne({ class: "prices" });
-  const isNewMonth = currentDate.getDate() === 1;
-  if (itemsNotUpdated || (isNewMonth && !priceUpdatesCompleted.updated)) {
+  if (!priceUpdatesCompleted.updated) {
     return res.redirect("/maintenance");
   }
 

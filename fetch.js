@@ -99,7 +99,7 @@ export async function load({
     });
   }
 
-  if (storelike) {
+  if (storelike && !favourites) {
     pipeline.push({
       $match: {
         stores: {
@@ -110,33 +110,34 @@ export async function load({
     });
   }
 
+  let matchStage;
   if (favourites) {
     pipeline.push({ $match: { index: { $in: favourites } } });
+    matchStage = {};
+  } else {
+    matchStage = {
+      // Only include updated products.
+      updated: true,
+
+      // If favourites are specified, disregard the buyable parameter.
+      ...(!favourites ? { buyable: true } : {}),
+
+      // Match the specified parameters if they are not null.
+      ...(category && !search ? { category: category } : {}),
+      ...(subcategory && !search ? { subcategory: subcategory } : {}),
+      ...(country && !search ? { country: country } : {}),
+      ...(district && !search ? { district: district } : {}),
+      ...(subdistrict && !search ? { subdistrict: subdistrict } : {}),
+      ...(year && !search ? { year: { $lte: year } } : {}),
+      ...(cork && !search ? { cork: cork } : {}),
+      ...(storage && !search ? { storage: storage } : {}),
+
+      // Parameters that are arrays are matched using the $in operator.
+      // ...(description.length && !search ? { "description.short": { $in: description } } : {}),
+      ...(store && !search && !storelike ? { stores: { $in: [store] } } : {}),
+      // ...(pair.length && !search ? { pair: { $in: pair } } : {}),
+    };
   }
-
-  let matchStage = {
-    // Only include updated products.
-    buyable: true,
-    updated: true,
-
-    // If favourites are specified, disregard the buyable parameter.
-    ...(!favourites ? { buyable: true } : {}),
-
-    // Match the specified parameters if they are not null.
-    ...(category && !search ? { category: category } : {}),
-    ...(subcategory && !search ? { subcategory: subcategory } : {}),
-    ...(country && !search ? { country: country } : {}),
-    ...(district && !search ? { district: district } : {}),
-    ...(subdistrict && !search ? { subdistrict: subdistrict } : {}),
-    ...(year && !search ? { year: { $lte: year } } : {}),
-    ...(cork && !search ? { cork: cork } : {}),
-    ...(storage && !search ? { storage: storage } : {}),
-
-    // Parameters that are arrays are matched using the $in operator.
-    // ...(description.length && !search ? { "description.short": { $in: description } } : {}),
-    ...(store && !search && !storelike ? { stores: { $in: [store] } } : {}),
-    // ...(pair.length && !search ? { pair: { $in: pair } } : {}),
-  };
 
   let updated = null;
   if (!store && !storelike && !search && !favourites) {
@@ -163,7 +164,7 @@ export async function load({
     }
   }
 
-  if (!search) {
+  if (!search && !favourites) {
     if (volume) {
       matchStage["volume"] = { ...matchStage["volume"], $gte: volume };
     }

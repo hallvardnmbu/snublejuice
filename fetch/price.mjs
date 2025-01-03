@@ -1,5 +1,4 @@
 import axios from "axios";
-import { HttpsProxyAgent } from "https-proxy-agent";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import dotenv from "dotenv";
 
@@ -19,32 +18,6 @@ await client.connect();
 
 const database = client.db("snublejuice");
 const itemCollection = database.collection("products");
-const visitCollection = database.collection("visits");
-
-const proxies = process.env.PROXY_IPS.split(",").flatMap((ip) => [
-  new HttpsProxyAgent(
-    `http://${process.env.PROXY_USR}:${process.env.PROXY_PWD}@${ip}:${process.env.PROXY_PRT}`,
-  ),
-]);
-
-function getNextProxy(proxy) {
-  if (proxies.length === 0) {
-    throw new Error("No more proxies available!");
-  }
-
-  const index = proxy ? proxies.findIndex((p) => p.proxy.host === proxy.proxy.host) : -1;
-  return proxies[(index + 1) % proxies.length];
-}
-
-function removeProxy(proxy) {
-  const index = proxies.findIndex((p) => p.proxy.host === proxy.proxy.host);
-  if (index > -1) {
-    const removedProxy = proxies.splice(index, 1)[0];
-    console.log(
-      `Removed failing proxy ${removedProxy.proxy.host}. ${proxies.length} proxies remaining.`,
-    );
-  }
-}
 
 const URL =
   "https://www.vinmonopolet.no/vmpws/v2/vmp/search?fields=FULL&searchType=product&currentPage={}&q=%3Arelevance";
@@ -116,32 +89,19 @@ function processProducts(products, alreadyUpdated) {
   return processed;
 }
 
-async function getPage(page, proxy, alreadyUpdated) {
-  for (let attempt = 0; attempt < 5; attempt++) {
-    try {
-      const response = await session.get(URL.replace("{}", page), {
-        // httpsAgent: proxy,
-        timeout: 10000,
-      });
+async function getPage(page, alreadyUpdated) {
+  try {
+    const response = await session.get(URL.replace("{}", page), {
+      timeout: 10000,
+    });
 
-      if (response.status === 200) {
-        return processProducts(response.data["productSearchResult"]["products"], alreadyUpdated);
-      }
-
-      console.log(`Status code ${response.status} at page ${page} (trying another proxy); ${err}`);
-    } catch (err) {
-      console.log(`Request failed with proxy ${proxy.host} for page ${page}: ${err.message}`);
-      if (err.code === "ECONNREFUSED" || err.code === "ETIMEDOUT") {
-        removeProxy(proxy);
-      }
+    if (response.status === 200) {
+      return processProducts(response.data["productSearchResult"]["products"], alreadyUpdated);
     }
 
-    try {
-      proxy = getNextProxy(proxy);
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-    } catch (err) {
-      throw new Error(`No more proxies available to fetch id ${id}`);
-    }
+    console.log(`Status code ${response.status} at page ${page}; ${err}`);
+  } catch (err) {
+    console.log(`Request failed for page ${page}: ${err.message}`);
   }
 
   throw new Error(`Failed to fetch page ${page} after 5 attempts.`);
@@ -232,20 +192,18 @@ async function updateDatabase(data) {
 
 async function getProducts(startPage = 0, alreadyUpdated = []) {
   let items = [];
-  let proxy = getNextProxy();
 
   for (let page = startPage; page < 10000; page++) {
     // Fetch products of page.
     console.log(`Page ${page}.`);
     try {
-      let products = await getPage(page, proxy, alreadyUpdated);
+      let products = await getPage(page, alreadyUpdated);
       if (products.length === 0) {
         console.log(`No more products (final page: ${page - 1}).`);
         break;
       }
 
       items = items.concat(products);
-      proxy = getNextProxy();
 
       await new Promise((resolve) => setTimeout(resolve, 900));
     } catch (err) {
@@ -303,13 +261,6 @@ async function syncUnupdatedProducts(threshold = null) {
 const session = axios.create();
 
 async function main() {
-  await visitCollection.updateOne(
-    { class: "prices" },
-    {
-      $set: { updated: false },
-    },
-  );
-
   await itemCollection.updateMany({}, { $set: { updated: false } });
   const alreadyUpdated = await itemCollection
     .find({ updated: true })
@@ -320,14 +271,7 @@ async function main() {
   await getProducts(startPage, alreadyUpdated);
 
   // [!] ONLY RUN THIS AFTER ALL PRICES HAVE BEEN UPDATED [!]
-  await syncUnupdatedProducts(null);
-
-  await visitCollection.updateOne(
-    { class: "prices" },
-    {
-      $set: { updated: true },
-    },
-  );
+  await syncUnupdatedProducts(100);
 }
 
 await main();

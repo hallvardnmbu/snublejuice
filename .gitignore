@@ -5,8 +5,7 @@ Icon?
 **/__pycache__/
 **/*.pattern
 
-database/
-fetch/remote/
+database/backup/
 
 **/node_modules/
 **/package-lock.json

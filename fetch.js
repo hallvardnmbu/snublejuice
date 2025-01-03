@@ -115,9 +115,12 @@ export async function load({
   }
 
   let matchStage = {
-    // Only include buyablem and updated products.
+    // Only include updated products.
     buyable: true,
     updated: true,
+
+    // If favourites are specified, disregard the buyable parameter.
+    ...(!favourites ? { buyable: true } : {}),
 
     // Match the specified parameters if they are not null.
     ...(category && !search ? { category: category } : {}),
@@ -136,7 +139,7 @@ export async function load({
   };
 
   let updated = null;
-  if (!store && !storelike) {
+  if (!store && !storelike && !search && !favourites) {
     if (orderable) {
       matchStage["orderable"] = true;
     }

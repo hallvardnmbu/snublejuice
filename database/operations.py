@@ -104,6 +104,39 @@ def update_prices(records) -> BulkWriteResult:
     return _DATABASE.bulk_write(operations)
 
 
+def update_expired_items_to_locf():
+    pipeline = [
+        {
+            "$set": {
+                "prices": {
+                    "$reduce": {
+                        "input": "$prices",
+                        "initialValue": [],
+                        "in": {
+                            "$concatArrays": [
+                                "$$value",
+                                [
+                                    {
+                                        "$cond": {
+                                            "if": {"$eq": ["$$this", 0.0]},
+                                            "then": {"$arrayElemAt": ["$$value", -1]},
+                                            "else": "$$this"
+                                        }
+                                    }
+                                ]
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    ]
+    result = _DATABASE.update_many({"prices": {"$elemMatch": {"$eq": 0.0}}}, pipeline)
+
+    print(f"Updated {result.modified_count} records")
+    print(result)
+
+
 def delete_fields(records, fields) -> BulkWriteResult:
     operations = [
         pymongo.UpdateOne(
@@ -163,4 +196,6 @@ def backup():
 # Restore remote database with local backup from `date`
 # restore(date = "2024-12-26")
 
-backup()
+# backup()
+
+update_expired_items_to_locf()

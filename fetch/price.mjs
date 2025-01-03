@@ -247,7 +247,7 @@ async function syncUnupdatedProducts(threshold = null) {
   try {
     const result = await itemCollection.updateMany({ updated: false }, [
       { $set: { oldprice: "$price" } },
-      { $set: { price: 0.0, discount: 0, literprice: 0, alcoholprice: null } },
+      { $set: { price: "$oldprice", discount: 0, literprice: 0, alcoholprice: null } },
       { $set: { prices: { $ifNull: ["$prices", []] } } },
       { $set: { prices: { $concatArrays: ["$prices", ["$price"]] } } },
     ]);

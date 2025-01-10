@@ -100,12 +100,10 @@ async function getPage(page, alreadyUpdated) {
       return processProducts(response.data["productSearchResult"]["products"], alreadyUpdated);
     }
 
-    console.log(`Status code ${response.status} at page ${page}; ${err}`);
+    console.log(`STATUS ${response.status} #${page}.`);
   } catch (err) {
-    console.log(`Request failed for page ${page}: ${err.message}`);
+    console.log(`ERROR #${page}: ${err.message}`);
   }
-
-  throw new Error(`Failed to fetch page ${page} after 5 attempts.`);
 }
 
 async function updateDatabase(data) {
@@ -193,14 +191,13 @@ async function updateDatabase(data) {
 
 async function getProducts(startPage = 0, alreadyUpdated = []) {
   let items = [];
+  const total = 1500;
 
   for (let page = startPage; page < 10000; page++) {
-    // Fetch products of page.
-    console.log(`Page ${page}.`);
     try {
       let products = await getPage(page, alreadyUpdated);
       if (products.length === 0) {
-        console.log(`No more products (final page: ${page - 1}).`);
+        console.log(`DONE (#${page - 1}).`);
         break;
       }
 
@@ -208,7 +205,7 @@ async function getProducts(startPage = 0, alreadyUpdated = []) {
 
       await new Promise((resolve) => setTimeout(resolve, 900));
     } catch (err) {
-      console.log(`Error page ${page}! ${err}`);
+      console.log(`ERROR #${page}: ${err}`);
       break;
     }
 
@@ -218,12 +215,13 @@ async function getProducts(startPage = 0, alreadyUpdated = []) {
         throw new Error(`No items for the last 10 pages. Aborting.`);
       }
 
-      console.log(`Updating ${items.length} products.`);
+      console.log(`UPDATING ${items.length} records.`);
       const result = await updateDatabase(items);
-      console.log(` Modified ${result.modifiedCount} records`);
-      console.log(` Upserted ${result.upsertedCount} records`);
+      console.log(` Modified ${result.modifiedCount}. Upserted ${result.upsertedCount}.`);
 
       items = [];
+
+      console.log(`PROGRESS: ${Math.floor((current / total) * 100)} %`);
     }
   }
 
@@ -231,17 +229,16 @@ async function getProducts(startPage = 0, alreadyUpdated = []) {
   if (items.length === 0) {
     return;
   }
-  console.log(`Updating ${items.length} final products.`);
+  console.log(`UPDATING ${items.length} final records.`);
   const result = await updateDatabase(items);
-  console.log(` Modified ${result.modifiedCount} records`);
-  console.log(` Upserted ${result.upsertedCount} records`);
+  console.log(` Modified ${result.modifiedCount}. Upserted ${result.upsertedCount}.`);
 }
 
 async function syncUnupdatedProducts(threshold = null) {
   const unupdatedCount = await itemCollection.countDocuments({ updated: false });
-  console.log(`Unupdated products: ${unupdatedCount}`);
+  console.log(`NOT UPDATED: ${unupdatedCount}`);
   if (threshold && unupdatedCount >= threshold) {
-    console.log(`Above threshold, aborting.`);
+    console.log(`ERROR. Above threshold. Aborting.`);
     return;
   }
 
@@ -253,9 +250,9 @@ async function syncUnupdatedProducts(threshold = null) {
       { $set: { prices: { $concatArrays: ["$prices", ["$price"]] } } },
     ]);
 
-    console.log(`Added ${result.modifiedCount} empty prices to unupdated products.`);
+    console.log(`MODIFIED ${result.modifiedCount} empty prices to unupdated products.`);
   } catch (err) {
-    console.error("Error adding unupdated prices:", err);
+    console.error("ERROR (adding unupdated prices):", err);
   }
 }
 

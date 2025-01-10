@@ -196,6 +196,7 @@ def backup():
 # Restore remote database with local backup from `date`
 # restore(date = "2024-12-26")
 
-# backup()
+# Replace all prices of expired items with the last known price
+# update_expired_items_to_locf()
 
-update_expired_items_to_locf()
+backup()

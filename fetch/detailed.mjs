@@ -6,13 +6,6 @@ dotenv.config();
 
 const client = new MongoClient(
   `mongodb+srv://${process.env.MONGO_USR}:${process.env.MONGO_PWD}@snublejuice.faktu.mongodb.net/?retryWrites=true&w=majority&appName=snublejuice`,
-  {
-    serverApi: {
-      version: ServerApiVersion.v1,
-      strict: true,
-      deprecationErrors: true,
-    },
-  },
 );
 await client.connect();
 
@@ -100,10 +93,8 @@ async function getPage(page) {
       return processProducts(response.data["productSearchResult"]["products"]);
     }
   } catch (err) {
-    console.log(`Request failed for page ${page}: ${err.message}`);
+    console.log(`ERROR #${page}: ${err.message}`);
   }
-
-  throw new Error(`Failed to fetch page ${page} after 5 attempts.`);
 }
 
 async function updateDatabase(data) {
@@ -114,12 +105,10 @@ async function getProducts() {
   let items = [];
 
   for (let page = 0; page < 10000; page++) {
-    console.log(`Page ${page}.`);
-
     try {
       let products = await getPage(page);
       if (products.length === 0 || !products) {
-        console.log(`No more new products (final page: ${page}).`);
+        console.log(`DONE (#${page}).`);
         break;
       }
 
@@ -127,7 +116,7 @@ async function getProducts() {
 
       await new Promise((resolve) => setTimeout(resolve, 1100));
     } catch (err) {
-      console.log(`Error page ${page}! ${err}`);
+      console.log(`ERROR #${page}: ${err}`);
       break;
     }
 
@@ -137,9 +126,9 @@ async function getProducts() {
         return;
       }
 
-      console.log(`Adding ${items.length} products.`);
+      console.log(`UPDATING ${items.length} records.`);
       const result = await updateDatabase(items);
-      console.log(` Inserted ${result.insertedCount} records`);
+      console.log(` Inserted ${result.insertedCount}.`);
 
       items = [];
     }
@@ -149,9 +138,9 @@ async function getProducts() {
   if (items.length === 0) {
     return;
   }
-  console.log(`Adding ${items.length} final products.`);
+  console.log(`UPDATING ${items.length} final records.`);
   const result = await updateDatabase(items);
-  console.log(` Inserted ${result.insertedCount} records`);
+  console.log(` Inserted ${result.insertedCount}.`);
 }
 
 // DETAILED INFORMATION:
@@ -234,12 +223,10 @@ async function getInformation(id) {
       return processInformation(response.data);
     }
 
-    console.log(`Status code ${response.status} for id ${id}`);
+    console.log(`STATUS ${response.status} #${id}-`);
   } catch (err) {
-    console.log(`Request failed for id ${id}: ${err.message}`);
+    console.log(`ERROR #${id}: ${err.message}`);
   }
-
-  throw new Error(`Failed to fetch id ${id} after 5 attempts.`);
 }
 
 async function updateDatabase(data) {
@@ -256,16 +243,16 @@ async function updateDatabase(data) {
 
 async function updateInformation(itemIds) {
   let items = [];
+  let current = 0;
+  const total = itemIds.length;
 
-  console.log(`Fetching ${itemIds.length} items.`);
   for (const element of itemIds) {
     const id = element["index"];
-    console.log(`Id ${id}.`);
 
     try {
       let product = await getInformation(id);
       if (!product) {
-        console.log(`Unable to find product of Id ${id}. Aborting.`);
+        console.log(`NONEXISTING #${id}. Aborting.`);
         break;
       }
 
@@ -273,29 +260,30 @@ async function updateInformation(itemIds) {
 
       await new Promise((resolve) => setTimeout(resolve, 1100));
     } catch (err) {
-      console.log(`Error! ${err}`);
+      console.log(`ERROR #${id}. Aborting. ${err}`);
       break;
     }
 
     // Upsert to the database every 10 items.
     if (items.length >= 10) {
-      console.log(`Adding ${items.length} products.`);
+      console.log(`UPDATING ${items.length} records.`);
       const result = await updateDatabase(items);
-      console.log(` Modified ${result.modifiedCount} records`);
-      console.log(` Upserted ${result.upsertedCount} records`);
+      console.log(` Modified ${result.modifiedCount}. Upserted ${result.upsertedCount}.`);
 
       items = [];
     }
+
+    current++;
+    console.log(`PROGRESS: ${Math.floor((current / total) * 100)} %`);
   }
 
   // Insert the remaining products, if any.
   if (items.length === 0) {
     return;
   }
-  console.log(`Adding ${items.length} final products.`);
+  console.log(`UPDATING ${items.length} final records.`);
   const result = await updateDatabase(items);
-  console.log(` Modified ${result.modifiedCount} records`);
-  console.log(` Upserted ${result.upsertedCount} records`);
+  console.log(` Modified ${result.modifiedCount}. Upserted ${result.upsertedCount}.`);
 }
 
 const session = axios.create();
@@ -307,7 +295,6 @@ async function main() {
     .find({ description: null })
     .project({ index: 1, _id: 0 })
     .toArray();
-
   await updateInformation(itemIds);
 }
 

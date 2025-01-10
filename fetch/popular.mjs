@@ -74,12 +74,10 @@ async function processId(index) {
       };
     }
 
-    console.log(`Status code ${response.status} at page ${page}; ${err}`);
+    console.log(`STATUS ${response.status} #${index}.`);
   } catch (err) {
-    console.log(`Request failed with for index ${index}: ${err}`);
+    console.log(`ERROR #${index}: ${err}`);
   }
-
-  throw new Error(`Failed to fetch index ${index} after 5 attempts.`);
 }
 
 async function updateDatabase(data) {
@@ -96,15 +94,16 @@ async function updateDatabase(data) {
 
 async function updateStores(itemIds) {
   let items = [];
+  let current = 0;
+  const total = itemIds.length;
 
   for (const element of itemIds) {
     const id = element["index"];
-    console.log(`Id ${id}.`);
 
     try {
       let product = await processId(id);
       if (!product) {
-        console.log(`Unable to find product of Id ${id}. Aborting.`);
+        console.log(`NONEXISTING #${id}. Aborting.`);
         break;
       } else {
         items.push(product);
@@ -112,18 +111,23 @@ async function updateStores(itemIds) {
         await new Promise((resolve) => setTimeout(resolve, 1100));
       }
     } catch (err) {
-      console.log(`Error: Id ${id}. Skipping this. ${err}`);
+      console.log(`ERROR #${id}. Aborting. ${err}`);
       break;
     }
 
     // Upsert to the database every 10 items.
     if (items.length >= 10) {
-      console.log(`Adding ${items.length} products.`);
+      console.log(`UPDATING ${items.length} records.`);
       const result = await updateDatabase(items);
-      console.log(` Modified ${result.modifiedCount} records`);
-      console.log(` Upserted ${result.upsertedCount} records`);
+      console.log(` Modified ${result.modifiedCount}. Upserted ${result.upsertedCount}.`);
 
       items = [];
+    }
+
+    current++;
+
+    if (current % 10 === 0) {
+      console.log(`PROGRESS: ${Math.floor((current / total) * 100)} %`);
     }
   }
 
@@ -131,10 +135,9 @@ async function updateStores(itemIds) {
   if (items.length === 0) {
     return;
   }
-  console.log(`Adding ${items.length} final products.`);
+  console.log(`UPDATING ${items.length} final records.`);
   const result = await updateDatabase(items);
-  console.log(` Modified ${result.modifiedCount} records`);
-  console.log(` Upserted ${result.upsertedCount} records`);
+  console.log(` Modified ${result.modifiedCount}. Upserted ${result.upsertedCount}.`);
 }
 
 const session = axios.create();
@@ -148,9 +151,6 @@ async function main() {
     .find({ discount: { $lt: -2.5 } })
     .project({ index: 1, _id: 0 })
     .toArray();
-
-  // Display the number of items to be updated.
-  console.log(`Updating ${itemIds.length} items.`);
   await updateStores(itemIds);
 
   // Store the time of the last update.

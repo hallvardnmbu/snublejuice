@@ -278,6 +278,36 @@ form input:hover {
     text-align: center;
     height: 20px;
 }
+#formDelta {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: var(--font-normal);
+    height: var(--font-normal);
+    border: var(--shadow) solid var(--dimtext);
+    background: var(--dimmed);
+    border-radius: 50%;
+    cursor: pointer;
+}
+input[type="range"]::-moz-range-thumb {
+    width: var(--font-normal);
+    height: var(--font-normal);
+    border: var(--shadow) solid var(--dimtext);
+    background: var(--dimmed);
+    border-radius: 50%;
+    cursor: pointer;
+}
+input[type="range"] {
+    -webkit-appearance: none;
+    border: none;
+    border-left: var(--shadow) solid var(--dimtext);
+    border-right: var(--shadow) solid var(--dimtext);
+    padding: 0 var(--shadow) 0 var(--shadow);
+}
 
 .mainSelection {
     display: flex;

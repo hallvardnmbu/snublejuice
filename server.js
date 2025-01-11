@@ -82,8 +82,8 @@ snublejuice.get("/api/countries", async (req, res) => {
   }
 });
 
-snublejuice.get("/maintenance", async (req, res) => {
-  res.render("maintenance");
+snublejuice.get("/error", async (req, res) => {
+  res.render("error");
 });
 
 snublejuice.post("/api/register", async (req, res) => {
@@ -325,6 +325,7 @@ snublejuice.get("/", authenticate, async (req, res) => {
   }
 
   const page = parseInt(req.query.page) || 1;
+  const delta = parseInt(req.query.delta) || 1;
   const sort = req.query.sort || "discount";
   const ascending = !(req.query.ascending === "false");
   const category = req.query.category || "Velg kategori";
@@ -351,7 +352,7 @@ snublejuice.get("/", authenticate, async (req, res) => {
   // Check if items have `updated = false` or if it is a new month and price updates are not yet completed
   const priceUpdatesCompleted = await visits.findOne({ class: "prices" });
   if (!priceUpdatesCompleted.updated) {
-    return res.redirect("/maintenance");
+    return res.redirect("/error");
   }
 
   try {
@@ -359,10 +360,13 @@ snublejuice.get("/", authenticate, async (req, res) => {
       collection,
       visits,
 
-      // Favourites;
+      // Month delta:
+      delta: delta,
+
+      // Favourites:
       favourites: includeFavourites ? favourites.favourites : null,
 
-      // Single parameters;
+      // Single parameters:
       category: categories[category],
       subcategory: null,
       country: country === "Alle land" ? null : country,
@@ -372,34 +376,34 @@ snublejuice.get("/", authenticate, async (req, res) => {
       cork: null,
       storage: null,
 
-      // Include non-alcoholic products;
+      // Include non-alcoholic products:
       nonalcoholic: false,
 
-      // Only show products that are orderable;
+      // Only show products that are orderable:
       orderable: orderable,
 
-      // Array parameters;
+      // Array parameters:
       description: null,
       store: store === "null" ? null : store,
       pair: null,
 
-      // If specified, only include values >=;
+      // If specified, only include values >=:
       volume: volume,
       alcohol: alcohol,
 
-      // Sorting;
+      // Sorting:
       sort: sort,
       ascending: ascending,
 
-      // Pagination;
+      // Pagination:
       page: page,
       perPage: 15,
 
-      // Search for name;
+      // Search for name:
       search: search,
       storelike: storelike === "null" ? null : storelike,
 
-      // Calculate total pages;
+      // Calculate total pages:
       fresh: true,
     });
 
@@ -416,6 +420,11 @@ snublejuice.get("/", authenticate, async (req, res) => {
         : null,
       favourites: includeFavourites,
       updated: updated,
+      message:
+        delta > 1 && sort === "discount"
+          ? "Sortering etter prisendring er ikke mulig når sammenlikning ikke er forrige måneds pris."
+          : null,
+      delta: delta,
       data: data,
       page: page,
       totalPages: total,
@@ -432,25 +441,7 @@ snublejuice.get("/", authenticate, async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.render("products", {
-      visitors: "X",
-      user: null,
-      favourites: false,
-      updated: null,
-      data: [],
-      page: 1,
-      totalPages: 1,
-      sort: sort,
-      ascending: ascending,
-      category: category,
-      country: country,
-      volume: volume,
-      alcohol: alcohol,
-      year: year,
-      search: search,
-      storelike: storelike,
-      store: store,
-    });
+    return res.redirect("/error");
   }
 });
 

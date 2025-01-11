@@ -20,10 +20,13 @@ export async function load({
   collection,
   visits,
 
-  // Favourites;
+  // Month delta:
+  delta = 1,
+
+  // Favourites:
   favourites = null,
 
-  // Single parameters;
+  // Single parameters:
   category = null,
   subcategory = null,
   country = null,
@@ -33,38 +36,38 @@ export async function load({
   cork = null,
   storage = null,
 
-  // Include non-alcoholic products;
+  // Include non-alcoholic products:
   nonalcoholic = false,
 
-  // Only show new products;
+  // Only show new products:
   news = false,
 
-  // Show orderable and instores products;
+  // Show orderable and instores products:
   orderable = true,
   instores = false,
 
-  // Array parameters;
+  // Array parameters:
   description = null,
   store = null,
   pair = null,
 
-  // If specified, only include values >=;
+  // If specified, only include values >=:
   volume = null,
   alcohol = null,
 
-  // Sorting;
+  // Sorting:
   sort = "discount",
   ascending = true,
 
-  // Pagination;
+  // Pagination:
   page = 1,
   perPage = 15,
 
-  // Search for name;
+  // Search for name:
   search = null,
   storelike = null,
 
-  // Calculate total pages;
+  // Calculate total pages:
   fresh = true,
 } = {}) {
   let pipeline = [];
@@ -199,7 +202,15 @@ export async function load({
   pipeline.push({ $skip: (page - 1) * perPage }, { $limit: perPage });
 
   try {
-    const data = await collection.aggregate(pipeline).toArray();
+    let data = await collection.aggregate(pipeline).toArray();
+
+    if (delta > 1) {
+      data.forEach((item) => {
+        item["oldprice"] = item["prices"][item["prices"].length - delta - 1];
+        item["discount"] = ((item["price"] - item["oldprice"]) * 100) / item["oldprice"];
+      });
+    }
+
     return { data, total, updated };
   } catch (err) {
     return { data: null, total: 1, updated: null };

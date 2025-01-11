@@ -75,6 +75,16 @@ document.getElementById("nsearch").addEventListener("change", function () {
 document.getElementById("ssearch").addEventListener("change", function () {
   applyFilters(true);
 });
+document.getElementById("delta").addEventListener("input", function () {
+  const today = new Date();
+  const compareDate = new Date(today.setMonth(today.getMonth() - this.value));
+  const month = String(compareDate.getMonth() + 1).padStart(2, "0");
+  const year = compareDate.getFullYear().toString().slice(2);
+  document.getElementById("deltaValue").textContent = `Førpris ${month}.${year}`;
+});
+document.getElementById("delta").addEventListener("change", function () {
+  applyFilters(true);
+});
 
 // Information toggle.
 document.getElementById("info").onclick = function (event) {

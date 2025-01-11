@@ -100,9 +100,9 @@ async function getPage(page, alreadyUpdated) {
       return processProducts(response.data["productSearchResult"]["products"], alreadyUpdated);
     }
 
-    console.log(`STATUS ${response.status} #${page}.`);
+    console.log(`STATUS | ${response.status} | Page: ${page}.`);
   } catch (err) {
-    console.log(`ERROR #${page}: ${err.message}`);
+    console.log(`ERROR | Page: ${page} | ${err.message}`);
   }
 }
 
@@ -197,7 +197,7 @@ async function getProducts(startPage = 0, alreadyUpdated = []) {
     try {
       let products = await getPage(page, alreadyUpdated);
       if (products.length === 0) {
-        console.log(`DONE (#${page - 1}).`);
+        console.log(`DONE | Final page: ${page - 1}.`);
         break;
       }
 
@@ -205,7 +205,7 @@ async function getProducts(startPage = 0, alreadyUpdated = []) {
 
       await new Promise((resolve) => setTimeout(resolve, 900));
     } catch (err) {
-      console.log(`ERROR #${page}: ${err}`);
+      console.log(`ERROR | Page: ${page} | ${err}`);
       break;
     }
 
@@ -215,13 +215,14 @@ async function getProducts(startPage = 0, alreadyUpdated = []) {
         throw new Error(`No items for the last 10 pages. Aborting.`);
       }
 
-      console.log(`UPDATING ${items.length} records.`);
+      console.log(`UPDATING | ${items.length} final records.`);
       const result = await updateDatabase(items);
-      console.log(` Modified ${result.modifiedCount}. Upserted ${result.upsertedCount}.`);
+      console.log(`         | Modified ${result.modifiedCount}.`);
+      console.log(`         | Upserted ${result.upsertedCount}.`);
 
       items = [];
 
-      console.log(`PROGRESS: ${Math.floor((current / total) * 100)} %`);
+      console.log(`UPDATING | Progress: ${Math.floor((current / total) * 100)} %`);
     }
   }
 
@@ -229,16 +230,17 @@ async function getProducts(startPage = 0, alreadyUpdated = []) {
   if (items.length === 0) {
     return;
   }
-  console.log(`UPDATING ${items.length} final records.`);
+  console.log(`UPDATING | ${items.length} final records.`);
   const result = await updateDatabase(items);
-  console.log(` Modified ${result.modifiedCount}. Upserted ${result.upsertedCount}.`);
+  console.log(`         | Modified ${result.modifiedCount}.`);
+  console.log(`         | Upserted ${result.upsertedCount}.`);
 }
 
 async function syncUnupdatedProducts(threshold = null) {
   const unupdatedCount = await itemCollection.countDocuments({ updated: false });
-  console.log(`NOT UPDATED: ${unupdatedCount}`);
+  console.log(`NOT UPDATED | Items: ${unupdatedCount}`);
   if (threshold && unupdatedCount >= threshold) {
-    console.log(`ERROR. Above threshold. Aborting.`);
+    console.log(`ERROR | Above threshold. | Aborting.`);
     return;
   }
 
@@ -252,7 +254,7 @@ async function syncUnupdatedProducts(threshold = null) {
 
     console.log(`MODIFIED ${result.modifiedCount} empty prices to unupdated products.`);
   } catch (err) {
-    console.error("ERROR (adding unupdated prices):", err);
+    console.error(`ERROR | Adding unupdated prices. | ${err}`);
   }
 }
 

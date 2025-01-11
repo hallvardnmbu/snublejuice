@@ -74,9 +74,9 @@ async function processId(index) {
       };
     }
 
-    console.log(`STATUS ${response.status} #${index}.`);
+    console.log(`STATUS | ${response.status}  | Item: ${index}.`);
   } catch (err) {
-    console.log(`ERROR #${index}: ${err}`);
+    console.log(`ERROR | Item: ${index} | ${err}`);
   }
 }
 
@@ -103,7 +103,7 @@ async function updateStores(itemIds) {
     try {
       let product = await processId(id);
       if (!product) {
-        console.log(`NONEXISTING #${id}. Aborting.`);
+        console.log(`NONEXISTING | Item: ${id} | Aborting.`);
         break;
       } else {
         items.push(product);
@@ -111,15 +111,16 @@ async function updateStores(itemIds) {
         await new Promise((resolve) => setTimeout(resolve, 1100));
       }
     } catch (err) {
-      console.log(`ERROR #${id}. Aborting. ${err}`);
+      console.log(`ERROR | Item: ${id} | Aborting. | ${err}`);
       break;
     }
 
     // Upsert to the database every 10 items.
     if (items.length >= 10) {
-      console.log(`UPDATING ${items.length} records.`);
+      console.log(`UPDATING | ${items.length} records.`);
       const result = await updateDatabase(items);
-      console.log(` Modified ${result.modifiedCount}. Upserted ${result.upsertedCount}.`);
+      console.log(`         | Modified ${result.modifiedCount}.`);
+      console.log(`         | Upserted ${result.upsertedCount}.`);
 
       items = [];
     }
@@ -127,7 +128,7 @@ async function updateStores(itemIds) {
     current++;
 
     if (current % 10 === 0) {
-      console.log(`PROGRESS: ${Math.floor((current / total) * 100)} %`);
+      console.log(`UPDATING | Progress: ${Math.floor((current / total) * 100)} %`);
     }
   }
 
@@ -135,9 +136,10 @@ async function updateStores(itemIds) {
   if (items.length === 0) {
     return;
   }
-  console.log(`UPDATING ${items.length} final records.`);
+  console.log(`UPDATING | ${items.length} records.`);
   const result = await updateDatabase(items);
-  console.log(` Modified ${result.modifiedCount}. Upserted ${result.upsertedCount}.`);
+  console.log(`         | Modified ${result.modifiedCount}.`);
+  console.log(`         | Upserted ${result.upsertedCount}.`);
 }
 
 const session = axios.create();

@@ -206,7 +206,7 @@ export async function load({
 
     if (delta > 1) {
       data.forEach((item) => {
-        item["oldprice"] = item["prices"][item["prices"].length - delta - 1];
+        item["oldprice"] = item["prices"][Math.max(item["prices"].length - delta - 1, 0)];
         item["discount"] = ((item["price"] - item["oldprice"]) * 100) / item["oldprice"];
       });
     }

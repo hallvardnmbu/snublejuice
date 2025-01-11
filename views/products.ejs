@@ -28,8 +28,21 @@
   <%- include('partials/forms', { updated, favourites }) %>
 
   <% if (data.length === 0) { %>
-    <p style="text-align: center;">Ingen resultater finnes for valgt kominasjon.</p>
+    <div class="message">Ingen resultater finnes for valgt kominasjon.</div>
+  <% } else { %>
+    <% if (new Date().getDate() <= 5) { %>
+      <div class="message">[!] NY MÅNED; NYE TILBUD [!]</div>
+    <% } %>
+    <div id="message-stores" style="display: none;">
+        <div class="message">N.b.: Faktisk lagerbeholdning kan avvike. Oppdateres med jevne mellomrom.</div>
+        <div class="message">Sist oppdatert <%= updated %>.</div>
+    </div>
+
+    <% if (message) { %>
+      <div class="message"><%= message %></div>
+    <% } %>
   <% } %>
+
 
   <% data.forEach((item, index) => { %>
     <%- include('partials/product', { index, item, user, storelike, maxIndex: data.length - 1 }) %>

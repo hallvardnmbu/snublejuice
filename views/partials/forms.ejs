@@ -61,6 +61,29 @@
           <!-- Options will be dynamically populated by `public/scripts/countries.js`. -->
         </select>
 
+        <%
+        const today = new Date();
+        const targetDate = new Date(2024, 6);
+        const maxMonth = Math.abs(
+          ((targetDate.getFullYear() - today.getFullYear()) * 12)
+          + (targetDate.getMonth() - today.getMonth())
+        );
+        const compareDate = new Date(today.setMonth(today.getMonth() - (delta)));
+        const compareMonth = String(compareDate.getMonth() + 1).padStart(2, "0");
+        const compareYear = compareDate.getFullYear().toString().slice(2);
+        const formattedDate = `${compareMonth}.${compareYear}`;
+        %>
+        <div id="formDelta">
+            <label for="delta" id="deltaValue">Førpris <%= formattedDate %></label>
+            <input type="range"
+                   id="delta"
+                   name="delta"
+                   min="1"
+                   max="<%= maxMonth %>"
+                   step="1"
+                   value="<%= delta || 1 %>">
+        </div>
+
         <div>
           <label>Vol. over</label>
           <input type="float" id="fvolume" name="volume" min="0" step="1" value="<%= volume || null %>">
@@ -126,12 +149,4 @@
           <a href="#" onclick="changePage(<%= page + 1 %>)">-></a>
       <% } %>
     </div>
-  </div>
-
-  <% if (new Date().getDate() <= 5) { %>
-    <div class="message">[!] NY MÅNED; NYE TILBUD [!]</div>
-  <% } %>
-  <div id="message-stores" style="display: none;">
-      <div class="message">N.b.: Faktisk lagerbeholdning kan avvike. Oppdateres med jevne mellomrom.</div>
-      <div class="message">Sist oppdatert <%= updated %>.</div>
   </div>

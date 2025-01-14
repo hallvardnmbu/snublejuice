@@ -445,32 +445,29 @@ snublejuice.get("/", authenticate, async (req, res) => {
   }
 });
 
-// API APPLICATION (api.ind320.no)
+// FINAL APP
 // ------------------------------------------------------------------------------------------------
-
-const api = await apiAPP();
-
-// ORD APPLICATION (dagsord.no)
-// ------------------------------------------------------------------------------------------------
-
-const ord = await ordAPP();
-
-// FINAL APP WITH ALL VHOSTS
-// ------------------------------------------------------------------------------------------------
-
-app.use(vhost("snublejuice.no", snublejuice));
-app.use(vhost("www.snublejuice.no", snublejuice));
-app.use(vhost("api.ind320.no", api));
-app.use(vhost("ord.dilettant.no", ord));
-app.use(vhost("dagsord.no", ord));
-app.use(vhost("www.dagsord.no", ord));
 
 if (_PRODUCTION) {
+  // API APPLICATION (api.ind320.no)
+  const api = await apiAPP();
+
+  // ORD APPLICATION (dagsord.no)
+  const ord = await ordAPP();
+
+  // FINAL APP WITH ALL VHOSTS
+  app.use(vhost("snublejuice.no", snublejuice));
+  app.use(vhost("www.snublejuice.no", snublejuice));
+  app.use(vhost("api.ind320.no", api));
+  app.use(vhost("ord.dilettant.no", ord));
+  app.use(vhost("dagsord.no", ord));
+  app.use(vhost("www.dagsord.no", ord));
+
   app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+    console.log(`http://localhost:${port}`);
   });
 } else {
   snublejuice.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+    console.log(`http://localhost:${port}`);
   });
 }

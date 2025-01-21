@@ -1,17 +1,23 @@
-<section class="product" index="<%= index %>" style="--highlight: <%= item.discount > 0 ? 'var(--negative)' : item.discount < 0 ? 'var(--positive)' : 'var(--block)' %>; --marker: <%= item.discount > 0 ? 'var(--red)' : item.discount < 0 ? 'var(--green)' : 'var(--dimtext)' %>;">
+<section
+  class="product"
+  index="<%= index %>"
+  style="--highlight: <%= item.discount > 0 ? 'var(--negative)' : item.discount < 0 ? 'var(--positive)' : 'var(--block)' %>; --marker: <%= item.discount > 0 ? 'var(--red)' : item.discount < 0 ? 'var(--green)' : 'var(--dimtext)' %>;"
+>
 
   <div class="image">
     <img src="<%= item.images.product %>" alt="flaske">
-    <div class="text"><b><%= (item.volume % 1 === 0) ? item.volume.toFixed(0) : item.volume.toFixed(1) %></b> cL</div>
+    <span class="text">
+      <b class="number"><%= (item.volume % 1 === 0) ? item.volume.toFixed(0) : item.volume.toFixed(1) %></b> cL
+    </span>
   </div>
 
-  <div class="information">
-    <div class="name">
-      <div id="name">
+  <div class="metadata">
+    <div class="information">
+      <div class="name">
         <span><%= item.name %></span>
         <% if (user) { %>
             <img
-                src="./images/favourite<%= user.favourites.includes(item.index) ? '-filled' : '' %>.png"
+                src="./images/star<%= user.favourites.includes(item.index) ? '-filled' : '' %>.png"
                 alt="Favoritt"
                 data-index="<%= item.index %>"
                 class="favourite-toggle"
@@ -20,23 +26,26 @@
       </div>
 
       <div class="category">
-        <div>
-          <span><b><%= item.category %></b></span>
+        <span>
+          <b><%= item.category %></b>
           <span style="font-size: 14px;"> <%= item.subcategory %></span>
-        </div>
+        </span>
 
-        <div class="text" id="alcohol"><b id="alcohol"><%= item.alcohol %></b><b id="percent">%</b>alk.</div>
+        <span>
+          <b class="alcohol"><%= item.alcohol %></b>
+          <b class="percent">%</b> alk.
+        </span>
       </div>
 
       <div class="country">
-        <div style="font-size: 18px;"><%= item.country %></div>
+        <span style="font-size: var(--fontsize-normal);"><%= item.country %></span>
         <% if (item.district) { %>
-          <div id="dot" style="font-size: 10px;">●</div>
-          <div style="font-size: 16px;"><%= item.district %></div>
+          <span id="dot" style="font-size: 10px;">●</span>
+          <span style="font-size: var(--fontsize-small);"><%= item.district %></span>
         <% } %>
         <% if (item.subdistrict) { %>
-          <div id="dot" style="font-size: 10px;">●</div>
-          <div style="font-size: 12px;"><%= item.subdistrict %></div>
+          <span id="dot" style="font-size: 10px;">●</span>
+          <span style="font-size: var(--fontsize-smallest);"><%= item.subdistrict %></span>
         <% } %>
       </div>
 
@@ -54,17 +63,25 @@
       </div>
     </div>
 
-    <div class="description">
-      <% if (item.description) { %>
-        <p><%= item.description.lang %></p>
-      <% } %>
-    </div>
+
+    <% if (item.description) { %>
+      <span class="description"><%= item.description.lang %></span>
+    <% } %>
+
 
     <div class="price">
-      <div class="text">KR <b><%= Math.ceil(item.price) %></b>
-        <% if (item.oldprice) { %>FØR <b><%= Math.ceil(item.oldprice) %></b><% } %></div>
+      <div class="prices">
+        <span class="text">KR <b class="number"><%= Math.ceil(item.price) %></b></span>
+        <% if (item.oldprice) { %>
+          <span class="text">FØR <b class="number"><%= Math.ceil(item.oldprice) %></b></span>
+        <% } %>
+      </div>
       <% if (item.oldprice) { %>
-        <div class="text">ENDRING <b><%= Math.floor(item.discount) %></b><b id="percent">%</b></div>
+        <span class="text">
+          ENDRING
+          <b class="number"><%= Math.floor(item.discount) %></b>
+          <b class="percent">%</b>
+        </span>
       <% } %>
     </div>
   </div>

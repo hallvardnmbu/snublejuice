@@ -1,20 +1,18 @@
 // Submit the form.
-function applyFilters(resetPage = false) {
+function applyFilters(resetPage = true, toggleFavourites = false) {
   if (resetPage) {
     document.querySelector('input[name="page"]').value = 1;
+  }
+  if (toggleFavourites) {
+    const old = document.querySelector('input[name="favourites"]').value;
+    document.querySelector('input[name="favourites"]').value = old === "true" ? "false" : "true";
   }
   document.getElementById("filter").submit();
 }
 
 function changePage(newPage) {
   document.querySelector('input[name="page"]').value = newPage;
-
-  // Handle favourites.
-  if (!window.location.href.includes("favourites=true")) {
-    applyFilters();
-  } else {
-    window.location.href = "/?page=" + newPage + "&favourites=true";
-  }
+  applyFilters(false, false);
 }
 
 // Toggle sort order.
@@ -22,25 +20,25 @@ document.getElementById("sortButton").onclick = function (event) {
   event.preventDefault();
 
   const ascendingInput = document.querySelector('input[name="ascending"]');
-  ascending = ascendingInput.value === "true" ? "false" : "true";
+  ascendingInput.value = ascendingInput.value === "true" ? "false" : "true";
 
-  ascendingInput.value = ascending;
-
-  applyFilters();
+  applyFilters(false, false);
 };
 
 // Reset the page.
 document.getElementById("clearFilters").onclick = function (event) {
   event.preventDefault();
   sessionStorage.clear();
-  window.location.href = "/?fresh=false";
+  window.location.href =
+    "/?fresh=false" +
+    (document.querySelector('input[name="favourites"]').value === "true" ? "&favourites=true" : "");
 };
 
 // Toggle advanced visibility.
 document.getElementById("toggleAdvanced").onclick = function (event) {
   event.preventDefault();
 
-  const section = document.getElementById("advancedSelection");
+  const section = document.getElementById("advanced");
   section.style.display = section.style.display === "flex" ? "none" : "flex";
 
   // Set the button text based on visibility.
@@ -48,54 +46,36 @@ document.getElementById("toggleAdvanced").onclick = function (event) {
     section.style.display === "flex" ? "Skjul valg" : "Flere valg";
 
   // Save the visibility state to session storage.
-  sessionStorage.setItem("advancedSelection", section.style.display === "flex");
+  sessionStorage.setItem("advanced", section.style.display === "flex");
 };
 
 // Update the button text based on visibility (from storage).
 document.addEventListener("DOMContentLoaded", function () {
-  const element = document.getElementById("advancedSelection");
-  const isVisible = sessionStorage.getItem("advancedSelection") === "true";
+  const element = document.getElementById("advanced");
+  const isVisible = sessionStorage.getItem("advanced") === "true";
   element.style.display = isVisible ? "flex" : "none";
   document.getElementById("toggleAdvanced").innerHTML = isVisible ? "Skjul valg" : "Flere valg";
 });
 
 // Volume, alcohol and search change.
 document.getElementById("fvolume").addEventListener("change", function () {
-  applyFilters(true);
+  applyFilters(true, false);
 });
 document.getElementById("falcohol").addEventListener("change", function () {
-  applyFilters(true);
+  applyFilters(true, false);
 });
 document.getElementById("iyear").addEventListener("change", function () {
-  applyFilters(true);
+  applyFilters(true, false);
 });
 document.getElementById("nsearch").addEventListener("change", function () {
-  applyFilters(true);
+  applyFilters(true, false);
 });
 document.getElementById("ssearch").addEventListener("change", function () {
-  applyFilters(true);
-});
-document.getElementById("delta").addEventListener("input", function () {
-  const today = new Date();
-  const compareDate = new Date(today.setMonth(today.getMonth() - this.value));
-  const month = String(compareDate.getMonth() + 1).padStart(2, "0");
-  const year = compareDate.getFullYear().toString().slice(2);
-  document.getElementById("deltaValue").textContent = `Førpris ${month}.${year}`;
+  applyFilters(true, false);
 });
 document.getElementById("delta").addEventListener("change", function () {
-  applyFilters(true);
+  applyFilters(true, false);
 });
-
-// Information toggle.
-document.getElementById("info").onclick = function (event) {
-  event.preventDefault();
-  const div = document.getElementById("infobox");
-  div.style.display = div.style.display === "flex" ? "none" : "flex";
-};
-document.querySelector(".exit").onclick = function (event) {
-  event.preventDefault();
-  document.getElementById("infobox").style.display = "none";
-};
 
 // Update cookies.
 document.getElementById("updateCookies").onclick = function (event) {
@@ -121,22 +101,22 @@ document.querySelectorAll(".favourite-toggle").forEach((img) => {
     });
 
     // Toggle image.
-    this.src = this.src.includes("favourite-filled.png")
-      ? "./images/favourite.png"
-      : "./images/favourite-filled.png";
+    this.src = this.src.includes("star-filled.png")
+      ? "./images/star.png"
+      : "./images/star-filled.png";
   });
 
-  // // Hover events
-  // img.addEventListener("mouseenter", function () {
-  //   this.src = this.src.includes("favourite-filled.png")
-  //     ? "./images/favourite.png"
-  //     : "./images/favourite-filled.png";
-  // });
-  // img.addEventListener("mouseleave", function () {
-  //   this.src = this.src.includes("favourite-filled.png")
-  //     ? "./images/favourite.png"
-  //     : "./images/favourite-filled.png";
-  // });
+  // Hover events
+  img.addEventListener("mouseenter", function () {
+    this.src = this.src.includes("star-filled.png")
+      ? "./images/star.png"
+      : "./images/star-filled.png";
+  });
+  img.addEventListener("mouseleave", function () {
+    this.src = this.src.includes("star-filled.png")
+      ? "./images/star.png"
+      : "./images/star-filled.png";
+  });
 });
 
 function changeModal(currentModal, newModal, event) {

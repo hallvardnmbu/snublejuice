@@ -217,9 +217,12 @@
         <hr>
 
         <div class="price">
-          <span class="text">KR <b class="number"><%= Math.ceil(item.price) %></b>
-            <% if (item.oldprice) { %>FØR <b class="number"><%= Math.ceil(item.oldprice) %></b><% } %>
-          </span>
+          <div class="prices">
+            <span class="text">KR <b class="number"><%= Math.ceil(item.price) %></b></span>
+            <% if (item.oldprice) { %>
+              <span class="text">FØR <b class="number"><%= Math.ceil(item.oldprice) %></b></span>
+            <% } %>
+          </div>
           <% if (item.oldprice) { %>
             <span class="text">
               ENDRING
@@ -230,7 +233,7 @@
         </div>
 
         <div class="price">
-          <span class="text">
+          <div class="prices">
             <span class="text">
               LITERPRIS <b class="number"><%= Math.ceil(item.literprice) %></b>
             </span>
@@ -244,7 +247,7 @@
                 ALKOHOL <b class="number"><%= item.alcohol %></b><b class="percent">%</b>
               </span>
             <% } %>
-          </span>
+          </div>
         </div>
 
         <hr>

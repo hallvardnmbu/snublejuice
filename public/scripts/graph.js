@@ -118,17 +118,25 @@ function graphPrice(index) {
     ctx.fill();
   }
 
-  // Draw labels
+  // X-axis labels
   ctx.fillStyle = "black";
   ctx.textAlign = "center";
   ctx.font = `${14 * _RESOLUTION}px alpha-beta`;
+  // Calculate the number of labels to show.
+  const sampleDateWidth = ctx.measureText(dates[0]).width;
+  const maxLabels = Math.floor(plotWidth / sampleDateWidth);
+  const mod = Math.ceil(dates.length / maxLabels);
   for (var i = 0; i < dates.length; i++) {
-    ctx.fillText(
-      dates[i],
-      margin.left + i * xScale,
-      canvas.height - margin.bottom + 20 * _RESOLUTION,
-    );
+    if ((i + 1) % mod === 0) {
+      ctx.fillText(
+        dates[i],
+        margin.left + i * xScale,
+        canvas.height - margin.bottom + 20 * _RESOLUTION,
+      );
+    }
   }
+
+  // Y-axis labels
   ctx.fillStyle = "black";
   ctx.textAlign = "right";
   ctx.textBaseline = "middle";
@@ -142,6 +150,10 @@ function graphPrice(index) {
   }
 
   // Hoverinfo
+  const existingHoverLayer = canvas.parentElement.querySelector("canvas:not(#graph-" + index + ")");
+  if (existingHoverLayer) {
+    existingHoverLayer.remove();
+  }
   let hoverLayer = document.createElement("canvas");
   hoverLayer.style.position = "absolute";
   hoverLayer.style.left = canvas.offsetLeft + "px";

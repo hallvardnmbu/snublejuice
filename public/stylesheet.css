@@ -293,7 +293,8 @@ input:hover {
 }
 header button,
 search menu button {
-    border-bottom: var(--underline) solid var(--dimtext);
+    text-decoration: underline;
+    text-decoration-thickness: var(--underline);
 }
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
@@ -660,7 +661,8 @@ footer span {
     gap: var(--padding);
 }
 footer span button {
-    border-bottom: var(--underline) solid var(--dimtext);
+    text-decoration: underline;
+    text-decoration-thickness: var(--underline);
 }
 
 @media (max-width: 690px) {

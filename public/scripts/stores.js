@@ -1,4 +1,4 @@
-const _DEFAULT = ["Velg spesifikk butikk"];
+const _DEFAULT = ["Spesifikk butikk"];
 
 async function fetchStores() {
   try {

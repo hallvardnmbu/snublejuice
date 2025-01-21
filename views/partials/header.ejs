@@ -1,114 +1,115 @@
-<div class="header">
-  <div><%= visitors %> besøkende denne måneden.</div>
-  <% if (!user) { %>
-    <div>
-      <button onclick="currentModal('loginModal')">
+<header>
+  <div>
+    <span><%= visitors %> besøkende denne måneden.</span>
+    <button onclick="toggleView('infobox')">Hva er SNUBLEJUICE?</button>
+  </div>
+
+  <menu>
+    <% if (!user) { %>
+      <li><button onclick="toggleView('login')">
         Logg inn
-      </button>
-      <span> | </span>
-      <button onclick="currentModal('registerModal')">
+      </button></li>
+      <span>|</span>
+      <li><button onclick="toggleView('register')">
         Registrer
-      </button>
-    </div>
-  <% } else { %>
-    <div>
-      <button onclick="currentModal('profileModal')">
+      </button></li>
+    <% } else { %>
+      <li><button onclick="toggleView('profile')">
         <%= user?.username %>
-      </button>
-        <span> | </span>
-      <button onclick="logout()">
+      </button></li>
+        <span>|</span>
+      <li><button onclick="logout()">
         Logg ut
-      </button>
-      <span> | </span>
+      </button></li>
+      <span>|</span>
       <% if (!favourites) { %>
-        <button onclick="window.location.href = '/?page=1&favourites=true'">
+        <li><button onclick="applyFilters(true, true)">
           Favoritter
-        </button>
+        </button></li>
       <% } else { %>
-        <button onclick="window.location.href = '/?page=1'">Hovedside</button>
+        <li><button onclick="applyFilters(true, true)">
+          Hovedside
+        </button></li>
       <% } %>
-    </div>
-  <% } %>
-</div>
+    <% } %>
+  </menu>
 
-<div id="loginModal" class="signupModal">
-  <form id="loginForm" class="signup">
-    <table>
-      <tr>
-        <td>Brukernavn&nbsp;</td>
-        <td><input type="text" id="usernameLOG" name="username" minlength="2" required></td>
-      </tr>
-      <tr>
-        <td>Passord</td>
-        <td><input type="password" id="passwordLOG" name="password" minlength="4" required></td>
-      </tr>
-    </table>
+  <search id="login" style="display: none;">
+    <form id="loginForm">
+      <table>
+        <tr>
+          <td>Brukernavn&nbsp;</td>
+          <td><input type="text" id="usernameLogin" name="username" minlength="2" required></td>
+        </tr>
+        <tr>
+          <td>Passord</td>
+          <td><input type="password" id="passwordLogin" name="password" minlength="4" required></td>
+        </tr>
+      </table>
 
-    <div>
-      <span class="close" index="loginModal">x</span>
       <button type="submit" style="text-wrap: nowrap;">Logg inn</button>
-    </div>
-  </form>
+    </form>
+  </search>
 
-  <div class="userMessage" id="loginMessage"></div>
-</div>
+  <search id="register" style="display: none;">
+    <form id="registerForm">
+      <table>
+        <tr>
+          <td>Brukernavn&nbsp;</td>
+          <td><input type="text" id="usernameRegister" name="username" minlength="2" required></td>
+        </tr>
+        <tr>
+          <td>E-post</td>
+          <td><input type="email" id="emailRegister" name="email" required></td>
+        </tr>
+        <tr>
+          <td>Passord</td>
+          <td><input type="password" id="passwordRegister" name="password" minlength="4" required></td>
+        </tr>
+      </table>
 
-<div id="registerModal" class="signupModal">
-  <form id="registerForm" class="signup">
-    <table>
-      <tr>
-        <td>E-post</td>
-        <td><input type="email" id="emailSUP" name="email" required></td>
-      </tr>
-      <tr>
-        <td>Brukernavn&nbsp;</td>
-        <td><input type="text" id="usernameSUP" name="username" minlength="2" required></td>
-      </tr>
-      <tr>
-        <td>Passord</td>
-        <td><input type="password" id="passwordSUP" name="password" minlength="4" required></td>
-      </tr>
-    </table>
-
-    <div>
-      <span class="close" index="registerModal">x</span>
       <button type="submit">Registrer</button>
-    </div>
-  </form>
+    </form>
+  </search>
 
-  <div class="userMessage" id="registerMessage"></div>
-</div>
+  <search id="profile" style="display: none;">
+    <form id="deleteUserForm">
+      <input type="hidden" id="usernameDelete" name="username" value="<%= user?.username %>">
 
-<div id="profileModal" class="signupModal">
-  <form id="deleteUserForm" class="signup">
-    <input type="hidden" id="usernameDEL" name="username" value="<%= user?.username %>">
+      <table>
+        <tr>
+          <td>Brukernavn&nbsp;</td>
+          <td><%= user?.username %></td>
+        </tr>
+        <tr>
+          <td>E-post</td>
+          <td><%= user?.email %></td>
+        </tr>
+        <tr>
+          <td>Passord</td>
+          <td><input type="password" id="passwordDelete" name="password" minlength="4" required></td>
+        </tr>
+      </table>
 
-    <table>
-      <tr>
-        <td>Brukernavn&nbsp;</td>
-        <td><%= user?.username %></td>
-      </tr>
-      <!-- <tr>
-        <td>E-post</td>
-        <td style="text-wrap:"><%= user?.email %></td>
-      </tr> -->
-      <tr>
-        <td>Passord</td>
-        <td><input type="password" id="passwordDEL" name="password" minlength="4" required></td>
-      </tr>
-    </table>
+      <button type="submit">Slett bruker</button>
+    </form>
+  </search>
 
+  <div id="infobox" style="display: none;">
     <div>
-      <span class="close" index="profileModal">x</span>
-      <button type="submit" style="text-wrap: nowrap;">Slett bruker</button>
+      <span><b>Hva er SNUBLEJUICE?</b></span>
+      <button onclick="toggleView('infobox')">Lukk</button>
     </div>
-  </form>
+    <span style="line-height: 1.5;">
+      Her finner du Vinmonopolets <b>hemmelige tilbud</b> samt varers prishistorikk.
+      <br>
+      Vinmonopolet justerer nemlig prisene <b>hvert månedsskifte</b>, og for å gjøre livet ditt litt enklere holder vi styr på prishistorikken til varer, og gir en oversikt over tilbudsvarer.
+      <br>
+      Lagerbeholdning oppdateres jevnlig, så avvik kan forekomme. Alltid dobbeltsjekk på produktets side.
+    </span>
+  </div>
 
-  <div class="userMessage" id="profileMessage"></div>
-</div>
+  <span id="userMessage"></span>
+</header>
 
-<div id="favouriteModal" class="signupModal">
-  <div class="userMessage" id="favouriteMessage"></div>
-</div>
-
-<script src="scripts/user.js"></script>
+<script src="scripts/profile.js"></script>

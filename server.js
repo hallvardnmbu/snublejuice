@@ -328,23 +328,17 @@ snublejuice.get("/", authenticate, async (req, res) => {
   const delta = parseInt(req.query.delta) || 1;
   const sort = req.query.sort || "discount";
   const ascending = !(req.query.ascending === "false");
-  const category = req.query.category || "Velg kategori";
+  const category = req.query.category || null;
   const country = req.query.country || null;
   const volume = parseFloat(req.query.volume) || null;
   const alcohol = parseFloat(req.query.alcohol) || null;
   const year = parseInt(req.query.year) || null;
   const search = req.query.search || null;
   const storelike = req.query.storelike || null;
-  let store = req.query.store || "Velg spesifikk butikk";
+  let store = req.query.store || "Spesifikk butikk";
   const includeFavourites = req.query.favourites === "true";
 
-  const favourites =
-    (await users.findOne(
-      { username: req.user?.username },
-      { projection: { _id: 0, favourites: 1 } },
-    )) || [];
-
-  let orderable = store === "Velg spesifikk butikk";
+  let orderable = store === "Spesifikk butikk";
   if (orderable) {
     store = null;
   }
@@ -364,7 +358,14 @@ snublejuice.get("/", authenticate, async (req, res) => {
       delta: delta,
 
       // Favourites:
-      favourites: includeFavourites ? favourites.favourites : null,
+      favourites: includeFavourites
+        ? (
+            await users.findOne(
+              { username: req.user?.username },
+              { projection: { _id: 0, favourites: 1 } },
+            )
+          ).favourites || []
+        : null,
 
       // Single parameters:
       category: categories[category],
@@ -415,7 +416,13 @@ snublejuice.get("/", authenticate, async (req, res) => {
         ? {
             username: req.user.username,
             email: req.user.email,
-            favourites: favourites.favourites,
+            favourites:
+              (
+                await users.findOne(
+                  { username: req.user?.username },
+                  { projection: { _id: 0, favourites: 1 } },
+                )
+              ).favourites || [],
           }
         : null,
       favourites: includeFavourites,

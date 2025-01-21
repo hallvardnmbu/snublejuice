@@ -1,152 +1,107 @@
-  <header style="display: <%= favourites ? 'none' : 'block' %>">
-    <form action="/" method="get" id="filter">
+<search>
+  <form action="/" method="get" id="filter">
 
-      <input type="hidden" name="page" value="<%= page %>">
-      <input type="hidden" name="ascending" value="<%= ascending %>">
-      <input type="hidden" name="favourites" value="">
+    <input type="hidden" name="page" value="<%= page %>">
+    <input type="hidden" name="ascending" value="<%= ascending %>">
+    <input type="hidden" name="favourites" value="<%= favourites %>">
 
-      <div class="filterSelection">
-        <div class="mainSelection">
-          <button type="submit" style="display: none"></button>
+    <div id="filters">
+      <button type="submit" style="display: none"></button>
 
-          <select name="category" id="category" onchange="applyFilters(true)">
-            <option value="null" <%= category === 'null' ? 'selected' : '' %>>Velg kategori</option>
-            <option value="aromatisert" <%= category === 'aromatisert' ? 'selected' : '' %>>Aromatisert vin</option>
-            <option value="brennevin" <%= category === 'brennevin' ? 'selected' : '' %>>Brennevin</option>
-            <option value="fruktvin" <%= category === 'fruktvin' ? 'selected' : '' %>>Fruktvin</option>
-            <option value="hvitvin" <%= category === 'hvitvin' ? 'selected' : '' %>>Hvitvin</option>
-            <option value="mjød" <%= category === 'mjød' ? 'selected' : '' %>>Mjød</option>
-            <option value="musserende" <%= category === 'musserende' ? 'selected' : '' %>>Musserende vin</option>
-            <option value="perlende" <%= category === 'perlende' ? 'selected' : '' %>>Perlende vin</option>
-            <option value="rosévin" <%= category === 'rosévin' ? 'selected' : '' %>>Rosévin</option>
-            <option value="rødvin" <%= category === 'rødvin' ? 'selected' : '' %>>Rødvin</option>
-            <option value="sake" <%= category === 'sake' ? 'selected' : '' %>>Sake</option>
-            <option value="sider" <%= category === 'sider' ? 'selected' : '' %>>Sider</option>
-            <option value="sterkvin" <%= category === 'sterkvin' ? 'selected' : '' %>>Sterkvin</option>
-            <option value="øl" <%= category === 'øl' ? 'selected' : '' %>>Øl</option>
-          </select>
+      <div>
+        <select name="sort" id="sort" onchange="applyFilters(true, false)">
+          <option value="discount" <%= sort === 'discount' ? 'selected' : '' %>>Prisendring</option>
+          <option value="price" <%= sort === 'price' ? 'selected' : '' %>>Pris</option>
+          <option value="literprice" <%= sort === 'literprice' ? 'selected' : '' %>>Literpris</option>
+          <option value="alcoholprice" <%= sort === 'alcoholprice' ? 'selected' : '' %>>Alkoholpris</option>
+          <option value="alcohol" <%= sort === 'alcohol' ? 'selected' : '' %>>Alkoholprosent</option>
+        </select>
 
-          <input type="search" id="ssearch" name="storelike" value="<%= storelike || null %>" placeholder="Butikk (e.g., Stavanger) ...">
-
-          <div>
-            <select name="sort" id="sort" onchange="applyFilters(true)">
-              <option value="discount" <%= sort === 'discount' ? 'selected' : '' %>>Prisendring</option>
-              <option value="price" <%= sort === 'price' ? 'selected' : '' %>>Pris</option>
-              <option value="literprice" <%= sort === 'literprice' ? 'selected' : '' %>>Literpris</option>
-              <option value="alcoholprice" <%= sort === 'alcoholprice' ? 'selected' : '' %>>Alkoholpris</option>
-              <option value="alcohol" <%= sort === 'alcohol' ? 'selected' : '' %>>Alkoholprosent</option>
-            </select>
-
-            <button id="sortButton">
-              <%= ascending === true ? '↑' : '↓' %>
-            </button>
-          </div>
-        </div>
-
-        <div class="mainButtons">
-          <button id="info">Informasjon</button>
-          <button id="clearFilters">Nullstill</button>
-          <button id="toggleAdvanced">Flere valg</button>
-        </div>
+        <button id="sortButton">
+          <%= ascending === true ? '↑' : '↓' %>
+        </button>
       </div>
 
-      <div id="advancedSelection" class="advancedSelection" style="display: none;">
-        <input type="search" id="nsearch" name="search" value="<%= search || null %>" placeholder="Søk etter navn ...">
+      <select name="category" id="category" onchange="applyFilters(true, false)">
+        <option value="null" <%= category === 'null' ? 'selected' : '' %>>Alle kategorier</option>
+        <option value="aromatisert" <%= category === 'aromatisert' ? 'selected' : '' %>>Aromatisert vin</option>
+        <option value="brennevin" <%= category === 'brennevin' ? 'selected' : '' %>>Brennevin</option>
+        <option value="fruktvin" <%= category === 'fruktvin' ? 'selected' : '' %>>Fruktvin</option>
+        <option value="hvitvin" <%= category === 'hvitvin' ? 'selected' : '' %>>Hvitvin</option>
+        <option value="mjød" <%= category === 'mjød' ? 'selected' : '' %>>Mjød</option>
+        <option value="musserende" <%= category === 'musserende' ? 'selected' : '' %>>Musserende vin</option>
+        <option value="perlende" <%= category === 'perlende' ? 'selected' : '' %>>Perlende vin</option>
+        <option value="rosévin" <%= category === 'rosévin' ? 'selected' : '' %>>Rosévin</option>
+        <option value="rødvin" <%= category === 'rødvin' ? 'selected' : '' %>>Rødvin</option>
+        <option value="sake" <%= category === 'sake' ? 'selected' : '' %>>Sake</option>
+        <option value="sider" <%= category === 'sider' ? 'selected' : '' %>>Sider</option>
+        <option value="sterkvin" <%= category === 'sterkvin' ? 'selected' : '' %>>Sterkvin</option>
+        <option value="øl" <%= category === 'øl' ? 'selected' : '' %>>Øl</option>
+      </select>
 
-        <select name="store" id="store" onchange="applyFilters(true)">
+      <% if (favourites) { %>
+        <input type="hidden" id="ssearch" name="storelike" value="">
+      <% } else { %>
+        <input type="search" id="ssearch" name="storelike" value="<%= storelike || null %>" placeholder="Butikk eller by ...">
+      <% } %>
+
+      <input type="search" id="nsearch" name="search" value="<%= search || null %>" placeholder="Navnesøk ...">
+
+      <menu>
+        <li><button id="clearFilters">Nullstill valg</button></li>
+        <li><button id="toggleAdvanced">Flere valg</button></li>
+      </menu>
+    </div>
+
+    <div id="advanced" style="display: none;">
+      <% if (favourites) { %>
+        <input type="hidden" id="store" name="store" value="">
+      <% } else { %>
+        <select name="store" id="store" onchange="applyFilters(true, false)">
           <!-- Options will be dynamically populated by `public/scripts/stores.js`. -->
         </select>
-
-        <select name="country" id="country" onchange="applyFilters(true)">
-          <!-- Options will be dynamically populated by `public/scripts/countries.js`. -->
-        </select>
-
-        <%
-        const today = new Date();
-        const targetDate = new Date(2024, 6);
-        const maxMonth = Math.abs(
-          ((targetDate.getFullYear() - today.getFullYear()) * 12)
-          + (targetDate.getMonth() - today.getMonth())
-        );
-        const compareDate = new Date(today.setMonth(today.getMonth() - (delta)));
-        const compareMonth = String(compareDate.getMonth() + 1).padStart(2, "0");
-        const compareYear = compareDate.getFullYear().toString().slice(2);
-        const formattedDate = `${compareMonth}.${compareYear}`;
-        %>
-        <div id="formDelta">
-            <label for="delta" id="deltaValue">Førpris <%= formattedDate %></label>
-            <input type="range"
-                   id="delta"
-                   name="delta"
-                   min="1"
-                   max="<%= maxMonth %>"
-                   step="1"
-                   value="<%= delta || 1 %>">
-        </div>
-
-        <div>
-          <label>Vol. over</label>
-          <input type="float" id="fvolume" name="volume" min="0" step="1" value="<%= volume || null %>">
-          <label>cL</label>
-        </div>
-
-        <div>
-          <label>Alk. over</label>
-          <input type="float" id="falcohol" name="alcohol" min="0" step="0.5" value="<%= alcohol || null %>">
-          <label id="percent">%</label>
-        </div>
-
-        <div>
-          <label>Årg. tom.</label>
-          <input type="number" id="iyear" name="year" min="1900" step="10" value="<%= year || null %>">
-          <label>a.D.</label>
-        </div>
-      </div>
-    </form>
-  </header>
-
-  <div id="selectCookies" class="modal">
-    <div class="selectCookies">
-      <p style="line-height: 1.5;">
-        For å gjøre <b>SNUBLEJUICE.no</b> enda bedre ønsker vi å samle inn informasjonskapsler. Ved å godta, samtykker du til bruk av informasjonskapsler.
-      </p>
-      <div class="cookieSelection">
-        <button id="decline" onclick="declineCookies()">ELLERS TAKK</button>
-        <img src="images/800x800.png" alt="SNUBLEJUICE.no">
-        <button id="accept" onclick="acceptCookies()">DEN ER GREI</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="infobox" class="infobox" style="display: none;">
-    <div class="head">
-      <b>Hva er SNUBLEJUICE?</b>
-      <span class="exit">x</span>
-    </div>
-    <div style="line-height: 1.5;">
-      Her finner du Vinmonopolets hemmelige tilbud samt varers prishistorikk.
-    </div>
-    <div style="line-height: 1.5;">
-      Vinmonopolet justerer nemlig prisene hvert månedsskifte. For å gjøre livet ditt litt enklere holder vi styr på prishistorikken til varer, og gir en oversikt over tilbudsvarer.
-    </div>
-    <div style="line-height: 1.5;">
-      Lagerbeholdning oppdateres jevnlig, så avvik kan forekomme. Alltid dobbeltsjekk på produktets side.
-    </div>
-  </div>
-
-  <div class="pagination" id="top">
-    <div onclick="window.location.href='/?fresh=false'">SNUBLEJUICE.no</div>
-    <img src="images/snublejuice.png" alt="SNUBLEJUICE.no" onclick="window.location.href='/?fresh=false'">
-
-    <div class="pages">
-      <% if (page > 1) { %>
-          <a href="#" onclick="changePage(<%= page - 1 %>)"><-</a>
       <% } %>
 
-      <span><%= page %> av <%= totalPages %></span>
+      <select name="country" id="country" onchange="applyFilters(true, false)">
+        <!-- Options will be dynamically populated by `public/scripts/countries.js`. -->
+      </select>
 
-      <% if (page < totalPages) { %>
-          <a href="#" onclick="changePage(<%= page + 1 %>)">-></a>
-      <% } %>
+      <%
+      const today = new Date();
+      const targetDate = new Date(2024, 6);
+      const maxMonth = Math.abs(
+        ((targetDate.getFullYear() - today.getFullYear()) * 12)
+        + (targetDate.getMonth() - today.getMonth())
+      );
+
+      const getFormattedDate = (monthsAgo) => {
+        const date = new Date();
+        date.setMonth(date.getMonth() - monthsAgo);
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      }
+      %>
+      <select id="delta" name="delta">
+        <% for(let i = 1; i <= maxMonth; i++) { %>
+          <option value="<%= i %>" <%= (delta == i) ? 'selected' : '' %>>
+            Førpris <%= getFormattedDate(i) %>
+          </option>
+        <% } %>
+      </select>
+
+      <div>
+        <input type="float" id="fvolume" name="volume" min="0" step="1" value="<%= volume || null %>" placeholder="Volum over ...">
+        <label>cL</label>
+      </div>
+
+      <div>
+        <input type="float" id="falcohol" name="alcohol" min="0" step="0.5" value="<%= alcohol || null %>" placeholder="Alkohol over ...">
+        <label id="percent">%</label>
+      </div>
+
+      <div>
+        <input type="number" id="iyear" name="year" min="1900" step="10" value="<%= year || null %>" placeholder="Årgang før ...">
+        <label>a.D.</label>
+      </div>
     </div>
-  </div>
+  </form>
+</search>

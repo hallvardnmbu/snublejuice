@@ -1,0 +1,16 @@
+<div class="pagination" id="<%= placement %>">
+  <div onclick="window.location.href='/?fresh=false'">SNUBLEJUICE.no</div>
+  <img src="images/snublejuice.png" alt="SNUBLEJUICE.no" onclick="window.location.href='/?fresh=false'">
+
+  <menu>
+    <% if (page > 1) { %>
+        <li><a href="#" onclick="changePage(<%= page - 1 %>)"><-</a></li>
+    <% } %>
+
+    <span><%= page %> av <%= totalPages %></span>
+
+    <% if (page < totalPages) { %>
+        <li><a href="#" onclick="changePage(<%= page + 1 %>)">-></a></li>
+    <% } %>
+  </menu>
+</div>

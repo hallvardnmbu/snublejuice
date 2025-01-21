@@ -1,21 +1,19 @@
-const _MODALS = ["loginModal", "registerModal", "profileModal"];
+const _MODALS = ["login", "register", "profile", "infobox"];
 
-function currentModal(modal) {
+function toggleView(modal) {
   // Close all modals except the one that was clicked.
   for (const arg of _MODALS.filter((m) => m !== modal)) {
     let element = document.getElementById(arg);
     element.style.display = "none";
   }
 
-  // Close all messages.
-  const messages = document.getElementsByClassName("userMessage");
-  for (const message of messages) {
-    message.style.display = "none";
-  }
+  // Close message.
+  const message = document.getElementById("userMessage");
+  message.style.display = "none";
 
   // Open the clicked modal.
   let element = document.getElementById(modal);
-  element.style.display = element.style.display === "flex" ? "none" : "flex";
+  element.style.display = element.style.display === "block" ? "none" : "block";
 }
 
 // LOGIN
@@ -25,8 +23,8 @@ document.getElementById("loginForm").onsubmit = async function (event) {
   event.preventDefault();
 
   const formData = {
-    username: document.getElementById("usernameLOG").value,
-    password: document.getElementById("passwordLOG").value,
+    username: document.getElementById("usernameLogin").value,
+    password: document.getElementById("passwordLogin").value,
   };
 
   try {
@@ -40,23 +38,23 @@ document.getElementById("loginForm").onsubmit = async function (event) {
     });
 
     const data = await response.json();
-    loginMessage.style.display = "flex";
-    loginMessage.style.backgroundColor = response.ok ? "var(--positive)" : "var(--negative)";
+    userMessage.style.display = "block";
+    userMessage.style.backgroundColor = response.ok ? "var(--positive)" : "var(--negative)";
 
     if (response.ok) {
-      loginMessage.textContent = data.message;
+      userMessage.textContent = data.message;
 
       // Reload the page after successful login
       setTimeout(() => {
         window.location.reload();
       }, 1000);
     } else {
-      loginMessage.textContent = data.message;
+      userMessage.textContent = data.message;
     }
   } catch (error) {
-    loginMessage.style.display = "flex";
-    loginMessage.style.backgroundColor = "var(--negative)";
-    loginMessage.textContent = "Hmm, noe gikk galt...";
+    userMessage.style.display = "block";
+    userMessage.style.backgroundColor = "var(--negative)";
+    userMessage.textContent = "Hmm, noe gikk galt...";
   }
 };
 
@@ -67,9 +65,9 @@ document.getElementById("registerForm").onsubmit = async function (event) {
   event.preventDefault();
 
   const formData = {
-    email: document.getElementById("emailSUP").value,
-    username: document.getElementById("usernameSUP").value,
-    password: document.getElementById("passwordSUP").value,
+    email: document.getElementById("emailRegister").value,
+    username: document.getElementById("usernameRegister").value,
+    password: document.getElementById("passwordRegister").value,
   };
 
   try {
@@ -83,23 +81,23 @@ document.getElementById("registerForm").onsubmit = async function (event) {
     });
 
     const data = await response.json();
-    registerMessage.style.display = "flex";
-    registerMessage.style.backgroundColor = response.ok ? "var(--positive)" : "var(--negative)";
+    userMessage.style.display = "block";
+    userMessage.style.backgroundColor = response.ok ? "var(--positive)" : "var(--negative)";
 
     if (response.ok) {
-      registerMessage.textContent = data.message;
+      userMessage.textContent = data.message;
 
       // Reload the page after successful register
       setTimeout(() => {
         window.location.reload();
       }, 1000);
     } else {
-      registerMessage.textContent = data.message;
+      userMessage.textContent = data.message;
     }
   } catch (error) {
-    registerMessage.style.display = "flex";
-    registerMessage.style.backgroundColor = "var(--negative)";
-    registerMessage.textContent = "Hmm, noe gikk galt...";
+    userMessage.style.display = "block";
+    userMessage.style.backgroundColor = "var(--negative)";
+    userMessage.textContent = "Hmm, noe gikk galt...";
   }
 };
 
@@ -110,8 +108,8 @@ document.getElementById("deleteUserForm").onsubmit = async function (event) {
   event.preventDefault();
 
   const formData = {
-    username: document.getElementById("usernameDEL").value,
-    password: document.getElementById("passwordDEL").value,
+    username: document.getElementById("usernameDelete").value,
+    password: document.getElementById("passwordDelete").value,
   };
 
   try {
@@ -125,23 +123,23 @@ document.getElementById("deleteUserForm").onsubmit = async function (event) {
     });
 
     const data = await response.json();
-    profileMessage.style.display = "flex";
-    profileMessage.style.backgroundColor = response.ok ? "var(--positive)" : "var(--negative)";
+    userMessage.style.display = "block";
+    userMessage.style.backgroundColor = response.ok ? "var(--positive)" : "var(--negative)";
 
     if (response.ok) {
-      profileMessage.textContent = data.message;
+      userMessage.textContent = data.message;
 
       // Reload the page after successful register.
       setTimeout(() => {
         window.location.reload();
       }, 1000);
     } else {
-      profileMessage.textContent = data.message;
+      userMessage.textContent = data.message;
     }
   } catch (error) {
-    profileMessage.style.display = "flex";
-    profileMessage.style.backgroundColor = "var(--negative)";
-    profileMessage.textContent = "Hmm, noe gikk galt...";
+    userMessage.style.display = "block";
+    userMessage.style.backgroundColor = "var(--negative)";
+    userMessage.textContent = "Hmm, noe gikk galt...";
   }
 };
 

@@ -191,6 +191,7 @@ async function updateDatabase(data) {
 
 async function getProducts(startPage = 0, alreadyUpdated = []) {
   let items = [];
+  let current = 0;
   const total = 1500;
 
   for (let page = startPage; page < 10000; page++) {
@@ -214,6 +215,8 @@ async function getProducts(startPage = 0, alreadyUpdated = []) {
       if (items.length === 0) {
         throw new Error(`No items for the last 10 pages. Aborting.`);
       }
+
+      current += items.length;
 
       console.log(`UPDATING | ${items.length} final records.`);
       const result = await updateDatabase(items);

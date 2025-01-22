@@ -21,7 +21,25 @@ const visitCollection = database.collection("visits");
 
 const URL = JSON.parse(process.env.TAXFREE);
 
-const LINK = "https://cdn.tax-free.no";
+const STORES = {
+  5135: "Stavanger",
+  5136: "Stavanger, Tyrkia ankomst",
+  5145: "Bergen, Avgang",
+  5148: "Bergen",
+  5155: "Trondheim",
+  5111: "Oslo, Ankomst",
+  5114: "Oslo, Avgang",
+  5115: "Oslo, Domestic Transfer",
+
+  5110: null,
+  5104: null,
+  5149: null,
+};
+
+const LINKS = {
+  image: "https://cdn.tax-free.no",
+  product: "https://www.tax-free.no",
+};
 const IMAGE = {
   thumbnail: "https://bilder.vinmonopolet.no/bottle.png",
   product: "https://bilder.vinmonopolet.no/bottle.png",
@@ -30,7 +48,7 @@ function processImages(images) {
   if (!images) return IMAGE;
 
   return Object.fromEntries(
-    Object.entries(images).map(([format, urlEnd]) => [format, `${LINK}${urlEnd}`]),
+    Object.entries(images).map(([format, urlEnd]) => [format, `${LINKS.image}${urlEnd}`]),
   );
 }
 
@@ -59,7 +77,7 @@ function processProducts(products, alreadyUpdated) {
       selection: null,
 
       name: product.name?.no || null,
-      url: product.url ? `${LINK}${product.url}` : null,
+      url: product.url ? `${LINKS.product}${product.url}` : null,
       images: product.picture ? processImages(product.picture) : IMAGE,
 
       description: product.description?.no || null,
@@ -105,7 +123,18 @@ function processProducts(products, alreadyUpdated) {
       orderinfo: null,
       storeinfo: null,
 
-      stores: product.availableIn || null,
+      stores: {
+        online: product.inOnlineStockInCodes
+          ? product.inOnlineStockInCodes
+              .map((code) => STORES[code])
+              .filter((store) => store !== null)
+          : null,
+        physical: product.inPhysicalStockInCodes
+          ? product.inPhysicalStockInCodes
+              .map((code) => STORES[code])
+              .filter((store) => store !== null)
+          : null,
+      },
     });
   }
 
@@ -141,8 +170,7 @@ async function updateDatabase(data) {
     updateOne: {
       filter: { index: record.index },
       update: [
-        // { $set: { oldprice: "$price" } },
-        { $set: { oldprice: null } },
+        { $set: { oldprice: "$price" } },
         { $set: record },
         { $set: { prices: { $ifNull: ["$prices", []] } } },
         { $set: { prices: { $concatArrays: ["$prices", ["$price"]] } } },
@@ -214,7 +242,7 @@ async function getProducts() {
       }
 
       items = items.concat(products);
-      alreadyUpdated = items.map((item) => item.index);
+      alreadyUpdated = alreadyUpdated.concat(items.map((item) => item.index));
 
       await new Promise((resolve) => setTimeout(resolve, 900));
     } catch (err) {

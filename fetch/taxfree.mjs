@@ -1,4 +1,3 @@
-import axios from "axios";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import dotenv from "dotenv";
 
@@ -17,20 +16,22 @@ const client = new MongoClient(
 await client.connect();
 
 const database = client.db("snublejuice");
-const itemCollection = database.collection("products");
+const itemCollection = database.collection("taxfree");
 const visitCollection = database.collection("visits");
 
-const URL =
-  "https://www.vinmonopolet.no/vmpws/v2/vmp/search?fields=FULL&searchType=product&currentPage={}&q=%3Arelevance";
-const LINK = "https://www.vinmonopolet.no{}";
+const URL = JSON.parse(process.env.TAXFREE);
 
+const LINK = "https://cdn.tax-free.no";
 const IMAGE = {
   thumbnail: "https://bilder.vinmonopolet.no/bottle.png",
   product: "https://bilder.vinmonopolet.no/bottle.png",
 };
-
 function processImages(images) {
-  return images ? images.reduce((acc, img) => ({ ...acc, [img.format]: img.url }), {}) : IMAGE;
+  if (!images) return IMAGE;
+
+  return Object.fromEntries(
+    Object.entries(images).map(([format, urlEnd]) => [format, `${LINK}${urlEnd}`]),
+  );
 }
 
 function processProducts(products, alreadyUpdated) {
@@ -49,60 +50,89 @@ function processProducts(products, alreadyUpdated) {
 
     processed.push({
       index: index,
+      id: parseInt(product.objectID, 10),
 
       updated: true,
+      buyable: true,
+      expired: false,
+      sustainable: null,
+      selection: null,
 
-      name: product.name || null,
-      price: product.price?.value || 0.0,
+      name: product.name?.no || null,
+      url: product.url ? `${LINK}${product.url}` : null,
+      images: product.picture ? processImages(product.picture) : IMAGE,
 
-      volume: product.volume?.value || 0.0,
-      literprice:
-        product.price?.value && product.volume?.value
-          ? product.price.value / (product.volume.value / 100.0)
-          : 0.0,
+      description: product.description?.no || null,
 
-      url: product.url ? LINK.replace("{}", product.url) : null,
-      images: product.images ? processImages(product.images) : IMAGE,
+      price: product.price.NOK,
+      literprice: product.fullUnitPrice
+        ? product.fullUnitPrice.NOK
+        : product.price.NOK / product.salesAmount,
+      volume: product.salesAmount * 100,
+      alcohol: product.alcoholByVolume || null,
 
-      category: product.main_category?.name || null,
-      subcategory: product.main_sub_category?.name || null,
+      category: product.categoriesLevel1?.no?.at(0).split(" > ").at(-1) || null,
+      subcategory:
+        product.categoriesLevel2?.no?.at(0).split(" > ").at(-1) || product.categoryName?.no || null,
+      subsubcategory: product.categoriesLevel3?.no?.at(0).split(" > ").at(-1) || null,
 
-      country: product.main_country?.name || null,
-      district: product.district?.name || null,
-      subdistrict: product.sub_District?.name || null,
+      country: product.country?.no || null,
+      district: product.region?.no || product.wineGrowingAhreaDetail?.no || null,
+      subdistrict: product.wineGrowingAhreaDetail?.no || null,
 
-      selection: product.product_selection || null,
-      sustainable: product.sustainable || false,
+      taste: {
+        taste: product.taste?.no || null,
+        fill: product.tasteFill?.no,
+        intensity: product.tasteIntensity?.no,
+      },
+      smell: null,
+      ingredients: product.wineGrapes?.no || null,
+      characteristics: [product.sweetness?.no],
+      allergens: product.allergens?.no || null,
+      pair: product.suitableFor?.no || null,
+      storage: null,
+      cork: null,
 
-      buyable: product.buyable || false,
-      expired: product.expired || true,
-      status: product.status || null,
+      year: product.year ? parseInt(product.year.no, 10) : null,
 
-      orderable: product.productAvailability?.deliveryAvailability?.availableForPurchase || false,
-      orderinfo:
-        product.productAvailability?.deliveryAvailability?.infos?.[0]?.readableValue || null,
+      sugar: product.suggarContent || null,
+      acid: product.tasteTheAcid?.no || null,
 
-      instores: product.productAvailability?.storesAvailability?.availableForPurchase || false,
-      storeinfo: product.productAvailability?.storesAvailability?.infos?.[0]?.readableValue || null,
+      colour: product.colour?.no || null,
+
+      instores: product.onlineExclusive || false,
+      orderable: null,
+      orderinfo: null,
+      storeinfo: null,
+
+      stores: product.availableIn || null,
     });
   }
 
   return processed;
 }
 
-async function getPage(page, alreadyUpdated) {
+async function getPage(order, alreadyUpdated) {
   try {
-    const response = await session.get(URL.replace("{}", page), {
-      timeout: 10000,
+    const response = await fetch(URL.url, {
+      method: "POST",
+      headers: URL.headers,
+      body: JSON.stringify({
+        requests: URL.requests.map((req) => ({
+          ...req,
+          indexName: req.indexName.replace("{}", order),
+        })),
+      }),
     });
 
     if (response.status === 200) {
-      return processProducts(response.data["productSearchResult"]["products"], alreadyUpdated);
+      const data = await response.json();
+      return processProducts(data.results[0].hits, alreadyUpdated);
     }
 
-    console.log(`STATUS | ${response.status} | Page: ${page}.`);
+    console.log(`STATUS | ${response.status} | Order: ${order}.`);
   } catch (err) {
-    console.log(`ERROR | Page: ${page} | ${err.message}`);
+    console.log(`ERROR | Order: ${order} | ${err.message}`);
   }
 }
 
@@ -111,7 +141,8 @@ async function updateDatabase(data) {
     updateOne: {
       filter: { index: record.index },
       update: [
-        { $set: { oldprice: "$price" } },
+        // { $set: { oldprice: "$price" } },
+        { $set: { oldprice: null } },
         { $set: record },
         { $set: { prices: { $ifNull: ["$prices", []] } } },
         { $set: { prices: { $concatArrays: ["$prices", ["$price"]] } } },
@@ -136,27 +167,6 @@ async function updateDatabase(data) {
                   ],
                 },
                 else: 0,
-              },
-            },
-            literprice: {
-              $cond: {
-                if: {
-                  $and: [
-                    { $gt: ["$price", 0] },
-                    { $gt: ["$volume", 0] },
-                    { $ne: ["$price", null] },
-                    { $ne: ["$volume", null] },
-                  ],
-                },
-                then: {
-                  $multiply: [
-                    {
-                      $divide: ["$price", "$volume"],
-                    },
-                    100,
-                  ],
-                },
-                else: null,
               },
             },
           },
@@ -189,54 +199,45 @@ async function updateDatabase(data) {
   return await itemCollection.bulkWrite(operations);
 }
 
-async function getProducts(startPage = 0, alreadyUpdated = []) {
+async function getProducts() {
   let items = [];
-  let current = 0;
-  const total = 1500;
+  let alreadyUpdated = [];
 
-  for (let page = startPage; page < 10000; page++) {
+  let count = 0;
+
+  for (const order of ["asc", "desc"]) {
     try {
-      let products = await getPage(page, alreadyUpdated);
+      let products = await getPage(order, alreadyUpdated);
       if (products.length === 0) {
-        console.log(`DONE | Final page: ${page - 1}.`);
+        console.log(`DONE | Final order: ${order}.`);
         break;
       }
 
       items = items.concat(products);
+      alreadyUpdated = items.map((item) => item.index);
 
       await new Promise((resolve) => setTimeout(resolve, 900));
     } catch (err) {
-      console.log(`ERROR | Page: ${page} | ${err}`);
+      console.log(`ERROR | Order: ${order} | ${err}`);
       break;
     }
 
-    // Upsert to the database every 10 pages.
-    if (page % 10 === 0) {
-      if (items.length === 0) {
-        throw new Error(`No items for the last 10 pages. Aborting.`);
-      }
-
-      current += items.length;
-
-      console.log(`UPDATING | ${items.length} final records.`);
-      const result = await updateDatabase(items);
-      console.log(`         | Modified ${result.modifiedCount}.`);
-      console.log(`         | Upserted ${result.upsertedCount}.`);
-
-      items = [];
-
-      console.log(`UPDATING | Progress: ${Math.floor((current / total) * 100)} %`);
+    if (items.length === 0) {
+      throw new Error(`No items. Aborting.`);
     }
+
+    count += items.length;
+
+    console.log(`UPDATING | ${items.length} records.`);
+    const result = await updateDatabase(items);
+    console.log(`         | Modified ${result.modifiedCount}.`);
+    console.log(`         | Upserted ${result.upsertedCount}.`);
+
+    items = [];
   }
 
-  // Upsert the remaining products, if any.
-  if (items.length === 0) {
-    return;
-  }
-  console.log(`UPDATING | ${items.length} final records.`);
-  const result = await updateDatabase(items);
-  console.log(`         | Modified ${result.modifiedCount}.`);
-  console.log(`         | Upserted ${result.upsertedCount}.`);
+  console.log(`DONE | Total items: ${count}.`);
+  return;
 }
 
 async function syncUnupdatedProducts(threshold = null) {
@@ -261,24 +262,16 @@ async function syncUnupdatedProducts(threshold = null) {
   }
 }
 
-const session = axios.create();
-
 async function main() {
-  await visitCollection.updateOne({ class: "prices" }, { $set: { updated: false } });
+  await visitCollection.updateOne({ class: "taxfree" }, { $set: { updated: false } });
 
   await itemCollection.updateMany({}, { $set: { updated: false } });
-  const alreadyUpdated = await itemCollection
-    .find({ updated: true })
-    .map((item) => item.index)
-    .toArray();
-
-  const startPage = 0;
-  await getProducts(startPage, alreadyUpdated);
+  await getProducts();
 
   // [!] ONLY RUN THIS AFTER ALL PRICES HAVE BEEN UPDATED [!]
   await syncUnupdatedProducts(100);
 
-  await visitCollection.updateOne({ class: "prices" }, { $set: { updated: true } });
+  await visitCollection.updateOne({ class: "taxfree" }, { $set: { updated: true } });
 }
 
 await main();

@@ -62,11 +62,14 @@ try {
 const db = client.db("snublejuice");
 let visits = db.collection("visits");
 let users = db.collection("users");
-let collection = db.collection("products");
+let collections = { snublejuice: db.collection("products"), taxfree: db.collection("taxfree") };
 
 snublejuice.get("/api/stores", async (req, res) => {
   try {
-    const stores = await collection.distinct("stores");
+    const stores =
+      await collections[req.hostname.startsWith("taxfree") ? "taxfree" : "snublejuice"].distinct(
+        "stores",
+      );
     res.status(200).json(stores);
   } catch (err) {
     res.status(500).send(err);
@@ -75,7 +78,10 @@ snublejuice.get("/api/stores", async (req, res) => {
 
 snublejuice.get("/api/countries", async (req, res) => {
   try {
-    const countries = await collection.distinct("country");
+    const countries =
+      await collections[req.hostname.startsWith("taxfree") ? "taxfree" : "snublejuice"].distinct(
+        "country",
+      );
     res.status(200).json(countries);
   } catch (err) {
     res.status(500).send(err);
@@ -294,35 +300,33 @@ snublejuice.post("/api/favourite", authenticate, async (req, res) => {
   }
 });
 
+async function incrementVisitor(month, taxfree, fresh) {
+  let current = fresh ? "fresh" : "newpage";
+  if (taxfree) {
+    current += "-taxfree";
+  }
+
+  if (_PRODUCTION) {
+    await visits.updateOne(
+      { class: current },
+      {
+        $inc: {
+          total: 1,
+          [`month.${month}`]: 1,
+        },
+      },
+      { upsert: true },
+    );
+  }
+}
+
 snublejuice.get("/", authenticate, async (req, res) => {
+  let taxfree = req.hostname.startsWith("taxfree");
+
   const currentDate = new Date();
   const currentMonth = currentDate.toISOString().slice(0, 7);
 
-  if (_PRODUCTION) {
-    if (Object.keys(req.query).length === 0) {
-      await visits.updateOne(
-        { class: "fresh" },
-        {
-          $inc: {
-            total: 1,
-            [`month.${currentMonth}`]: 1,
-          },
-        },
-        { upsert: true },
-      );
-    } else {
-      await visits.updateOne(
-        { class: "newpage" },
-        {
-          $inc: {
-            total: 1,
-            [`month.${currentMonth}`]: 1,
-          },
-        },
-        { upsert: true },
-      );
-    }
-  }
+  await incrementVisitor(currentMonth, taxfree, Object.keys(req.query).length === 0);
 
   const page = parseInt(req.query.page) || 1;
   const delta = parseInt(req.query.delta) || 1;
@@ -351,8 +355,9 @@ snublejuice.get("/", authenticate, async (req, res) => {
 
   try {
     let { data, total, updated } = await load({
-      collection,
+      collection: collections[taxfree ? "taxfree" : "snublejuice"],
       visits,
+      taxfree,
 
       // Month delta:
       delta: delta,
@@ -465,6 +470,7 @@ if (_PRODUCTION) {
   // FINAL APP WITH ALL VHOSTS
   app.use(vhost("snublejuice.no", snublejuice));
   app.use(vhost("www.snublejuice.no", snublejuice));
+  app.use(vhost("taxfree.snublejuice.no", snublejuice));
   app.use(vhost("api.ind320.no", api));
   app.use(vhost("ord.dilettant.no", ord));
   app.use(vhost("dagsord.no", ord));
@@ -474,7 +480,11 @@ if (_PRODUCTION) {
     console.log(`http://localhost:${port}`);
   });
 } else {
-  snublejuice.listen(port, () => {
+  app.use(vhost("localhost", snublejuice));
+  app.use(vhost("taxfree.localhost", snublejuice));
+
+  app.listen(port, () => {
     console.log(`http://localhost:${port}`);
+    console.log(`http://taxfree.localhost:${port}`);
   });
 }

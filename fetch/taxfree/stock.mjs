@@ -25,7 +25,7 @@ const STORES = {
   5135: "Stavanger",
   5136: "Stavanger, Tyrkia ankomst",
   5145: "Bergen, Avgang",
-  5148: "Bergen",
+  5148: "Bergen, Ankomst",
   5155: "Trondheim",
   5111: "Oslo, Ankomst",
   5114: "Oslo, Avgang",
@@ -69,18 +69,23 @@ function processProducts(products, alreadyUpdated) {
     processed.push({
       index: index,
 
-      stores: {
-        online: product.inOnlineStockInCodes
-          ? product.inOnlineStockInCodes
-              .map((code) => STORES[code])
-              .filter((store) => store !== null)
-          : null,
-        physical: product.inPhysicalStockInCodes
-          ? product.inPhysicalStockInCodes
-              .map((code) => STORES[code])
-              .filter((store) => store !== null)
-          : null,
-      },
+      stores: product.inPhysicalStockInCodes
+        ? product.inPhysicalStockInCodes
+            .map((code) => STORES[code])
+            .filter((store) => store !== null)
+        : null,
+      // stores: {
+      //   online: product.inOnlineStockInCodes
+      //     ? product.inOnlineStockInCodes
+      //         .map((code) => STORES[code])
+      //         .filter((store) => store !== null)
+      //     : null,
+      //   physical: product.inPhysicalStockInCodes
+      //     ? product.inPhysicalStockInCodes
+      //         .map((code) => STORES[code])
+      //         .filter((store) => store !== null)
+      //     : null,
+      // },
     });
   }
 

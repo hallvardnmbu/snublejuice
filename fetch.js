@@ -19,6 +19,7 @@ export const categories = {
 export async function load({
   collection,
   visits,
+  taxfree = false,
 
   // Month delta:
   delta = 1,
@@ -130,8 +131,8 @@ export async function load({
     ...(district && !search ? { district: district } : {}),
     ...(subdistrict && !search ? { subdistrict: subdistrict } : {}),
     ...(year && !search ? { year: { $lte: year } } : {}),
-    ...(cork && !search ? { cork: cork } : {}),
-    ...(storage && !search ? { storage: storage } : {}),
+    // ...(cork && !search ? { cork: cork } : {}),
+    // ...(storage && !search ? { storage: storage } : {}),
 
     // Parameters that are arrays are matched using the $in operator.
     // ...(description.length && !search ? { "description.short": { $in: description } } : {}),
@@ -210,6 +211,7 @@ export async function load({
 
     return { data, total, updated };
   } catch (err) {
+    console.log(err);
     return { data: null, total: 1, updated: null };
   }
 }

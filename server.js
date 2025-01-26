@@ -24,7 +24,7 @@ const port = 8080;
 const app = express();
 const limiter = rateLimit({
   windowMs: 10 * 60 * 1000, // 10 minutes
-  max: 100, // Limit each IP to 100 requests per `window` (10 minutes)
+  max: 500, // Limit each IP to 100 requests per `window` (10 minutes)
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
@@ -62,14 +62,19 @@ try {
 const db = client.db("snublejuice");
 let visits = db.collection("visits");
 let users = db.collection("users");
-let collections = { snublejuice: db.collection("products"), taxfree: db.collection("taxfree") };
+let collection = db.collection("products");
 
 snublejuice.get("/api/stores", async (req, res) => {
   try {
-    const stores =
-      await collections[req.hostname.startsWith("taxfree") ? "taxfree" : "snublejuice"].distinct(
-        "stores",
-      );
+    const stores = await collection.distinct("stores");
+    res.status(200).json(stores);
+  } catch (err) {
+    res.status(500).send(err);
+  }
+});
+snublejuice.get("/api/taxfree/stores", async (req, res) => {
+  try {
+    const stores = await collection.distinct("taxfree.stores");
     res.status(200).json(stores);
   } catch (err) {
     res.status(500).send(err);
@@ -78,10 +83,7 @@ snublejuice.get("/api/stores", async (req, res) => {
 
 snublejuice.get("/api/countries", async (req, res) => {
   try {
-    const countries =
-      await collections[req.hostname.startsWith("taxfree") ? "taxfree" : "snublejuice"].distinct(
-        "country",
-      );
+    const countries = await collection.distinct("country");
     res.status(200).json(countries);
   } catch (err) {
     res.status(500).send(err);
@@ -331,6 +333,10 @@ snublejuice.get("/", authenticate, async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const delta = parseInt(req.query.delta) || 1;
   const sort = req.query.sort || "discount";
+  let sortBy = sort;
+  if (taxfree && sortBy !== "alcohol") {
+    sortBy = `taxfree.${sortBy}`;
+  }
   const ascending = !(req.query.ascending === "false");
   const category = req.query.category || null;
   const country = req.query.country || null;
@@ -340,11 +346,15 @@ snublejuice.get("/", authenticate, async (req, res) => {
   const search = req.query.search || null;
   const storelike = req.query.storelike || null;
   let store = req.query.store || "Spesifikk butikk";
+  let taxfreeStore = taxfree ? req.query.taxfreeStore || null : null;
   const includeFavourites = req.query.favourites === "true";
 
   let orderable = store === "Spesifikk butikk";
   if (orderable) {
     store = null;
+  }
+  if (taxfreeStore === "Alle flyplasser") {
+    taxfreeStore = null;
   }
 
   // Check if items have `updated = false` or if it is a new month and price updates are not yet completed
@@ -355,7 +365,7 @@ snublejuice.get("/", authenticate, async (req, res) => {
 
   try {
     let { data, total, updated } = await load({
-      collection: collections[taxfree ? "taxfree" : "snublejuice"],
+      collection,
       visits,
       taxfree,
 
@@ -391,6 +401,7 @@ snublejuice.get("/", authenticate, async (req, res) => {
       // Array parameters:
       description: null,
       store: store === "null" ? null : store,
+      taxfreeStore: taxfreeStore,
       pair: null,
 
       // If specified, only include values >=:
@@ -398,7 +409,7 @@ snublejuice.get("/", authenticate, async (req, res) => {
       alcohol: alcohol,
 
       // Sorting:
-      sort: sort,
+      sort: sortBy,
       ascending: ascending,
 
       // Pagination:
@@ -417,6 +428,7 @@ snublejuice.get("/", authenticate, async (req, res) => {
 
     res.render("products", {
       visitors: visitors,
+      taxfree: taxfree,
       user: req.user
         ? {
             username: req.user.username,
@@ -450,6 +462,7 @@ snublejuice.get("/", authenticate, async (req, res) => {
       search: search,
       storelike: storelike,
       store: store,
+      taxfreeStore: taxfreeStore,
     });
   } catch (err) {
     console.error(err);

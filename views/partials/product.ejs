@@ -1,8 +1,16 @@
+<% if (!taxfree) { %>
 <section
   class="product"
   index="<%= index %>"
   style="--highlight: <%= item.discount > 0 ? 'var(--negative)' : item.discount < 0 ? 'var(--positive)' : 'var(--block)' %>; --marker: <%= item.discount > 0 ? 'var(--red)' : item.discount < 0 ? 'var(--green)' : 'var(--dimtext)' %>;"
 >
+<% } else { %>
+  <section
+    class="product"
+    index="<%= index %>"
+    style="--highlight: <%= item.taxfree.discount > 0 ? 'var(--negative)' : item.taxfree.discount < 0 ? 'var(--positive)' : 'var(--block)' %>; --marker: <%= item.taxfree.discount > 0 ? 'var(--red)' : item.taxfree.discount < 0 ? 'var(--green)' : 'var(--dimtext)' %>;"
+  >
+<% } %>
 
   <div class="image">
     <img src="<%= item.images.product %>" alt="flaske">
@@ -59,6 +67,14 @@
               <div id="dot" style="font-size: 10px;">●</div>
             <% } %>
           <% }) %>
+        <% } else if (taxfree && item.taxfree.stores) { %>
+          <% const taxfreeStores = item.taxfree.stores.sort((a,b) => a.localeCompare(b)) %>
+          <% taxfreeStores.forEach((store, index) => { %>
+            <div style="font-size: 16px;"><%= store %></div>
+            <% if (index !== taxfreeStores.length - 1) { %>
+              <div id="dot" style="font-size: 10px;">●</div>
+            <% } %>
+          <% }) %>
         <% } %>
       </div>
     </div>
@@ -69,23 +85,37 @@
     <% } %>
 
 
-    <div class="price">
-      <div class="prices">
-        <span class="text">KR <b class="number"><%= Math.ceil(item.price) %></b></span>
+    <% if (!taxfree) { %>
+      <div class="price">
+        <div class="prices">
+          <span class="text">KR <b class="number"><%= Math.ceil(item.price) %></b></span>
+          <% if (item.oldprice) { %>
+            <span class="text">FØR <b class="number"><%= Math.ceil(item.oldprice) %></b></span>
+          <% } %>
+        </div>
         <% if (item.oldprice) { %>
-          <span class="text">FØR <b class="number"><%= Math.ceil(item.oldprice) %></b></span>
+          <span class="text">
+            ENDRING
+            <b class="number"><%= Math.floor(item.discount) %></b>
+            <b class="percent">%</b>
+          </span>
         <% } %>
       </div>
-      <% if (item.oldprice) { %>
+    <% } else { %>
+      <div class="price">
+        <div class="prices">
+          <span class="text">VINMONOPOL <b class="number"><%= Math.ceil(item.price) %></b></span>
+          <span class="text">TAX-FREE <b class="number"><%= Math.ceil(item.taxfree.price) %></b></span>
+        </div>
         <span class="text">
-          ENDRING
-          <b class="number"><%= Math.floor(item.discount) %></b>
-          <b class="percent">%</b>
-        </span>
-      <% } %>
-    </div>
+            DIFFERANSE
+            <b class="number"><%= Math.floor(item.taxfree.discount) %></b>
+            <b class="percent">%</b>
+          </span>
+      </div>
+    <% } %>
   </div>
 
-  <%- include('detailed', { item: item, index: index }) %>
+  <%- include(taxfree ? 'detailedTaxfree' : 'detailed', { item: item, index: index }) %>
 
 </section>

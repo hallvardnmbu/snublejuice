@@ -312,10 +312,15 @@ input[type="search"]::-webkit-search-results-decoration {
     text-align: center;
     justify-content: center;
 
-    width: 100%;
-
     padding: var(--padding);
     background-color: var(--negative);
+}
+.message a {
+    color: var(--text);
+}
+.message a:hover {
+    color: var(--dimtext);
+    background: none;
 }
 #messages {
     width: calc(100% - 2 * var(--padding));

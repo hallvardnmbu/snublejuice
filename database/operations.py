@@ -14,9 +14,7 @@ _DATABASE = MongoClient(
     f'mongodb+srv://{os.environ.get("MONGO_USR")}:{os.environ.get("MONGO_PWD")}'
     f'@snublejuice.faktu.mongodb.net/'
     f'?retryWrites=true&w=majority&appName=snublejuice'
-)['snublejuice']
-_PRODUCTS = _DATABASE['products']
-_TAXFREE = _DATABASE['taxfree']
+)['snublejuice']['products']
 
 
 def update_prices(records) -> BulkWriteResult:
@@ -103,7 +101,7 @@ def update_prices(records) -> BulkWriteResult:
         )
         for record in records
     ]
-    return _PRODUCTS.bulk_write(operations)
+    return _DATABASE.bulk_write(operations)
 
 
 def update_expired_items_to_locf():
@@ -133,10 +131,36 @@ def update_expired_items_to_locf():
             }
         }
     ]
-    result = _PRODUCTS.update_many({"prices": {"$elemMatch": {"$eq": 0.0}}}, pipeline)
+    result = _DATABASE.update_many({"prices": {"$elemMatch": {"$eq": 0.0}}}, pipeline)
 
     print(f"Updated {result.modified_count} records")
     print(result)
+
+
+def update_taxfree_alcoholprice() -> BulkWriteResult:
+    records = _DATABASE.find({"taxfree.updated": True})
+
+    operations = []
+    for record in records:
+        literprice = record.get('taxfree', {}).get('literprice')
+        alcohol = record.get('taxfree', {}).get('alcohol')
+
+        alcoholprice = 0
+        if (literprice is not None and alcohol is not None and
+            literprice > 0 and alcohol > 0):
+            alcoholprice = literprice / alcohol
+
+        operations.append(
+            pymongo.UpdateOne(
+                {'taxfree.index': record['taxfree']['index']},
+                {
+                    "$set": {
+                        "taxfree.alcoholprice": alcoholprice
+                    }
+                }
+            )
+        )
+    return _DATABASE.bulk_write(operations)
 
 
 def delete_fields(records, fields) -> BulkWriteResult:
@@ -147,11 +171,11 @@ def delete_fields(records, fields) -> BulkWriteResult:
         )
         for record in records
     ]
-    return _PRODUCTS.bulk_write(operations)
+    return _DATABASE.bulk_write(operations)
 
 
 def restore(date):
-    _PRODUCTS.delete_many({})
+    _DATABASE.delete_many({})
 
     if not os.path.exists("./backup"):
         path = f"./database/backup/{date}.parquet"
@@ -179,11 +203,11 @@ def restore(date):
             df[column] = df[column].dt.to_pydatetime()
 
     records = df.to_dict(orient='records')
-    _PRODUCTS.insert_many(records)
+    _DATABASE.insert_many(records)
 
 
 def backup():
-    data = _PRODUCTS.find({})
+    data = _DATABASE.find({})
     df = pd.DataFrame(data)
     df = df.drop(columns=["_id"])
     df["year"] = df["year"].apply(lambda x: int(float(x)) if x not in ("None", None, "") and pd.notna(x) else None)

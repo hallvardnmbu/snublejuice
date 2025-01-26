@@ -77,13 +77,6 @@ document.getElementById("delta").addEventListener("change", function () {
   applyFilters(true, false);
 });
 
-// Update cookies.
-document.getElementById("updateCookies").onclick = function (event) {
-  event.preventDefault();
-  const selectCookies = document.getElementById("selectCookies");
-  selectCookies.style.display = "flex";
-};
-
 // Toggle favourite.
 document.querySelectorAll(".favourite-toggle").forEach((img) => {
   img.addEventListener("click", async function (event) {
@@ -125,7 +118,9 @@ function changeModal(currentModal, newModal, event) {
   document.getElementById(currentModal).style.display = "none";
   document.getElementById(newModal).style.display = "block";
 
-  graphPrice(newModal);
+  if (!window.location.hostname.startsWith("taxfree")) {
+    graphPrice(itemIndex);
+  }
 }
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -142,8 +137,10 @@ document.addEventListener("DOMContentLoaded", function () {
       }
       modal.style.display = "block";
 
-      // Graph the price history
-      graphPrice(itemIndex);
+      // Graph the price history if the domain is not "taxfree.snublejuice.no"
+      if (!window.location.hostname.startsWith("taxfree")) {
+        graphPrice(itemIndex);
+      }
     });
   });
 
@@ -162,7 +159,7 @@ document.addEventListener("DOMContentLoaded", function () {
   window.onclick = function (event) {
     const modals = document.querySelectorAll(".modal");
     modals.forEach((modal) => {
-      if (event.target === modal && modal.id !== "selectCookies") {
+      if (event.target === modal) {
         modal.style.display = "none";
       }
     });
@@ -178,7 +175,7 @@ document.addEventListener("DOMContentLoaded", function () {
     ) {
       const modals = document.querySelectorAll(".modal");
       modals.forEach((modal) => {
-        if (modal.style.display === "block" && modal.id !== "selectCookies") {
+        if (modal.style.display === "block") {
           modal.style.display = "none";
         }
       });

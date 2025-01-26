@@ -274,10 +274,6 @@ button {
 
     cursor: pointer;
 }
-#updateCookies {
-    font-size: var(--fontsize-smallest);
-    height: auto;
-}
 select {
     width: 100%;
     padding-right: calc(var(--padding) * 2);
@@ -610,56 +606,6 @@ hr {
     cursor: pointer;
 }
 
-#selectCookies {
-    bottom: 0;
-    height: auto;
-    top: auto;
-}
-#selectCookies span {
-    font-size: var(--fontsize-small);
-    position: relative;
-    padding: var(--padding);
-    width: 100%;
-    background-color: var(--dimmed);
-    border-top: var(--padding) solid var(--block);
-    display: flex;
-    flex-direction: column;
-    gap: var(--padding);
-    border-bottom: none;
-}
-#selectCookies span p {
-    color: var(--text);
-    text-align: center;
-}
-.cookieSelection {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: var(--padding);
-}
-.cookieSelection img {
-    max-width: calc(var(--image) - var(--margin));
-}
-.cookieSelection button {
-    border: none;
-}
-.cookieSelection button:hover {
-    color: initial;
-    background-color: initial;
-}
-.cookieSelection #accept {
-    color: var(--green);
-}
-.cookieSelection #decline {
-    color: var(--red);
-}
-.cookieSelection #accept:hover,
-.cookieSelection #decline:hover {
-    color: var(--text);
-}
-
 footer span {
     display: flex;
     flex-direction: row;
@@ -673,7 +619,6 @@ footer span button {
 }
 
 @media (max-width: 690px) {
-    .cookieSelection,
     #advanced,
     #filters {
         flex-direction: column;

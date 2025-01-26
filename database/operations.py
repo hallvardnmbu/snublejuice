@@ -14,7 +14,9 @@ _DATABASE = MongoClient(
     f'mongodb+srv://{os.environ.get("MONGO_USR")}:{os.environ.get("MONGO_PWD")}'
     f'@snublejuice.faktu.mongodb.net/'
     f'?retryWrites=true&w=majority&appName=snublejuice'
-)['snublejuice']['products']
+)['snublejuice']
+_PRODUCTS = _DATABASE['products']
+_TAXFREE = _DATABASE['taxfree']
 
 
 def update_prices(records) -> BulkWriteResult:
@@ -101,7 +103,7 @@ def update_prices(records) -> BulkWriteResult:
         )
         for record in records
     ]
-    return _DATABASE.bulk_write(operations)
+    return _PRODUCTS.bulk_write(operations)
 
 
 def update_expired_items_to_locf():
@@ -131,7 +133,7 @@ def update_expired_items_to_locf():
             }
         }
     ]
-    result = _DATABASE.update_many({"prices": {"$elemMatch": {"$eq": 0.0}}}, pipeline)
+    result = _PRODUCTS.update_many({"prices": {"$elemMatch": {"$eq": 0.0}}}, pipeline)
 
     print(f"Updated {result.modified_count} records")
     print(result)
@@ -145,11 +147,11 @@ def delete_fields(records, fields) -> BulkWriteResult:
         )
         for record in records
     ]
-    return _DATABASE.bulk_write(operations)
+    return _PRODUCTS.bulk_write(operations)
 
 
 def restore(date):
-    _DATABASE.delete_many({})
+    _PRODUCTS.delete_many({})
 
     if not os.path.exists("./backup"):
         path = f"./database/backup/{date}.parquet"
@@ -177,11 +179,11 @@ def restore(date):
             df[column] = df[column].dt.to_pydatetime()
 
     records = df.to_dict(orient='records')
-    _DATABASE.insert_many(records)
+    _PRODUCTS.insert_many(records)
 
 
 def backup():
-    data = _DATABASE.find({})
+    data = _PRODUCTS.find({})
     df = pd.DataFrame(data)
     df = df.drop(columns=["_id"])
     df["year"] = df["year"].apply(lambda x: int(float(x)) if x not in ("None", None, "") and pd.notna(x) else None)

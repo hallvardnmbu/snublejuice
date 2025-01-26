@@ -16,20 +16,20 @@ const client = new MongoClient(
 await client.connect();
 
 const database = client.db("snublejuice");
-const itemCollection = database.collection("taxfree");
+const itemCollection = database.collection("products");
 const visitCollection = database.collection("visits");
 
 const URL = JSON.parse(process.env.TAXFREE);
 
 const STORES = {
-  5135: "Stavanger",
-  5136: "Stavanger, Tyrkia ankomst",
+  5135: "Stavanger, Avgang & Ankomst",
+  5136: "Stavanger, Bagasjehall (?)",
   5145: "Bergen, Avgang",
   5148: "Bergen, Ankomst",
-  5155: "Trondheim",
+  5155: "Trondheim, Avgang & Ankomst",
   5111: "Oslo, Ankomst",
   5114: "Oslo, Avgang",
-  5115: "Oslo, Domestic Transfer",
+  5115: "Oslo, Videreforbindelse",
 
   5110: null,
   5104: null,
@@ -119,8 +119,8 @@ async function getPage(order, alreadyUpdated) {
 async function updateDatabase(data) {
   const operations = data.map((record) => ({
     updateOne: {
-      filter: { index: record.index },
-      update: [{ $set: record }],
+      filter: { "taxfree.index": record.index },
+      update: [{ $set: { "taxfree.stores": record.stores } }],
     },
   }));
 
@@ -169,7 +169,7 @@ async function getStock() {
 }
 
 async function main() {
-  await itemCollection.updateMany({}, { $set: { stores: null } });
+  await itemCollection.updateMany({}, { $set: { "taxfree.stores": null } });
   await getStock();
 
   await visitCollection.updateOne({ class: "taxfree" }, { $set: { date: new Date() } });

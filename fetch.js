@@ -50,6 +50,7 @@ export async function load({
   // Array parameters:
   description = null,
   store = null,
+  taxfreeStore = null,
   pair = null,
 
   // If specified, only include values >=:
@@ -103,13 +104,19 @@ export async function load({
     });
   }
 
-  if (storelike && !favourites) {
+  if (storelike && !favourites && !taxfree) {
     pipeline.push({
       $match: {
         stores: {
           $regex: `(^|[^a-zæøåA-ZÆØÅ])${storelike}([^a-zæøåA-ZÆØÅ]|$)`,
           $options: "i",
         },
+      },
+    });
+  } else if (taxfree && taxfreeStore) {
+    pipeline.push({
+      $match: {
+        "taxfree.stores": taxfreeStore,
       },
     });
   }
@@ -119,10 +126,10 @@ export async function load({
   }
   let matchStage = {
     // Only include updated products.
-    updated: true,
+    ...(!taxfree ? { updated: true } : { "taxfree.updated": true }),
 
     // If favourites are specified, disregard the buyable parameter.
-    ...(!favourites ? { buyable: true } : {}),
+    ...(!favourites && !taxfree ? { buyable: true } : {}),
 
     // Match the specified parameters if they are not null.
     ...(category && !search ? { category: category } : {}),
@@ -136,12 +143,13 @@ export async function load({
 
     // Parameters that are arrays are matched using the $in operator.
     // ...(description.length && !search ? { "description.short": { $in: description } } : {}),
-    ...(store && !search && !storelike ? { stores: { $in: [store] } } : {}),
+    ...(store && !search && !storelike && !taxfreeStore ? { stores: { $in: [store] } } : {}),
+    ...(taxfree && taxfreeStore ? { "taxfree.stores": taxfreeStore } : {}),
     // ...(pair.length && !search ? { pair: { $in: pair } } : {}),
   };
 
   let updated = null;
-  if (!store && !storelike && !search && !favourites) {
+  if (!store && !storelike && !search && !favourites && !taxfree) {
     if (orderable) {
       matchStage["orderable"] = true;
     }
@@ -149,7 +157,7 @@ export async function load({
       matchStage["instores"] = true;
     }
   } else {
-    const date = await visits.findOne({ class: "stores" }, { _id: 0 });
+    const date = await visits.findOne({ class: taxfree ? "taxfree" : "stores" }, { _id: 0 });
     // Set the `updated` variable as the difference wrt. today as text.
     if (date) {
       const ONE_DAY = 1000 * 60 * 60 * 24;

@@ -112,8 +112,8 @@ function processProducts(products, alreadyUpdated) {
         volume: product.salesAmount * 100,
         alcohol: product.alcoholByVolume || null,
         alcoholprice: product.fullUnitPrice
-          ? product.fullUnitPrice.NOK / product.alcohol
-          : product.price.NOK / product.salesAmount / product.alcohol,
+          ? product.fullUnitPrice.NOK / product.alcoholByVolume
+          : product.price.NOK / product.salesAmount / product.alcoholByVolume,
 
         ...processCategories(
           product.categoriesLevel1?.no?.at(0).split(" > ").at(-1) || null,

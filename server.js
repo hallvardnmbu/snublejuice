@@ -424,7 +424,9 @@ snublejuice.get("/", authenticate, async (req, res) => {
       fresh: true,
     });
 
-    let visitors = (await visits.findOne({ class: "fresh" }))?.month[currentMonth] || 0;
+    let visitors =
+      (await visits.findOne({ class: taxfree ? "fresh-taxfree" : "fresh" }))?.month[currentMonth] ||
+      0;
 
     res.render("products", {
       visitors: visitors,

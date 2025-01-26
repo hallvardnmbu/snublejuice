@@ -1,16 +1,22 @@
-<% if (!taxfree) { %>
 <section
   class="product"
   index="<%= index %>"
-  style="--highlight: <%= item.discount > 0 ? 'var(--negative)' : item.discount < 0 ? 'var(--positive)' : 'var(--block)' %>; --marker: <%= item.discount > 0 ? 'var(--red)' : item.discount < 0 ? 'var(--green)' : 'var(--dimtext)' %>;"
+  style="
+    --highlight: <%=
+      taxfree ?
+        (item.taxfree.discount > 0 ? 'var(--negative)' :
+         item.taxfree.discount < 0 ? 'var(--positive)' : 'var(--block)') :
+        (item.discount > 0 ? 'var(--negative)' :
+         item.discount < 0 ? 'var(--positive)' : 'var(--block)')
+    %>;
+    --marker: <%=
+      taxfree ?
+        (item.taxfree.discount > 0 ? 'var(--red)' :
+         item.taxfree.discount < 0 ? 'var(--green)' : 'var(--dimtext)') :
+        (item.discount > 0 ? 'var(--red)' :
+         item.discount < 0 ? 'var(--green)' : 'var(--dimtext)')
+    %>;"
 >
-<% } else { %>
-  <section
-    class="product"
-    index="<%= index %>"
-    style="--highlight: <%= item.taxfree.discount > 0 ? 'var(--negative)' : item.taxfree.discount < 0 ? 'var(--positive)' : 'var(--block)' %>; --marker: <%= item.taxfree.discount > 0 ? 'var(--red)' : item.taxfree.discount < 0 ? 'var(--green)' : 'var(--dimtext)' %>;"
-  >
-<% } %>
 
   <div class="image">
     <img src="<%= item.images.product %>" alt="flaske">

@@ -35,6 +35,12 @@
     <span class="message">Ingen resultater finnes for valgt kominasjon.</span>
   <% } else { %>
 
+    <% if (!taxfree) { %>
+      <span class="message">[!] NYHET [!]</span>
+      <span class="message">Sammenlikn prisene til vinmonopolet og tax-free:</span>
+      <span class="message"><a href="https://taxfree.snublejuice.no"  target="_blank">taxfree.snublejuice.no</a></span>
+    <% } %>
+
     <div id="messages">
       <% if (new Date().getDate() <= 5) { %>
         <span class="message">[!] NY MÅNED; NYE TILBUD [!]</span>

@@ -458,7 +458,10 @@ async function getProducts() {
 }
 
 async function syncUnupdatedProducts(threshold = null) {
-  const unupdatedCount = await itemCollection.countDocuments({ "taxfree.updated": false });
+  const unupdatedCount = await itemCollection.countDocuments({
+    "taxfree.updated": false,
+    "taxfree.name": { $exists: true },
+  });
   console.log(`NOT UPDATED | Items: ${unupdatedCount}`);
   if (threshold && unupdatedCount >= threshold) {
     console.log(`ERROR | Above threshold. | Aborting.`);
@@ -466,19 +469,22 @@ async function syncUnupdatedProducts(threshold = null) {
   }
 
   try {
-    const result = await itemCollection.updateMany({ "taxfree.updated": false }, [
-      { $set: { "taxfree.oldprice": "$taxfree.price" } },
-      {
-        $set: {
-          "taxfree.price": "$taxfree.oldprice",
-          "taxfree.discount": 0,
-          "taxfree.literprice": 0,
-          "taxfree.alcoholprice": null,
+    const result = await itemCollection.updateMany(
+      { "taxfree.updated": false, "taxfree.name": { $exists: true } },
+      [
+        { $set: { "taxfree.oldprice": "$taxfree.price" } },
+        {
+          $set: {
+            "taxfree.price": "$taxfree.oldprice",
+            "taxfree.discount": 0,
+            "taxfree.literprice": 0,
+            "taxfree.alcoholprice": null,
+          },
         },
-      },
-      { $set: { "taxfree.prices": { $ifNull: ["$taxfree.prices", []] } } },
-      { $set: { "taxfree.prices": { $concatArrays: ["$taxfree.prices", ["$taxfree.price"]] } } },
-    ]);
+        { $set: { "taxfree.prices": { $ifNull: ["$taxfree.prices", []] } } },
+        { $set: { "taxfree.prices": { $concatArrays: ["$taxfree.prices", ["$taxfree.price"]] } } },
+      ],
+    );
 
     console.log(`MODIFIED ${result.modifiedCount} empty prices to unupdated products.`);
   } catch (err) {

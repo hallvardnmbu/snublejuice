@@ -5,11 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./stylesheet.css">
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.7/axios.min.js"></script>
-    <script src="scripts/graph.js"></script>
-    <script src="scripts/stores.js"></script>
-    <script src="scripts/countries.js"></script>
-
     <title>Snublejuice</title>
     <meta name="theme-color" content="#ffffff" />
     <link rel="manifest" href="/manifest.json" />
@@ -25,41 +20,14 @@
 </head>
 
 <body>
-  <%- include('partials/header', { favourites }) %>
-  <%- include('partials/forms', { updated, favourites }) %>
+  <%- include('partials/header', { favourites: false }) %>
 
-  <%- include('partials/pagination', { placement: "top" }) %>
+  <a href="https://vinmonopolet.snublejuice.no">vinmonopolet.snublejuice.no</a>
+  <a href="https://taxfree.snublejuice.no">taxfree.snublejuice.no</a>
 
-  <% if (data.length === 0) { %>
-    <span class="message">Ingen resultater finnes for valgt kominasjon.</span>
-  <% } else { %>
-
-    <% if (!taxfree) { %>
-      <span class="message">[!] NYHET [!]</span>
-      <span class="message">Sammenlikn prisene til vinmonopolet og tax-free:</span>
-      <span class="message"><a href="https://taxfree.snublejuice.no">taxfree.snublejuice.no</a></span>
-    <% } %>
-
-    <div id="messages">
-      <% if (new Date().getDate() <= 5) { %>
-        <span class="message">[!] NY MÅNED; NYE TILBUD [!]</span>
-      <% } %>
-      <div id="message-stores" style="display: none;">
-          <span class="message">N.b.: Faktisk lagerbeholdning kan avvike. Oppdateres med jevne mellomrom.</span>
-          <span class="message">Sist oppdatert <%= updated %>.</span>
-      </div>
-
-      <% if (message) { %>
-        <span class="message"><%= message %></span>
-      <% } %>
-    </div>
-
-    <% data.forEach((item, index) => { %>
-      <%- include('partials/product', { index, item, user, storelike, maxIndex: data.length - 1 }) %>
-    <% }) %>
-
-    <%- include('partials/pagination', { placement: "bottom" }) %>
-  <% } %>
+  <p>
+    27.01.2025: sammenlikn priser til vinmonopolet og tax-free: <a href="https://taxfree.snublejuice.no">taxfree.snublejuice.no</a>
+  </p>
 
   <%- include('partials/footer') %>
 </body>

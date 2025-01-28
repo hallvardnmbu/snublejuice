@@ -17,7 +17,7 @@ await client.connect();
 
 const database = client.db("snublejuice");
 const itemCollection = database.collection("products");
-const visitCollection = database.collection("visits");
+const metaCollection = database.collection("metadata");
 
 const URL = JSON.parse(process.env.TAXFREE);
 
@@ -493,7 +493,7 @@ async function syncUnupdatedProducts(threshold = null) {
 }
 
 async function main() {
-  await visitCollection.updateOne({ class: "taxfree" }, { $set: { updated: false } });
+  await metaCollection.updateOne({ id: "stock" }, { $set: { "prices.taxfree": false } });
 
   await itemCollection.updateMany({}, { $set: { "taxfree.updated": false } });
   await getProducts();
@@ -501,7 +501,7 @@ async function main() {
   // [!] ONLY RUN THIS AFTER ALL PRICES HAVE BEEN UPDATED [!]
   await syncUnupdatedProducts(100);
 
-  await visitCollection.updateOne({ class: "taxfree" }, { $set: { updated: true } });
+  await metaCollection.updateOne({ id: "stock" }, { $set: { "prices.taxfree": true } });
 }
 
 await main();

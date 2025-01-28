@@ -18,7 +18,7 @@ await client.connect();
 
 const database = client.db("snublejuice");
 const itemCollection = database.collection("products");
-const visitCollection = database.collection("visits");
+const metaCollection = database.collection("metadata");
 
 const URL =
   "https://www.vinmonopolet.no/vmpws/v2/vmp/search?fields=FULL&searchType=product&q={}:relevance";
@@ -167,9 +167,9 @@ async function main() {
   await updateStores(itemIds);
 
   // Store the time of the last update.
-  await visitCollection.updateOne(
-    { class: "stores" },
-    { $set: { date: new Date() } },
+  await metaCollection.updateOne(
+    { id: "stock" },
+    { $set: { vinmonopolet: new Date() } },
     { upsert: true },
   );
 }

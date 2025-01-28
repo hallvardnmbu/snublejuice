@@ -1,4 +1,6 @@
-#!bin/bash
+#!/bin/bash
+
+cd ~/Documents/snublejuice
 
 # 1. Git pull
 echo "Pulling latest changes..."

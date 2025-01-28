@@ -40,17 +40,17 @@
       </select>
 
       <% if (favourites || taxfree) { %>
-        <input type="hidden" id="ssearch" name="storelike" value="">
+        <input type="hidden" id="stores-search-vinmonopolet" name="storelike" value="">
       <% } else { %>
-        <input type="search" id="ssearch" name="storelike" value="<%= storelike || null %>" placeholder="Butikk eller by ...">
+        <input type="search" id="stores-search-vinmonopolet" name="storelike" value="<%= storelike || null %>" placeholder="Butikk eller by ...">
       <% } %>
 
       <% if (taxfree) { %>
-        <select name="taxfreeStore" id="taxfreeStore" onchange="applyFilters(true, false)">
+        <select name="store-taxfree" id="stores-taxfree" onchange="applyFilters(true, false)">
           <!-- Options will be dynamically populated by `public/scripts/stores.js`. -->
         </select>
       <% } else { %>
-        <input type="hidden" id="taxfreeStore" name="taxfreeStore" value="">
+        <input type="hidden" name="store-taxfree" id="stores-taxfree" value="">
       <% } %>
 
       <input type="search" id="nsearch" name="search" value="<%= search || null %>" placeholder="Navnesøk ...">
@@ -63,9 +63,9 @@
 
     <div id="advanced" style="display: none;">
       <% if (favourites || taxfree) { %>
-        <input type="hidden" id="store" name="store" value="">
+        <input type="hidden" name="store-vinmonopolet" id="stores-vinmonopolet" value="">
       <% } else { %>
-        <select name="store" id="store" onchange="applyFilters(true, false)">
+        <select name="store-vinmonopolet" id="stores-vinmonopolet" onchange="applyFilters(true, false)">
           <!-- Options will be dynamically populated by `public/scripts/stores.js`. -->
         </select>
       <% } %>

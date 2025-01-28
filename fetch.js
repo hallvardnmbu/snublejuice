@@ -18,7 +18,7 @@ export const categories = {
 
 export async function load({
   collection,
-  visits,
+  metadata,
   taxfree = false,
 
   // Month delta:
@@ -157,7 +157,8 @@ export async function load({
       matchStage["instores"] = true;
     }
   } else {
-    const date = await visits.findOne({ class: taxfree ? "taxfree" : "stores" }, { _id: 0 });
+    let date = await metadata.findOne({ id: "stock" }, { _id: 0 });
+    date = date[taxfree ? "taxfree" : "vinmonopolet"];
     // Set the `updated` variable as the difference wrt. today as text.
     if (date) {
       const ONE_DAY = 1000 * 60 * 60 * 24;

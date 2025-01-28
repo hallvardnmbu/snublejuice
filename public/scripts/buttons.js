@@ -70,7 +70,7 @@ document.getElementById("iyear").addEventListener("change", function () {
 document.getElementById("nsearch").addEventListener("change", function () {
   applyFilters(true, false);
 });
-document.getElementById("ssearch").addEventListener("change", function () {
+document.getElementById("stores-search-vinmonopolet").addEventListener("change", function () {
   applyFilters(true, false);
 });
 document.getElementById("delta").addEventListener("change", function () {

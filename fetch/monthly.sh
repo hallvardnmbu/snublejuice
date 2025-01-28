@@ -1,6 +1,6 @@
 #!bin/bash
 
-cd ~/Documents/snublejuice
+cd /home/snublejuice/Documents/snublejuice
 
 # 1. Git pull
 echo "Pulling latest changes..."

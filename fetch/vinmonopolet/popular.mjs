@@ -23,7 +23,7 @@ const visitCollection = database.collection("visits");
 const URL =
   "https://www.vinmonopolet.no/vmpws/v2/vmp/search?fields=FULL&searchType=product&q={}:relevance";
 
-async function processId(index) {
+async function processId(index, retry = false) {
   try {
     const response = await session.get(URL.replace("{}", index), {
       timeout: 10000,
@@ -74,9 +74,20 @@ async function processId(index) {
       };
     }
 
-    console.log(`STATUS | ${response.status}  | Item: ${index}.`);
+    console.log(`STATUS    | ${response.status}  | Item: ${index}.`);
   } catch (err) {
-    console.log(`ERROR | Item: ${index} | ${err}`);
+    if (retry) {
+      return null;
+    }
+
+    console.log(`ERROR    | Item: ${index} | Retrying. ${err}`);
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+      return processId(index, true);
+    } catch (err) {
+      console.log(`ERROR    | Item: ${index} | Failed. ${err}`);
+    }
   }
 }
 
@@ -103,7 +114,7 @@ async function updateStores(itemIds) {
     try {
       let product = await processId(id);
       if (!product) {
-        console.log(`NONEXISTING | Item: ${id} | Aborting.`);
+        console.log(`ERROR    | Item: ${id} | Aborting.`);
         break;
       } else {
         items.push(product);
@@ -111,7 +122,7 @@ async function updateStores(itemIds) {
         await new Promise((resolve) => setTimeout(resolve, 1100));
       }
     } catch (err) {
-      console.log(`ERROR | Item: ${id} | Aborting. | ${err}`);
+      console.log(`ERROR    | Item: ${id} | Aborting. | ${err}`);
       break;
     }
 

@@ -17,7 +17,7 @@ await client.connect();
 
 const database = client.db("snublejuice");
 const itemCollection = database.collection("products");
-const visitCollection = database.collection("visits");
+const metaCollection = database.collection("metadata");
 
 const URL = JSON.parse(process.env.TAXFREE);
 
@@ -172,7 +172,7 @@ async function main() {
   await itemCollection.updateMany({}, { $set: { "taxfree.stores": null } });
   await getStock();
 
-  await visitCollection.updateOne({ class: "taxfree" }, { $set: { date: new Date() } });
+  await metaCollection.updateOne({ id: "stock" }, { $set: { taxfree: new Date() } });
 }
 
 await main();

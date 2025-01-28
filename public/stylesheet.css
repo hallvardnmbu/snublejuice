@@ -323,7 +323,6 @@ input[type="search"]::-webkit-search-results-decoration {
     background: none;
 }
 #messages {
-    width: calc(100% - 2 * var(--padding));
     margin: var(--margin) 0 var(--margin) 0;
 }
 

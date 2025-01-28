@@ -60,22 +60,15 @@ try {
   process.exit(1);
 }
 const db = client.db("snublejuice");
-let visits = db.collection("visits");
+let metadata = db.collection("metadata");
 let users = db.collection("users");
 let collection = db.collection("products");
 
 snublejuice.get("/api/stores", async (req, res) => {
   try {
-    const stores = await collection.distinct("stores");
-    res.status(200).json(stores);
-  } catch (err) {
-    res.status(500).send(err);
-  }
-});
-snublejuice.get("/api/taxfree/stores", async (req, res) => {
-  try {
-    const stores = await collection.distinct("taxfree.stores");
-    res.status(200).json(stores);
+    const vinmonopolet = await collection.distinct("stores");
+    const taxfree = await collection.distinct("taxfree.stores");
+    res.status(200).json({ vinmonopolet: vinmonopolet, taxfree: taxfree });
   } catch (err) {
     res.status(500).send(err);
   }
@@ -177,6 +170,7 @@ snublejuice.post("/api/login", async (req, res) => {
       sameSite: "strict",
       maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
       path: "/",
+      domain: _PRODUCTION ? ".snublejuice.no" : ".localhost",
     });
 
     res.status(201).json({
@@ -197,6 +191,7 @@ snublejuice.post("/api/logout", async (req, res) => {
     secure: _PRODUCTION,
     sameSite: "strict",
     path: "/",
+    domain: _PRODUCTION ? ".snublejuice.no" : ".localhost",
   });
   res.status(200).json({ ok: true });
 });
@@ -303,18 +298,15 @@ snublejuice.post("/api/favourite", authenticate, async (req, res) => {
 });
 
 async function incrementVisitor(month, taxfree, fresh) {
-  let current = fresh ? "fresh" : "newpage";
-  if (taxfree) {
-    current += "-taxfree";
-  }
+  const current = fresh ? "fresh" : "newpage";
 
   if (_PRODUCTION) {
-    await visits.updateOne(
-      { class: current },
+    await metadata.updateOne(
+      { id: "visitors" },
       {
         $inc: {
-          total: 1,
-          [`month.${month}`]: 1,
+          [`${current}.total`]: 1,
+          [`${current}.month.${month}`]: 1,
         },
       },
       { upsert: true },
@@ -323,10 +315,33 @@ async function incrementVisitor(month, taxfree, fresh) {
 }
 
 snublejuice.get("/", authenticate, async (req, res) => {
-  let taxfree = req.hostname.startsWith("taxfree");
+  const user = req.user
+    ? {
+        username: req.user.username,
+        email: req.user.email,
+        favourites:
+          (
+            await users.findOne(
+              { username: req.user?.username },
+              { projection: { _id: 0, favourites: 1 } },
+            )
+          ).favourites || [],
+      }
+    : null;
 
   const currentDate = new Date();
   const currentMonth = currentDate.toISOString().slice(0, 7);
+
+  let taxfree = req.hostname.startsWith("taxfree");
+
+  let visitors = await metadata.findOne({ id: "visitors" }, { _id: 0 });
+  visitors = visitors
+    ? visitors.fresh.month[currentMonth][taxfree ? "taxfree" : "vinmonopolet"] || 0
+    : 0;
+
+  if (!req.hostname.startsWith("vinmonopolet") && !req.hostname.startsWith("taxfree")) {
+    return res.render("landing", { user: user, visitors: visitors });
+  }
 
   await incrementVisitor(currentMonth, taxfree, Object.keys(req.query).length === 0);
 
@@ -345,8 +360,8 @@ snublejuice.get("/", authenticate, async (req, res) => {
   const year = parseInt(req.query.year) || null;
   const search = req.query.search || null;
   const storelike = req.query.storelike || null;
-  let store = req.query.store || "Spesifikk butikk";
-  let taxfreeStore = taxfree ? req.query.taxfreeStore || null : null;
+  let store = req.query["store-vinmonopolet"] || "Spesifikk butikk";
+  let taxfreeStore = taxfree ? req.query["store-taxfree"] || null : null;
   const includeFavourites = req.query.favourites === "true";
 
   let orderable = store === "Spesifikk butikk";
@@ -358,29 +373,22 @@ snublejuice.get("/", authenticate, async (req, res) => {
   }
 
   // Check if items have `updated = false` or if it is a new month and price updates are not yet completed
-  const priceUpdatesCompleted = await visits.findOne({ class: "prices" });
-  if (!priceUpdatesCompleted.updated) {
+  const priceUpdatesCompleted = await metadata.findOne({ id: "stock" });
+  if (!priceUpdatesCompleted.prices[taxfree ? "taxfree" : "vinmonopolet"]) {
     return res.redirect("/error");
   }
 
   try {
     let { data, total, updated } = await load({
       collection,
-      visits,
+      metadata,
       taxfree,
 
       // Month delta:
       delta: delta,
 
       // Favourites:
-      favourites: includeFavourites
-        ? (
-            await users.findOne(
-              { username: req.user?.username },
-              { projection: { _id: 0, favourites: 1 } },
-            )
-          ).favourites || []
-        : null,
+      favourites: includeFavourites ? user.favourites || [] : null,
 
       // Single parameters:
       category: categories[category],
@@ -424,26 +432,10 @@ snublejuice.get("/", authenticate, async (req, res) => {
       fresh: true,
     });
 
-    let visitors =
-      (await visits.findOne({ class: taxfree ? "fresh-taxfree" : "fresh" }))?.month[currentMonth] ||
-      0;
-
     res.render("products", {
       visitors: visitors,
       taxfree: taxfree,
-      user: req.user
-        ? {
-            username: req.user.username,
-            email: req.user.email,
-            favourites:
-              (
-                await users.findOne(
-                  { username: req.user?.username },
-                  { projection: { _id: 0, favourites: 1 } },
-                )
-              ).favourites || [],
-          }
-        : null,
+      user: user,
       favourites: includeFavourites,
       updated: updated,
       message:
@@ -485,6 +477,7 @@ if (_PRODUCTION) {
   // FINAL APP WITH ALL VHOSTS
   app.use(vhost("snublejuice.no", snublejuice));
   app.use(vhost("www.snublejuice.no", snublejuice));
+  app.use(vhost("vinmonopolet.snublejuice.no", snublejuice));
   app.use(vhost("taxfree.snublejuice.no", snublejuice));
   app.use(vhost("api.ind320.no", api));
   app.use(vhost("ord.dilettant.no", ord));
@@ -496,10 +489,12 @@ if (_PRODUCTION) {
   });
 } else {
   app.use(vhost("localhost", snublejuice));
+  app.use(vhost("vinmonopolet.localhost", snublejuice));
   app.use(vhost("taxfree.localhost", snublejuice));
 
   app.listen(port, () => {
     console.log(`http://localhost:${port}`);
+    console.log(`http://vinmonopolet.localhost:${port}`);
     console.log(`http://taxfree.localhost:${port}`);
   });
 }

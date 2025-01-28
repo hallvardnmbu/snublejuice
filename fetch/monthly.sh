@@ -2,11 +2,7 @@
 
 cd /home/snublejuice/Documents/snublejuice
 
-# 1. Git pull
-echo "Pulling latest changes..."
-git pull
-
-# 2. Connect to NordVPN and ensure connection is established
+# 1. Connect to NordVPN and ensure connection is established
 echo "Connecting to NordVPN..."
 nordvpn connect || {
     echo "Failed to connect to VPN";
@@ -18,7 +14,7 @@ if ! nordvpn status | grep -i "connected"; then
     exit 1
 fi
 
-# 3. Run the scripts
+# 2. Run the scripts
 echo "Running scripts..."
 bun run fetch/vinmonopolet/price.mjs || {
     echo "Failed to run fetch/vinmonopolet/price.mjs";
@@ -31,7 +27,7 @@ bun run fetch/taxfree/price.mjs || {
     exit 1
 }
 
-# 4. Disconnect from NordVPN
+# 3. Disconnect from NordVPN
 echo "Disconnecting from NordVPN..."
 nordvpn disconnect || {
     echo "Failed to disconnect from VPN";

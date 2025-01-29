@@ -2,7 +2,7 @@ const _DEFAULT = "Alle land";
 
 async function fetchCountries() {
   try {
-    const response = await axios.get("/api/countries");
+    const response = await axios.get("/data/countries");
     const countries = response.data;
     sessionStorage.setItem("countries", JSON.stringify(countries));
     populateCountries(countries);

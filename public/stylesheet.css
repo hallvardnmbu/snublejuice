@@ -114,31 +114,62 @@ menu {
     margin: 0;
 }
 .landing-menu,
-.landing-info,
-.landing-updates {
+.landing-details,
+.landing-table {
     display: flex;
     justify-content: center;
     align-items: center;
+    align-self: center;
+
+    color: var(--dimtext);
 
     margin: var(--padding);
 }
-.landing-info {
-    flex-direction: column;
+.landing-menu b,
+.landing-details b,
+.landing-table b {
+    color: var(--text);
 }
-.landing-updates td:first-of-type {
-    font-weight: bold;
+.landing-details {
+    flex-direction: column;
+
+    text-align: center;
+}
+.landing-details span,
+.landing-table {
+    width: 100%;
+    max-width: 500px;
+}
+.landing-details .corners {
+    margin: 0 calc(-2 * var(--padding));
+
+    height: var(--padding);
+    background: linear-gradient(
+        to right,
+        var(--dimmed) 0%,
+        var(--dimmed) var(--padding),
+        transparent var(--padding),
+        transparent calc(100% - var(--padding)),
+        var(--dimmed) calc(100% - var(--padding)),
+        var(--dimmed) 100%
+    );
+}
+.landing-table td:first-of-type {
     padding-right: var(--padding);
 }
-.landing-updates td:last-of-type {
+.landing-table td:last-of-type {
     word-wrap: break-word;
+}
+.landing-menu:first-of-type {
+    margin-bottom: 0;
 }
 .landing-menu:last-of-type {
     margin-top: auto;
 }
-.landing-menu-slim {
+.landing-menu .slim {
     display: none;
 }
-.landing-menu-wide {
+.landing-menu .wide {
     display: block;
 }
 .pagination {
@@ -217,6 +248,14 @@ a:visited {
 a:hover {
     color: var(--text);
     background-color: var(--block);
+}
+.landing-details span a:first-of-type {
+    color: var(--text);
+    text-decoration: none;
+}
+.landing-details span a:first-of-type:hover {
+    color: var(--dimtext);
+    background: none;
 }
 
 #filters,
@@ -699,10 +738,10 @@ footer span button {
         flex-direction: column;
         align-items: center;
     }
-    .landing-menu-slim {
+    .landing-menu .slim {
         display: block;
     }
-    .landing-menu-wide {
+    .landing-menu .wide {
         display: none;
     }
 }

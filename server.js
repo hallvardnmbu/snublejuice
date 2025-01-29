@@ -64,7 +64,7 @@ let metadata = db.collection("metadata");
 let users = db.collection("users");
 let collection = db.collection("products");
 
-snublejuice.get("/api/stores", async (req, res) => {
+snublejuice.get("/data/stores", async (req, res) => {
   try {
     const vinmonopolet = await collection.distinct("stores");
     const taxfree = await collection.distinct("taxfree.stores");
@@ -74,7 +74,7 @@ snublejuice.get("/api/stores", async (req, res) => {
   }
 });
 
-snublejuice.get("/api/countries", async (req, res) => {
+snublejuice.get("/data/countries", async (req, res) => {
   try {
     const countries = await collection.distinct("country");
     res.status(200).json(countries);
@@ -87,7 +87,7 @@ snublejuice.get("/error", async (req, res) => {
   res.render("error");
 });
 
-snublejuice.post("/api/register", async (req, res) => {
+snublejuice.post("/account/register", async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
@@ -141,7 +141,7 @@ snublejuice.post("/api/register", async (req, res) => {
   }
 });
 
-snublejuice.post("/api/login", async (req, res) => {
+snublejuice.post("/account/login", async (req, res) => {
   try {
     const { username, password } = req.body;
 
@@ -185,7 +185,7 @@ snublejuice.post("/api/login", async (req, res) => {
   }
 });
 
-snublejuice.post("/api/logout", async (req, res) => {
+snublejuice.post("/account/logout", async (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
     secure: _PRODUCTION,
@@ -196,7 +196,7 @@ snublejuice.post("/api/logout", async (req, res) => {
   res.status(200).json({ ok: true });
 });
 
-snublejuice.post("/api/delete", async (req, res) => {
+snublejuice.post("/account/delete", async (req, res) => {
   try {
     const { username, password } = req.body;
 

@@ -28,7 +28,7 @@ document.getElementById("loginForm").onsubmit = async function (event) {
   };
 
   try {
-    const response = await fetch("/api/login", {
+    const response = await fetch("/account/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -71,7 +71,7 @@ document.getElementById("registerForm").onsubmit = async function (event) {
   };
 
   try {
-    const response = await fetch("/api/register", {
+    const response = await fetch("/account/register", {
       method: "POST",
       credentials: "include",
       headers: {
@@ -113,7 +113,7 @@ document.getElementById("deleteUserForm").onsubmit = async function (event) {
   };
 
   try {
-    const response = await fetch("/api/delete", {
+    const response = await fetch("/account/delete", {
       method: "POST",
       credentials: "include",
       headers: {
@@ -147,7 +147,7 @@ document.getElementById("deleteUserForm").onsubmit = async function (event) {
 // ------------------------------------------------------------------------------------------------
 
 function logout() {
-  fetch("/api/logout", {
+  fetch("/account/logout", {
     method: "POST",
     credentials: "include",
     headers: {

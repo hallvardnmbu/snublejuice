@@ -5,7 +5,7 @@ const _DEFAULTS = {
 
 async function fetchStores() {
   try {
-    const response = await axios.get("/api/stores");
+    const response = await axios.get("/data/stores");
     const stores = response.data;
 
     sessionStorage.setItem("stores", JSON.stringify(stores));

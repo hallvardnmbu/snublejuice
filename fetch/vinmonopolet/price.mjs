@@ -90,7 +90,7 @@ function processProducts(products, alreadyUpdated) {
   return processed;
 }
 
-async function getPage(page, alreadyUpdated) {
+async function getPage(page, alreadyUpdated, retry = false) {
   try {
     const response = await session.get(URL.replace("{}", page), {
       timeout: 10000,
@@ -100,9 +100,20 @@ async function getPage(page, alreadyUpdated) {
       return processProducts(response.data["productSearchResult"]["products"], alreadyUpdated);
     }
 
-    console.log(`STATUS | ${response.status} | Page: ${page}.`);
+    console.log(`STATUS   | ${response.status} | Page: ${page}.`);
   } catch (err) {
-    console.log(`ERROR | Page: ${page} | ${err.message}`);
+    if (retry) {
+      return null;
+    }
+
+    console.log(`ERROR    | Page: ${page} | Retrying. ${err}`);
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+      return getPage(page, alreadyUpdated, true);
+    } catch (err) {
+      console.log(`ERROR    | Page: ${page} | Failed. ${err}`);
+    }
   }
 }
 
@@ -198,7 +209,7 @@ async function getProducts(startPage = 0, alreadyUpdated = []) {
     try {
       let products = await getPage(page, alreadyUpdated);
       if (products.length === 0) {
-        console.log(`DONE | Final page: ${page - 1}.`);
+        console.log(`DONE      | Final page: ${page - 1}.`);
         break;
       }
 
@@ -206,7 +217,7 @@ async function getProducts(startPage = 0, alreadyUpdated = []) {
 
       await new Promise((resolve) => setTimeout(resolve, 900));
     } catch (err) {
-      console.log(`ERROR | Page: ${page} | ${err}`);
+      console.log(`ERROR    | Page: ${page} | ${err}`);
       break;
     }
 
@@ -243,7 +254,7 @@ async function syncUnupdatedProducts(threshold = null) {
   const unupdatedCount = await itemCollection.countDocuments({ updated: false });
   console.log(`NOT UPDATED | Items: ${unupdatedCount}`);
   if (threshold && unupdatedCount >= threshold) {
-    console.log(`ERROR | Above threshold. | Aborting.`);
+    console.log(`ERROR    | Above threshold. | Aborting.`);
     return;
   }
 
@@ -257,7 +268,7 @@ async function syncUnupdatedProducts(threshold = null) {
 
     console.log(`MODIFIED ${result.modifiedCount} empty prices to unupdated products.`);
   } catch (err) {
-    console.error(`ERROR | Adding unupdated prices. | ${err}`);
+    console.error(`ERROR    | Adding unupdated prices. | ${err}`);
   }
 }
 

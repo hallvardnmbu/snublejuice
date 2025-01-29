@@ -74,7 +74,7 @@ async function processId(index, retry = false) {
       };
     }
 
-    console.log(`STATUS    | ${response.status}  | Item: ${index}.`);
+    console.log(`STATUS   | ${response.status}  | Item: ${index}.`);
   } catch (err) {
     if (retry) {
       return null;

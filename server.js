@@ -297,7 +297,7 @@ snublejuice.post("/api/favourite", authenticate, async (req, res) => {
   }
 });
 
-async function incrementVisitor(month, taxfree, fresh) {
+async function incrementVisitor(month, subdomain, fresh) {
   const current = fresh ? "fresh" : "newpage";
 
   if (_PRODUCTION) {
@@ -306,7 +306,7 @@ async function incrementVisitor(month, taxfree, fresh) {
       {
         $inc: {
           [`${current}.total`]: 1,
-          [`${current}.month.${month}`]: 1,
+          [`${current}.month.${month}.${subdomain}`]: 1,
         },
       },
       { upsert: true },
@@ -315,6 +315,15 @@ async function incrementVisitor(month, taxfree, fresh) {
 }
 
 snublejuice.get("/", authenticate, async (req, res) => {
+  let subdomain = req.hostname.startsWith("taxfree")
+    ? "taxfree"
+    : req.hostname.startsWith("vinmonopolet")
+      ? "vinmonopolet"
+      : "landing";
+
+  const month = new Date().toISOString().slice(0, 7);
+  await incrementVisitor(month, subdomain, Object.keys(req.query).length === 0);
+
   const user = req.user
     ? {
         username: req.user.username,
@@ -329,29 +338,28 @@ snublejuice.get("/", authenticate, async (req, res) => {
       }
     : null;
 
-  const currentDate = new Date();
-  const currentMonth = currentDate.toISOString().slice(0, 7);
+  let meta = (await metadata.find({}, { _id: 0 }).toArray()).reduce((acc, item) => {
+    const { id, ...rest } = item;
+    acc[id] = rest;
+    return acc;
+  }, {});
 
-  let taxfree = req.hostname.startsWith("taxfree");
-
-  let visitors = await metadata.findOne({ id: "visitors" }, { _id: 0 });
-  visitors = visitors
-    ? visitors.fresh.month[currentMonth][taxfree ? "taxfree" : "vinmonopolet"] || 0
-    : 0;
-
-  if (!req.hostname.startsWith("vinmonopolet") && !req.hostname.startsWith("taxfree")) {
-    return res.render("landing", { user: user, visitors: visitors });
+  if (subdomain === "landing") {
+    return res.render("landing", {
+      user: user,
+      visitors: meta.visitors.fresh.month[month],
+    });
   }
 
-  await incrementVisitor(currentMonth, taxfree, Object.keys(req.query).length === 0);
+  // Check if price updates are incomplete
+  if (!meta.stock.prices[subdomain]) {
+    return res.redirect("/error");
+  }
 
   const page = parseInt(req.query.page) || 1;
   const delta = parseInt(req.query.delta) || 1;
   const sort = req.query.sort || "discount";
-  let sortBy = sort;
-  if (taxfree && sortBy !== "alcohol") {
-    sortBy = `taxfree.${sortBy}`;
-  }
+  let sortBy = subdomain === "taxfree" && sort !== "alcohol" ? `taxfree.${sort}` : sort;
   const ascending = !(req.query.ascending === "false");
   const category = req.query.category || null;
   const country = req.query.country || null;
@@ -360,29 +368,25 @@ snublejuice.get("/", authenticate, async (req, res) => {
   const year = parseInt(req.query.year) || null;
   const search = req.query.search || null;
   const storelike = req.query.storelike || null;
-  let store = req.query["store-vinmonopolet"] || "Spesifikk butikk";
-  let taxfreeStore = taxfree ? req.query["store-taxfree"] || null : null;
+  let store = {
+    vinmonopolet: subdomain === "vinmonopolet" ? req.query["store-vinmonopolet"] : null || null,
+    taxfree: subdomain === "taxfree" ? req.query["store-taxfree"] || null : null,
+  };
   const includeFavourites = req.query.favourites === "true";
 
-  let orderable = store === "Spesifikk butikk";
+  let orderable = store.vinmonopolet === "Spesifikk butikk";
   if (orderable) {
-    store = null;
+    store.vinmonopolet = null;
   }
-  if (taxfreeStore === "Alle flyplasser") {
-    taxfreeStore = null;
-  }
-
-  // Check if items have `updated = false` or if it is a new month and price updates are not yet completed
-  const priceUpdatesCompleted = await metadata.findOne({ id: "stock" });
-  if (!priceUpdatesCompleted.prices[taxfree ? "taxfree" : "vinmonopolet"]) {
-    return res.redirect("/error");
+  if (store.taxfree === "Alle flyplasser") {
+    store.taxfree = null;
   }
 
   try {
     let { data, total, updated } = await load({
       collection,
-      metadata,
-      taxfree,
+      meta,
+      subdomain,
 
       // Month delta:
       delta: delta,
@@ -408,8 +412,8 @@ snublejuice.get("/", authenticate, async (req, res) => {
 
       // Array parameters:
       description: null,
-      store: store === "null" ? null : store,
-      taxfreeStore: taxfreeStore,
+      store: store.vinmonopolet,
+      taxfreeStore: store.taxfree,
       pair: null,
 
       // If specified, only include values >=:
@@ -433,8 +437,8 @@ snublejuice.get("/", authenticate, async (req, res) => {
     });
 
     res.render("products", {
-      visitors: visitors,
-      taxfree: taxfree,
+      visitors: meta.visitors.fresh.month[month][subdomain],
+      subdomain: subdomain,
       user: user,
       favourites: includeFavourites,
       updated: updated,
@@ -455,8 +459,8 @@ snublejuice.get("/", authenticate, async (req, res) => {
       year: year,
       search: search,
       storelike: storelike,
-      store: store,
-      taxfreeStore: taxfreeStore,
+      store: store.vinmonopolet,
+      taxfreeStore: store.taxfree,
     });
   } catch (err) {
     console.error(err);

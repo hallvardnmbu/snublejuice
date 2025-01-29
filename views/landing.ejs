@@ -20,14 +20,77 @@
 </head>
 
 <body>
-  <%- include('partials/header', { favourites: false }) %>
+  <header>
+    <div>
+      <span>
+        <%= visitors.vinmonopolet + visitors.taxfree + visitors.landing %> besøkende denne måneden
+      </span>
+    </div>
 
-  <a href="https://vinmonopolet.snublejuice.no">vinmonopolet.snublejuice.no</a>
-  <a href="https://taxfree.snublejuice.no">taxfree.snublejuice.no</a>
+    <%- include('partials/account', { favourites: false, landing: true }) %>
+  </header>
 
-  <p>
-    27.01.2025: sammenlikn priser til vinmonopolet og tax-free: <a href="https://taxfree.snublejuice.no">taxfree.snublejuice.no</a>
-  </p>
+  <menu class="landing-menu">
+    <li><a href="https://vinmonopolet.snublejuice.no">vinmonopolet.snublejuice.no</a></li>
+    <li class="landing-menu-wide"><img src="images/snublejuice.jpg" alt="SNUBLEJUICE.no"></li>
+    <li><a href="https://taxfree.snublejuice.no">taxfree.snublejuice.no</a></li>
+    <li class="landing-menu-slim"><img src="images/snublejuice.jpg" alt="SNUBLEJUICE.no"></li>
+  </menu>
+
+  <hr>
+
+  <div class="landing-info">
+    <span><b>Hva er SNUBLEJUICE.no?</b></span>
+
+    <br><span>•</span><br>
+
+    <span><a href="https://vinmonopolet.snublejuice.no">vinmonopolet.snublejuice.no</a></span>
+    <br>
+    <span>
+      Her finner du vinmonopolets <b>hemmelige tilbud</b> samt varers prishistorikk.
+      <br><br>
+      Vinmonopolet justerer nemlig prisene <b>hvert månedsskifte</b>, og for å gjøre livet ditt litt enklere holder vi styr på prishistorikken til varer, og gir en oversikt over tilbudsvarer.
+      <br><br>
+      Ved å filtrere eller søke på butikk kan du enkelt se hvilke varer som er på tilbud i nærheten av deg.
+    </span>
+
+    <br><span>•</span><br>
+
+    <span><a href="https://taxfree.snublejuice.no">taxfree.snublejuice.no</a></span>
+    <br>
+    <span>
+      Her finner du en sammenlikning mellom priser på varer tilgjengelig på tax-free og vinmonopolet.
+      <br><br>
+      Ved å filtrere på flyplass kan du enkelt se hvilke varer du kan spare mest på å kjøpe på tax-free.
+    </span>
+
+    <br><span>•</span><br>
+
+    <span>Lagerbeholdning oppdateres jevnlig, så avvik kan forekomme. Alltid dobbeltsjekk på produktets side.</span>
+
+  </div>
+
+  <hr>
+
+  <table class="landing-updates">
+    <tr>
+      <td>29.01.2025</td>
+      <td>Oppdatert sideinndeling. Hovedside, vinmonopolet og tax-free.</td>
+    </tr>
+    <tr>
+      <td>27.01.2025</td>
+      <td>Mulighet for sammenlikning av priser hos vinmonopolet og tax-free.</td>
+    </tr>
+  </table>
+
+  <hr>
+
+  <menu class="landing-menu">
+    <li class="landing-menu-slim"><img src="images/snublejuice.jpg" alt="SNUBLEJUICE.no"></li>
+    <li><a href="https://vinmonopolet.snublejuice.no">vinmonopolet.snublejuice.no</a></li>
+    <li class="landing-menu-wide"><img src="images/snublejuice.jpg" alt="SNUBLEJUICE.no"></li>
+    <li><a href="https://taxfree.snublejuice.no">taxfree.snublejuice.no</a></li>
+  </menu>
 
   <%- include('partials/footer') %>
 </body>

@@ -1,0 +1,95 @@
+<menu>
+  <% if (!user) { %>
+    <li><button onclick="toggleView('login')">
+      Logg inn
+    </button></li>
+    <span>|</span>
+    <li><button onclick="toggleView('register')">
+      Registrer
+    </button></li>
+  <% } else { %>
+    <li><button onclick="toggleView('profile')">
+      <%= user?.username %>
+    </button></li>
+      <span>|</span>
+    <li><button onclick="logout()">
+      Logg ut
+    </button></li>
+    <% if (!favourites && !landing) { %>
+      <span>|</span>
+      <li><button onclick="applyFilters(true, true)">
+        Favoritter
+      </button></li>
+    <% } else if (favourites) { %>
+      <span>|</span>
+      <li><button onclick="applyFilters(true, true)">
+        Hovedside
+      </button></li>
+    <% } %>
+  <% } %>
+</menu>
+
+<search id="login" style="display: none;">
+  <form id="loginForm">
+    <table>
+      <tr>
+        <td>Brukernavn&nbsp;</td>
+        <td><input type="text" id="usernameLogin" name="username" minlength="2" required></td>
+      </tr>
+      <tr>
+        <td>Passord</td>
+        <td><input type="password" id="passwordLogin" name="password" minlength="4" required></td>
+      </tr>
+    </table>
+
+    <button type="submit" style="text-wrap: nowrap;">Logg inn</button>
+  </form>
+</search>
+
+<search id="register" style="display: none;">
+  <form id="registerForm">
+    <table>
+      <tr>
+        <td>Brukernavn&nbsp;</td>
+        <td><input type="text" id="usernameRegister" name="username" minlength="2" required></td>
+      </tr>
+      <tr>
+        <td>E-post</td>
+        <td><input type="email" id="emailRegister" name="email" required></td>
+      </tr>
+      <tr>
+        <td>Passord</td>
+        <td><input type="password" id="passwordRegister" name="password" minlength="4" required></td>
+      </tr>
+    </table>
+
+    <button type="submit">Registrer</button>
+  </form>
+</search>
+
+<search id="profile" style="display: none;">
+  <form id="deleteUserForm">
+    <input type="hidden" id="usernameDelete" name="username" value="<%= user?.username %>">
+
+    <table>
+      <tr>
+        <td>Brukernavn&nbsp;</td>
+        <td><%= user?.username %></td>
+      </tr>
+      <tr>
+        <td>E-post</td>
+        <td><%= user?.email %></td>
+      </tr>
+      <tr>
+        <td>Passord</td>
+        <td><input type="password" id="passwordDelete" name="password" minlength="4" required></td>
+      </tr>
+    </table>
+
+    <button type="submit">Slett bruker</button>
+  </form>
+</search>
+
+<span id="userMessage"></span>
+
+<script src="scripts/profile.js"></script>

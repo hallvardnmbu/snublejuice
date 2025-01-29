@@ -18,8 +18,8 @@ export const categories = {
 
 export async function load({
   collection,
-  metadata,
-  taxfree = false,
+  meta,
+  subdomain,
 
   // Month delta:
   delta = 1,
@@ -72,6 +72,8 @@ export async function load({
   // Calculate total pages:
   fresh = true,
 } = {}) {
+  const taxfree = subdomain === "taxfree";
+
   let pipeline = [];
 
   if (search) {
@@ -157,15 +159,14 @@ export async function load({
       matchStage["instores"] = true;
     }
   } else {
-    let date = await metadata.findOne({ id: "stock" }, { _id: 0 });
-    date = date[taxfree ? "taxfree" : "vinmonopolet"];
+    let date = meta.stock[subdomain];
     // Set the `updated` variable as the difference wrt. today as text.
     if (date) {
       const ONE_DAY = 1000 * 60 * 60 * 24;
       const today = new Date();
       today.setHours(0, 0, 0, 0); // Reset time to start of day
 
-      const compareDate = new Date(date.date);
+      const compareDate = new Date(date);
       compareDate.setHours(0, 0, 0, 0); // Reset time to start of day
 
       const diff = Math.floor((today - compareDate) / ONE_DAY);

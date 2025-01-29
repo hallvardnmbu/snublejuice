@@ -20,26 +20,21 @@
     <meta property="og:title" content="SNUBLEJUICE.no" />
     <meta property="og:description" content="Hold deg oppdatert på Vinmonopolets tilbud og prishistorikk!" />
     <meta name="description" content="Hold deg oppdatert på Vinmonopolets tilbud og prishistorikk!" />
-
-    <meta name="keywords" content="Tilbud vin, Tilbud øl, Tilbud sprit, Tilbud hvitvin, Tilbud rødvin, Tilbud portvin, Gin, Vodka, Tilbud på alkohol, Tilbud vinmonopolet, Priser på vin, Priser på Øl, prisliste Vinmonopolet, Tilbud whisky, Tilbud champagne, Cognac, Brandy, Tilbud på brennevin, Billig vin, Billig øl, Billig sprit, Rødvin på tilbud, Hvitvin på tilbud, Alkohol tilbud, Vinmonopolet tilbud, Vinmonopolets tilbud, Importerte viner, Økologisk vin, Musserende vin, Priser på sprit, Priser på gin, Priser på vodka, Best pris alkohol, Tilbud på gin, Tilbud på vodka, Tilbud på cognac, Tilbud på brandy, Tilbud på musserende vin, Tilbud på økologisk vin, Tilbud på importerte viner, Tilbud på champagne, Tilbud på whisky, Tilbud på rom, Tilbud på tequila, Tilbud på likør, Tilbud på dessertvin, Tilbud på rosévin, Tilbud på sherry, Tilbud på vermut, Tilbud på sake, Tilbud på cider, Tilbud på craft beer, Tilbud på mikrobrygget øl, Tilbud på alkoholfritt, Tilbud på alkoholfri vin, Tilbud på alkoholfri øl, Tilbud på alkoholfri cider, Tilbud på alkoholfri musserende vin, Tilbud på alkoholfri sprit, Tilbud på alkoholfri gin, Tilbud på alkoholfri vodka, Tilbud på alkoholfri whisky, Tilbud på alkoholfri rom, Tilbud på alkoholfri tequila, Tilbud på alkoholfri likør, Tilbud på alkoholfri dessertvin, Tilbud på alkoholfri rosévin, Tilbud på alkoholfri sherry, Tilbud på alkoholfri vermut, Tilbud på alkoholfri sake, Tilbud på alkoholfri cider, Tilbud på alkoholfri craft beer, Tilbud på alkoholfri mikrobrygget øl, Tilbud på alkoholfritt, Priser på gin, Priser på vodka, Priser på cognac, Priser på brandy, Priser på musserende vin, Priser på økologisk vin, Priser på importerte viner, Priser på champagne, Priser på whisky, Priser på rom, Priser på tequila, Priser på likør, Priser på dessertvin, Priser på rosévin, Priser på sherry, Priser på vermut, Priser på sake, Priser på cider, Priser på craft beer, Priser på mikrobrygget øl, Priser på alkoholfritt, Priser på alkoholfri vin, Priser på alkoholfri øl, Priser på alkoholfri cider, Priser på alkoholfri musserende vin, Priser på alkoholfri sprit, Priser på alkoholfri gin, Priser på alkoholfri vodka, Priser på alkoholfri whisky, Priser på alkoholfri rom, Priser på alkoholfri tequila, Priser på alkoholfri likør, Priser på alkoholfri dessertvin, Priser på alkoholfri rosévin, Priser på alkoholfri sherry, Priser på alkoholfri vermut, Priser på alkoholfri sake, Priser på alkoholfri cider, Priser på alkoholfri craft beer, Priser på alkoholfri mikrobrygget øl, Priser på alkoholfritt, Best pris gin, Best pris vodka, Best pris cognac, Best pris brandy, Best pris musserende vin, Best pris økologisk vin, Best pris importerte viner, Best pris champagne, Best pris whisky, Best pris rom, Best pris tequila, Best pris likør, Best pris dessertvin, Best pris rosévin, Best pris sherry, Best pris vermut, Best pris sake, Best pris cider, Best pris craft beer, Best pris mikrobrygget øl, Best pris alkoholfritt, Best pris alkoholfri vin, Best pris alkoholfri øl, Best pris alkoholfri cider, Best pris alkoholfri musserende vin, Best pris alkoholfri sprit, Best pris alkoholfri gin, Best pris alkoholfri vodka, Best pris alkoholfri whisky, Best pris alkoholfri rom, Best pris alkoholfri tequila, Best pris alkoholfri likør, Best pris alkoholfri dessertvin, Best pris alkoholfri rosévin, Best pris alkoholfri sherry, Best pris alkoholfri vermut, Best pris alkoholfri sake, Best pris alkoholfri cider, Best pris alkoholfri craft beer, Best pris alkoholfri mikrobrygget øl, Best pris alkoholfritt"/>
 </head>
 
 <body>
-  <%- include('partials/header', { favourites }) %>
-  <%- include('partials/forms', { updated, favourites }) %>
+  <header>
+    <!-- <div><span><%= visitors %> besøkende til <%= subdomain %>.snublejuice.no denne måneden.</span></div> -->
+    <%- include('partials/account', { favourites, landing: false }) %>
+  </header>
+
+  <%- include('partials/forms', { updated, favourites, taxfree: subdomain === "taxfree" }) %>
 
   <%- include('partials/pagination', { placement: "top" }) %>
 
   <% if (data.length === 0) { %>
     <span class="message">Ingen resultater finnes for valgt kominasjon.</span>
   <% } else { %>
-
-    <% if (!taxfree) { %>
-      <span class="message">[!] NYHET [!]</span>
-      <span class="message">Sammenlikn prisene til vinmonopolet og tax-free:</span>
-      <span class="message"><a href="https://taxfree.snublejuice.no">taxfree.snublejuice.no</a></span>
-    <% } %>
-
     <div id="messages">
       <% if (new Date().getDate() <= 5) { %>
         <span class="message">[!] NY MÅNED; NYE TILBUD [!]</span>
@@ -55,7 +50,7 @@
     </div>
 
     <% data.forEach((item, index) => { %>
-      <%- include('partials/product', { index, item, user, storelike, maxIndex: data.length - 1 }) %>
+      <%- include('partials/product', { index, item, user, storelike, taxfree: subdomain === "taxfree", maxIndex: data.length - 1 }) %>
     <% }) %>
 
     <%- include('partials/pagination', { placement: "bottom" }) %>

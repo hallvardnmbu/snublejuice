@@ -92,7 +92,7 @@ function processProducts(products, alreadyUpdated) {
   return processed;
 }
 
-async function getPage(order, alreadyUpdated) {
+async function getPage(order, alreadyUpdated, retry = false) {
   try {
     const response = await fetch(URL.url, {
       method: "POST",
@@ -110,9 +110,20 @@ async function getPage(order, alreadyUpdated) {
       return processProducts(data.results[0].hits, alreadyUpdated);
     }
 
-    console.log(`STATUS | ${response.status} | Order: ${order}.`);
+    console.log(`STATUS   | ${response.status} | Order: ${order}.`);
   } catch (err) {
-    console.log(`ERROR | Order: ${order} | ${err.message}`);
+    if (retry) {
+      return [];
+    }
+
+    console.log(`ERROR    | Order: ${order} | Retrying. ${err}`);
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+      return getPage(order, alreadyUpdated, true);
+    } catch (err) {
+      console.log(`ERROR    | Order: ${order} | Failed. ${err}`);
+    }
   }
 }
 

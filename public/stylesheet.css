@@ -114,8 +114,7 @@ menu {
     margin: 0;
 }
 .landing-menu,
-.landing-details,
-.landing-table {
+.landing-details {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -126,22 +125,25 @@ menu {
     margin: var(--padding);
 }
 .landing-menu b,
-.landing-details b,
-.landing-table b {
+.landing-details b {
     color: var(--text);
 }
 .landing-details {
     flex-direction: column;
-
     text-align: center;
+
+    margin: 0 var(--padding);
 }
-.landing-details span,
-.landing-table {
+.landing-details span:not(.corners) {
     width: 100%;
-    max-width: 500px;
+    max-width: calc(500px - 2 * var(--padding));
+
+    margin: 0 var(--padding);
+    padding: var(--padding);
+    background-color: var(--faint);
 }
 .landing-details .corners {
-    margin: 0 calc(-2 * var(--padding));
+    width: 100%;
 
     height: var(--padding);
     background: linear-gradient(
@@ -154,17 +156,14 @@ menu {
         var(--dimmed) 100%
     );
 }
-.landing-table td:first-of-type {
+.landing-details table {
+    text-align: left;
+}
+.landing-details table td:first-of-type {
     padding-right: var(--padding);
 }
-.landing-table td:last-of-type {
+.landing-details table td:last-of-type {
     word-wrap: break-word;
-}
-.landing-menu:first-of-type {
-    margin-bottom: 0;
-}
-.landing-menu:last-of-type {
-    margin-top: auto;
 }
 .landing-menu .slim {
     display: none;
@@ -595,6 +594,9 @@ hr {
     background-color: var(--dimmed);
     margin: var(--padding) 0;
 }
+.landing-hr {
+    margin: 0;
+}
 .detailed hr {
     margin: 0 calc(-1 * var(--padding));
 }
@@ -720,7 +722,7 @@ footer span button {
     }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 500px) {
     :root {
         --fontsize-largest: 20px;
         --fontsize-large: 18px;
@@ -743,6 +745,21 @@ footer span button {
     }
     .landing-menu .wide {
         display: none;
+    }
+
+    .landing-details .corners {
+        width: calc(100% + 2 * var(--padding));
+
+        height: var(--padding);
+        background: linear-gradient(
+            to right,
+            var(--dimmed) 0%,
+            var(--dimmed) var(--padding),
+            transparent var(--padding),
+            transparent calc(100% - var(--padding)),
+            var(--dimmed) calc(100% - var(--padding)),
+            var(--dimmed) 100%
+        );
     }
 }
 

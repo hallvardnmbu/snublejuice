@@ -347,7 +347,10 @@ snublejuice.get("/", authenticate, async (req, res) => {
   if (subdomain === "landing") {
     return res.render("landing", {
       user: user,
-      visitors: meta.visitors.fresh.month[month],
+      visitors: {
+        vinmonopolet: meta.visitors.fresh.month[month].vinmonopolet || 0,
+        taxfree: meta.visitors.fresh.month[month].taxfree || 0,
+      },
     });
   }
 

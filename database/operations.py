@@ -219,6 +219,16 @@ def backup():
     print("Saved backup to ", path)
 
 
+def scan_and_update_products():
+    products = _DATABASE.find({"oldprice": 0, "prices.1": {"$exists": True}})
+    for product in products:
+        oldprice = product["prices"][-2]
+        _DATABASE.update_one(
+            {"_id": product["_id"]},
+            {"$set": {"oldprice": oldprice, "discount": 0}}
+        )
+
+
 # Restore remote database with local backup from `date`
 # restore(date = "2024-12-26")
 

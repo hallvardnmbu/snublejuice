@@ -316,7 +316,7 @@ async function existingMatch(record) {
   return match[0] || null;
 }
 
-async function updateDatabase(data) {
+async function updateDatabase(data, existing = []) {
   const operations = [];
   let counts = {
     match: 0,
@@ -325,11 +325,12 @@ async function updateDatabase(data) {
 
   for (const record of data) {
     // Find matching record in the database (i.e., vinmonopolet product).
-    const existingRecord = await existingMatch(record);
+    const existingRecord = existing.includes(record.taxfree.index)
+      ? false
+      : await existingMatch(record);
 
     if (existingRecord) {
       counts.match++;
-      // Update existing record by adding/updating taxfree information
       operations.push({
         updateOne: {
           filter: { index: existingRecord.index },
@@ -373,11 +374,19 @@ async function updateDatabase(data) {
       });
     } else {
       counts.unmatch++;
-      // Insert new record
       operations.push({
         updateOne: {
           filter: { "taxfree.index": record.taxfree.index },
-          update: [{ $set: { "taxfree.oldprice": "$taxfree.price" } }, { $set: record }],
+          update: [
+            { $set: { "taxfree.oldprice": "$taxfree.price", "taxfree.discount": 0 } },
+            { $set: { taxfree: record.taxfree } },
+            { $set: { "taxfree.prices": { $ifNull: ["$taxfree.prices", []] } } },
+            {
+              $set: {
+                "taxfree.prices": { $concatArrays: ["$taxfree.prices", ["$taxfree.price"]] },
+              },
+            },
+          ],
           upsert: true,
         },
       });
@@ -389,7 +398,7 @@ async function updateDatabase(data) {
   return await itemCollection.bulkWrite(operations);
 }
 
-async function getProducts() {
+async function getProducts(existing = []) {
   let items = [];
   let alreadyUpdated = [];
 
@@ -419,7 +428,7 @@ async function getProducts() {
     count += items.length;
 
     console.log(`UPDATING | ${items.length} records.`);
-    const result = await updateDatabase(items);
+    const result = await updateDatabase(items, existing);
     console.log(`         | Modified ${result.modifiedCount}.`);
     console.log(`         | Upserted ${result.upsertedCount}.`);
 
@@ -471,7 +480,8 @@ async function main() {
   await itemCollection.updateMany({}, { $set: { "taxfree.updated": false } });
   // await itemCollection.deleteMany({ name: { $exists: false } });
   // await itemCollection.updateMany({}, { $unset: { taxfree: "" } });
-  await getProducts();
+  const existing = await itemCollection.distinct("taxfree.index");
+  await getProducts(existing);
 
   // [!] ONLY RUN THIS AFTER ALL PRICES HAVE BEEN UPDATED [!]
   await syncUnupdatedProducts(100);

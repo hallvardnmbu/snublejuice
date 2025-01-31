@@ -74,18 +74,6 @@ function processProducts(products, alreadyUpdated) {
             .map((code) => STORES[code])
             .filter((store) => store !== null)
         : null,
-      // stores: {
-      //   online: product.inOnlineStockInCodes
-      //     ? product.inOnlineStockInCodes
-      //         .map((code) => STORES[code])
-      //         .filter((store) => store !== null)
-      //     : null,
-      //   physical: product.inPhysicalStockInCodes
-      //     ? product.inPhysicalStockInCodes
-      //         .map((code) => STORES[code])
-      //         .filter((store) => store !== null)
-      //     : null,
-      // },
     });
   }
 

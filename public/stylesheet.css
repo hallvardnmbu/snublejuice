@@ -87,6 +87,8 @@ footer {
     flex-direction: row;
     justify-content: space-between;
 
+    margin-top: auto;
+
     font-size: var(--fontsize-smallest);
 
     background-color: var(--faint);

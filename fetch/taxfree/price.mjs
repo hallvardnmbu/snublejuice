@@ -8,7 +8,7 @@ const client = new MongoClient(
   {
     serverApi: {
       version: ServerApiVersion.v1,
-      strict: true,
+      strict: false,
       deprecationErrors: true,
     },
   },
@@ -86,13 +86,7 @@ function processProducts(products, alreadyUpdated) {
     }
 
     processed.push({
-      name: product.name?.no || null,
       volume: product.salesAmount * 100,
-
-      ...processCategories(
-        product.categoriesLevel1?.no?.at(0).split(" > ").at(-1) || null,
-        product.categoriesLevel2?.no?.at(0).split(" > ").at(-1) || null,
-      ),
 
       taxfree: {
         index: index,
@@ -143,18 +137,11 @@ function processProducts(products, alreadyUpdated) {
 
         instores: product.onlineExclusive || false,
 
-        stores: {
-          online: product.inOnlineStockInCodes
-            ? product.inOnlineStockInCodes
-                .map((code) => STORES[code])
-                .filter((store) => store !== null)
-            : null,
-          physical: product.inPhysicalStockInCodes
-            ? product.inPhysicalStockInCodes
-                .map((code) => STORES[code])
-                .filter((store) => store !== null)
-            : null,
-        },
+        stores: product.inPhysicalStockInCodes
+          ? product.inPhysicalStockInCodes
+              .map((code) => STORES[code])
+              .filter((store) => store !== null)
+          : null,
       },
     });
   }
@@ -194,167 +181,142 @@ async function getPage(order, alreadyUpdated, retry = false) {
     } catch (err) {
       console.log(`ERROR    | Order: ${order} | Failed. ${err}`);
     }
+  }
 }
 
-async function recordMatch(record) {
-  // 1. name = taxfree.name
-  // 2. name ≈ taxfree.name
-  // 3. name.contains(taxfree.name) && taxfree.name.contains(name)
-  // 4. name.contains(taxfree.name)
-  // 5. taxfree.name.contains(name)
-  // 6. name.contains(taxfree.name) > 75%
-  // 7. taxfree.name.contains(name) > 75%
-  // 8. name.contains(taxfree.name) > 50%
-  // 9. taxfree.name.contains(name) > 50%
-  // 10. if (name.split(' ').length > 5) name.contains(taxfree.name) > 25%
-  // 11. if (taxfree.name.split(' ').length > 5) taxfree.name.contains(name) > 25%
+async function existingMatch(record) {
+  const designations = record.taxfree.name.match(/V\.S\.O\.P\.|V\.S\.|X\.O\./gi) || [];
 
-  const cleanName = (name) =>
-    name
-      .toLowerCase()
-      .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "")
-      .trim();
+  record.taxfree.name = record.taxfree.name
+    // Remove volume measurements, case insensitive:
+    // - Decimals: 0,70L, 1.00L
+    // - Non-decimals: 5cL, 75L
+    .replace(/\d+(?:[,\.]\d+)?\s*[a-zA-Z]l/gi, "")
+    // Clean up extra spaces
+    .replace(/\s+/g, " ")
+    .trim();
+  const nWords = record.taxfree.name.split(" ").filter((word) => word).length;
 
-  const getWords = (name) =>
-    cleanName(name)
-      .split(/\s+/)
-      .filter((word) => word.length > 2);
-
-  // Escape special regex characters
-  const escapeRegex = (string) => {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  };
-
-  const taxfreeName = record.taxfree.name;
-  const escapedTaxfreeName = escapeRegex(taxfreeName);
-  const taxfreeWords = getWords(taxfreeName);
-
-  // Build cascading match conditions
-  const matchConditions = [
-    // 1. Exact match
-    { name: taxfreeName },
-
-    // 2. Case-insensitive exact match
-    { name: new RegExp(`^${escapedTaxfreeName}$`, "i") },
-
-    // 3. Bi-directional containment
-    { name: new RegExp(`.*${escapedTaxfreeName}.*|${escapedTaxfreeName}.*`, "i") },
-
-    // 4. Name contains taxfree.name
-    { name: new RegExp(`.*${escapedTaxfreeName}.*`, "i") },
-
-    // 5. Taxfree.name contains name
-    { name: new RegExp(`${escapedTaxfreeName}.*`, "i") },
-
-    // 6-9. Word overlap > 75% and 50%
-    {
-      $expr: {
-        $gte: [
-          {
-            $multiply: [
-              100,
-              {
-                $divide: [
-                  {
-                    $size: {
-                      $setIntersection: [{ $split: [{ $toLower: "$name" }, " "] }, taxfreeWords],
-                    },
-                  },
-                  {
-                    $size: { $split: [{ $toLower: "$name" }, " "] },
-                  },
-                ],
-              },
-            ],
-          },
-          75,
-        ],
-      },
-    },
-    {
-      $expr: {
-        $gte: [
-          {
-            $multiply: [
-              100,
-              {
-                $divide: [
-                  {
-                    $size: {
-                      $setIntersection: [{ $split: [{ $toLower: "$name" }, " "] }, taxfreeWords],
-                    },
-                  },
-                  {
-                    $size: { $split: [{ $toLower: "$name" }, " "] },
-                  },
-                ],
-              },
-            ],
-          },
-          50,
-        ],
-      },
-    },
-
-    // 10-11. Long names with > 25% match
-    ...(taxfreeWords.length > 5
+  const aggregation = [
+    ...(nWords <= 3
       ? [
           {
-            $expr: {
-              $gte: [
-                {
-                  $multiply: [
-                    100,
-                    {
-                      $divide: [
-                        {
-                          $size: {
-                            $setIntersection: [
-                              { $split: [{ $toLower: "$name" }, " "] },
-                              taxfreeWords,
-                            ],
-                          },
-                        },
-                        {
-                          $size: { $split: [{ $toLower: "$name" }, " "] },
-                        },
-                      ],
+            $search: {
+              index: "name",
+              compound: {
+                must: [
+                  // TODO: Currently, the last word is boosted. This should be improved.
+                  {
+                    text: {
+                      query: record.taxfree.name.split(" ").pop(),
+                      path: "name",
+                      score: { boost: { value: 2 } },
                     },
-                  ],
-                },
-                25,
-              ],
+                  },
+                  // // Must match any special designations if present
+                  // ...designations.map((designation) => ({
+                  //   text: {
+                  //     query: designation,
+                  //     path: "name",
+                  //     score: {
+                  //       boost: { value: 1.5 },
+                  //     },
+                  //   },
+                  // })),
+                  // Fuzzy search on the rest of the words
+                  {
+                    text: {
+                      query: record.taxfree.name,
+                      path: "name",
+                      fuzzy: {
+                        maxEdits: Math.max(nWords - 1, 1),
+                        prefixLength: 0,
+                        maxExpansions: 1,
+                      },
+                    },
+                  },
+                ],
+              },
             },
           },
         ]
-      : []),
+      : [
+          {
+            $search: {
+              index: "name",
+              compound: {
+                // must: [
+                //   // Must match any special designations if present
+                //   ...designations.map((designation) => ({
+                //     text: {
+                //       query: designation,
+                //       path: "name",
+                //       score: {
+                //         boost: { value: 1.5 },
+                //       },
+                //     },
+                //   })),
+                // ],
+                should: [
+                  {
+                    phrase: {
+                      query: record.taxfree.name,
+                      path: "name",
+                      score: { boost: { value: 2 } },
+                    },
+                  },
+                  {
+                    text: {
+                      query: record.taxfree.name,
+                      path: "name",
+                      fuzzy: {
+                        maxEdits: Math.min(nWords, 2),
+                        prefixLength: 0,
+                        maxExpansions: 1,
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        ]),
+    {
+      $addFields: {
+        score: { $meta: "searchScore" },
+      },
+    },
+    {
+      $match: { score: { $gt: 20.0 } },
+    },
+    {
+      $match: {
+        volume: record.volume,
+        // alcohol: record.taxfree.alcohol,
+        ...(record.taxfree.category && { category: record.taxfree.category }),
+      },
+    },
+    {
+      $sort: { score: -1 },
+    },
+    {
+      $limit: 1,
+    },
   ];
 
-  // Try each match condition in sequence until a match is found
-  for (const condition of matchConditions) {
-    const existingRecord = await itemCollection.findOne({
-      ...condition,
-      volume: record.volume,
-      ...(record.category && { category: record.category }),
-    });
+  const match = await itemCollection.aggregate(aggregation).toArray();
 
-    if (existingRecord) return existingRecord;
-  }
+  // Debugging:
+  // console.log(`\nName "${record.taxfree.name}" is ${nWords} long.`);
+  // console.log(`Aggre: ${JSON.stringify(aggregation)}`);
+  // console.log(`Match: ${JSON.stringify(match)}`);
+  // console.log(`TAXFR: ${JSON.stringify(record.taxfree.url)}`);
+  // console.log(`MATCH: ${JSON.stringify(match[0] ? match[0].url : null)}`);
 
-  return null;
+  return match[0] || null;
 }
 
 async function updateDatabase(data) {
-  // IF a record in the itemCollection exists with the following criteria:
-  //  new.volume = itemCollection.volume
-  //  new.name = itemCollection.name CLOSE MATCH
-  //  OPTIONALLY AND IF EXISTST IN BOTH:
-  //    new.category = itemCollection.category
-  // THEN
-  //  Set add the taxfree-dictionary to the existing record.
-  // ELSE
-  //  Insert a new record in the itemCollection.
-
   const operations = [];
   let counts = {
     match: 0,
@@ -363,7 +325,7 @@ async function updateDatabase(data) {
 
   for (const record of data) {
     // Find matching record in the database (i.e., vinmonopolet product).
-    const existingRecord = await recordMatch(record);
+    const existingRecord = await existingMatch(record);
 
     if (existingRecord) {
       counts.match++;
@@ -374,6 +336,7 @@ async function updateDatabase(data) {
           update: [
             { $set: { "taxfree.oldprice": "$taxfree.price" } },
             { $set: { taxfree: record.taxfree } },
+            ...[existingRecord.score ? { $set: { "taxfree.score": existingRecord.score } } : {}],
             { $set: { "taxfree.prices": { $ifNull: ["$taxfree.prices", []] } } },
             {
               $set: {
@@ -506,12 +469,17 @@ async function main() {
   await metaCollection.updateOne({ id: "stock" }, { $set: { "prices.taxfree": false } });
 
   await itemCollection.updateMany({}, { $set: { "taxfree.updated": false } });
+  // await itemCollection.deleteMany({ name: { $exists: false } });
+  // await itemCollection.updateMany({}, { $unset: { taxfree: "" } });
   await getProducts();
 
   // [!] ONLY RUN THIS AFTER ALL PRICES HAVE BEEN UPDATED [!]
   await syncUnupdatedProducts(100);
 
-  await metaCollection.updateOne({ id: "stock" }, { $set: { "prices.taxfree": true } });
+  await metaCollection.updateOne(
+    { id: "stock" },
+    { $set: { "prices.taxfree": true, taxfree: new Date() } },
+  );
 }
 
 await main();

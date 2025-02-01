@@ -229,14 +229,14 @@ async function getProducts(startPage = 0, alreadyUpdated = []) {
 
       current += items.length;
 
-      console.log(`UPDATING | ${items.length} final records.`);
+      console.log(`UPDATING | ${items.length} records.`);
       const result = await updateDatabase(items);
       console.log(`         | Modified ${result.modifiedCount}.`);
       console.log(`         | Upserted ${result.upsertedCount}.`);
 
       items = [];
 
-      console.log(`UPDATING | Progress: ${Math.floor((current / total) * 100)} %`);
+      console.log(`UPDATING | Progress: ${Math.floor((current / (total * 24)) * 100)} %`);
     }
   }
 
@@ -251,7 +251,10 @@ async function getProducts(startPage = 0, alreadyUpdated = []) {
 }
 
 async function syncUnupdatedProducts(threshold = null) {
-  const unupdatedCount = await itemCollection.countDocuments({ updated: false });
+  const unupdatedCount = await itemCollection.countDocuments({
+    index: { $exists: true },
+    updated: false,
+  });
   console.log(`NOT UPDATED | Items: ${unupdatedCount}`);
   if (threshold && unupdatedCount >= threshold) {
     console.log(`ERROR    | Above threshold. | Aborting.`);
@@ -259,7 +262,7 @@ async function syncUnupdatedProducts(threshold = null) {
   }
 
   try {
-    const result = await itemCollection.updateMany({ updated: false }, [
+    const result = await itemCollection.updateMany({ index: { $exists: true }, updated: false }, [
       { $set: { oldprice: "$price" } },
       { $set: { price: "$oldprice", discount: 0, literprice: 0, alcoholprice: null } },
       { $set: { prices: { $ifNull: ["$prices", []] } } },

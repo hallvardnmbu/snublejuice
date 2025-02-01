@@ -273,10 +273,11 @@ async function updateInformation(itemIds) {
       console.log(`         | Upserted ${result.upsertedCount}.`);
 
       items = [];
+
+      console.log(`UPDATING | DETAILED | Progress: ${Math.floor((current / total) * 100)} %`);
     }
 
     current++;
-    console.log(`UPDATING | DETAILED | Progress: ${Math.floor((current / total) * 100)} %`);
   }
 
   // Insert the remaining products, if any.
@@ -296,7 +297,7 @@ async function main() {
   await getNewProducts(items);
 
   const itemIds = await itemCollection
-    .find({ description: null })
+    .find({ index: { $exists: true }, description: null })
     .project({ index: 1, _id: 0 })
     .toArray();
   await updateInformation(itemIds);

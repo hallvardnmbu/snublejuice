@@ -9,8 +9,8 @@ git pull
 
 # 2. Make the scripts executable
 echo "Making scripts executable..."
-chmod +x fetch/monthly.sh
-chmod +x fetch/stock.sh
-chmod +x fetch/update.sh
+chmod +x ./fetch/monthly.sh
+chmod +x ./fetch/stock.sh
+chmod +x ./fetch/update.sh
 
 echo "Repository updated"

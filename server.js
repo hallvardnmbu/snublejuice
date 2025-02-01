@@ -449,7 +449,7 @@ snublejuice.get("/", authenticate, async (req, res) => {
         delta > 1 && sort === "discount"
           ? "Sortering etter prisendring er ikke mulig når sammenlikning ikke er forrige måneds pris."
           : subdomain === "taxfree"
-            ? "OBS: Det hender at sammenlikninger er ukorrekte. Det anbefales derfor alltid å dobbeltsjekke dette ved å trykke seg inn på både produktsiden hos både vinmonopolet og tax-free på forhånd. Dette gjøres ved å først trykke på ønsket produkt og så lenkene ved de ulike prisene. Beklager ulempen."
+            ? "OBS: Det hender at sammenlikninger er ukorrekte. Det anbefales derfor alltid å dobbeltsjekke at produktene stemmer overens hos både vinmonopolet og tax-free ved å gå inn på lenkene deres. Beklager ulempen."
             : null,
       delta: delta,
       data: data,

@@ -34,8 +34,6 @@ export async function load({
   district = null,
   subdistrict = null,
   year = null,
-  cork = null,
-  storage = null,
 
   // Include non-alcoholic products:
   nonalcoholic = false,
@@ -140,14 +138,10 @@ export async function load({
     ...(district && !search ? { district: district } : {}),
     ...(subdistrict && !search ? { subdistrict: subdistrict } : {}),
     ...(year && !search ? { year: { $lte: year } } : {}),
-    // ...(cork && !search ? { cork: cork } : {}),
-    // ...(storage && !search ? { storage: storage } : {}),
 
     // Parameters that are arrays are matched using the $in operator.
-    // ...(description.length && !search ? { "description.short": { $in: description } } : {}),
     ...(store && !search && !storelike && !taxfreeStore ? { stores: { $in: [store] } } : {}),
     ...(taxfree && taxfreeStore ? { "taxfree.stores": taxfreeStore } : {}),
-    // ...(pair.length && !search ? { pair: { $in: pair } } : {}),
   };
 
   let updated = null;

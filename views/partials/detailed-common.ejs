@@ -1,0 +1,33 @@
+<div class="price">
+  <div class="prices">
+    <span class="text">KR <b class="number"><%= Math.ceil(item.price) %></b></span>
+    <% if (item.oldprice) { %>
+      <span class="text">FØR <b class="number"><%= Math.ceil(item.oldprice) %></b></span>
+    <% } %>
+  </div>
+  <% if (item.oldprice) { %>
+    <span class="text">
+      ENDRING
+      <b class="number"><%= Math.floor(item.discount) %></b>
+      <b class="percent">%</b>
+    </span>
+  <% } %>
+</div>
+
+<div class="price">
+  <div class="prices">
+    <span class="text">
+      LITERPRIS <b class="number"><%= Math.ceil(item.literprice) %></b>
+    </span>
+
+    <% if (item.alcoholprice) { %>
+      <span class="text">
+        ALKOHOLLITERPRIS <b class="number"><%= Math.ceil(item.alcoholprice) %></b>
+      </span>
+
+      <span class="text">
+        ALKOHOL <b class="number"><%= item.alcohol %></b><b class="percent">%</b>
+      </span>
+    <% } %>
+  </div>
+</div>

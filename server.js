@@ -385,6 +385,29 @@ snublejuice.get("/", authenticate, async (req, res) => {
     store.taxfree = null;
   }
 
+  // Use cookies for storing user preferences
+  res.cookie("userPreferences", JSON.stringify({
+    page,
+    delta,
+    sort,
+    ascending,
+    category,
+    country,
+    volume,
+    alcohol,
+    year,
+    search,
+    storelike,
+    store,
+    includeFavourites
+  }), {
+    httpOnly: true,
+    secure: _PRODUCTION,
+    sameSite: "strict",
+    maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
+    path: "/",
+  });
+
   try {
     let { data, total, updated } = await load({
       collection,

@@ -16,12 +16,12 @@ fi
 
 # 2. Run the scripts
 echo "Running scripts..."
-bun run fetch/vinmonopolet/price.mjs || {
+bun run ./fetch/vinmonopolet/price.mjs || {
     echo "Failed to run fetch/vinmonopolet/price.mjs";
     nordvpn disconnect;
     exit 1
 }
-bun run fetch/taxfree/price.mjs || {
+bun run ./fetch/taxfree/price.mjs || {
     echo "Failed to run fetch/taxfree/price.mjs";
     nordvpn disconnect
     exit 1

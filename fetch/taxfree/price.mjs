@@ -292,7 +292,6 @@ async function existingMatch(record) {
     {
       $match: {
         volume: record.volume,
-        // alcohol: record.taxfree.alcohol,
         ...(record.taxfree.category && { category: record.taxfree.category }),
       },
     },
@@ -324,20 +323,19 @@ async function updateDatabase(data, existing = []) {
   };
 
   for (const record of data) {
-    // Find matching record in the database (i.e., vinmonopolet product).
-    const existingRecord = existing.includes(record.taxfree.index)
+    const vinmonoopolet = existing.includes(record.taxfree.index)
       ? false
-      : await existingMatch(record);
+      : (await existingMatch(record)) || null;
 
-    if (existingRecord) {
+    if (vinmonoopolet) {
       counts.match++;
       operations.push({
         updateOne: {
-          filter: { index: existingRecord.index },
+          filter: { index: vinmonoopolet.index },
           update: [
             { $set: { "taxfree.oldprice": "$taxfree.price" } },
             { $set: { taxfree: record.taxfree } },
-            ...[existingRecord.score ? { $set: { "taxfree.score": existingRecord.score } } : {}],
+            { $set: { "taxfree.score": vinmonoopolet.score } },
             { $set: { "taxfree.prices": { $ifNull: ["$taxfree.prices", []] } } },
             {
               $set: {
@@ -378,7 +376,15 @@ async function updateDatabase(data, existing = []) {
         updateOne: {
           filter: { "taxfree.index": record.taxfree.index },
           update: [
-            { $set: { "taxfree.oldprice": "$taxfree.price", "taxfree.discount": 0 } },
+            {
+              $set:
+                vinmonoopolet === null
+                  ? {
+                      "taxfree.oldprice": "$taxfree.price",
+                      "taxfree.discount": 0,
+                    }
+                  : {},
+            },
             { $set: { taxfree: record.taxfree } },
             { $set: { "taxfree.prices": { $ifNull: ["$taxfree.prices", []] } } },
             {

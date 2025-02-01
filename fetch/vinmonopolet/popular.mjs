@@ -108,6 +108,8 @@ async function updateStores(itemIds) {
   let current = 0;
   const total = itemIds.length;
 
+  console.log(`UPDATING | ${total} discounted items.`);
+
   for (const element of itemIds) {
     const id = element["index"];
 
@@ -161,7 +163,7 @@ async function main() {
 
   // Fetch products with discount.
   const itemIds = await itemCollection
-    .find({ discount: { $lt: -2.5 } })
+    .find({ discount: { $lt: 0.0 } })
     .project({ index: 1, _id: 0 })
     .toArray();
   await updateStores(itemIds);

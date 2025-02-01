@@ -1,5 +1,6 @@
 #!bin/bash
 
+source ~/.profile
 cd /home/snublejuice/Documents/snublejuice
 
 # 1. Connect to NordVPN and ensure connection is established

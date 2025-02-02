@@ -50,11 +50,11 @@ function populateStores(stores) {
     // Add event listener to save the selected store to local storage
     dropdown.addEventListener("change", () => {
       sessionStorage.setItem("store", dropdown.value);
-      displayMessage(_DEFAULTS[key] !== dropdown.value || search?.value !== null);
+      displayMessage(_DEFAULTS[key] !== dropdown.value || search?.value);
     });
 
     // Display message if a store other than "null" is selected on page load
-    displayMessage(_DEFAULTS[key] !== dropdown.value || search?.value !== null);
+    displayMessage(_DEFAULTS[key] !== dropdown.value || search?.value);
   }
 }
 

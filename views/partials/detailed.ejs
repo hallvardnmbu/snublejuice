@@ -18,46 +18,82 @@
 
         <div class="heading">
             <div class="link">
-                <a href="<%= item.url %>" target="_blank"><img src="images/www.png" class="www"><%= item.name %></a>
+                <a href="<%= taxfree ? item.taxfree.url : item.url %>" target="_blank"><img src="images/www.png" class="www"><%= item.name %></a>
             </div>
             <div class="close" index="<%= index %>">x</div>
         </div>
 
         <hr>
 
-        <div class="price">
-          <div class="prices">
-            <span class="text">KR <b class="number"><%= Math.ceil(item.price) %></b></span>
+        <% if (taxfree) { %>
+
+          <div class="price">
+            <div class="prices">
+              <span class="text"><a href="<%= item.url %>" target="_blank">VINMONOPOLET</a> <b class="number"><%= Math.ceil(item.price) %></b></span>
+              <span class="text"><a href="<%= item.taxfree.url %>" target="_blank">TAX-FREE</a> <b class="number"><%= Math.ceil(item.taxfree.price) %></b></span>
+            </div>
+            <span class="text">
+                DIFFERANSE
+                <b class="number"><%= Math.floor(item.taxfree.discount) %></b>
+                <b class="percent">%</b>
+              </span>
+          </div>
+
+          <div class="price">
+            <div class="prices">
+              <span class="text">
+                LITERPRIS <b class="number"><%= Math.ceil(item.taxfree.literprice) %></b>
+              </span>
+
+              <% if (item.alcoholprice) { %>
+                <span class="text">
+                  ALKOHOLLITERPRIS <b class="number"><%= Math.ceil(item.taxfree.alcoholprice) %></b>
+                </span>
+
+                <span class="text">
+                  ALKOHOL <b class="number"><%= item.alcohol %></b><b class="percent">%</b>
+                </span>
+              <% } %>
+            </div>
+          </div>
+
+        <% } else { %>
+
+          <div class="price">
+            <div class="prices">
+              <span class="text">KR <b class="number"><%= Math.ceil(item.price) %></b></span>
+              <% if (item.oldprice) { %>
+                <span class="text">FØR <b class="number"><%= Math.ceil(item.oldprice) %></b></span>
+              <% } %>
+            </div>
             <% if (item.oldprice) { %>
-              <span class="text">FØR <b class="number"><%= Math.ceil(item.oldprice) %></b></span>
-            <% } %>
-          </div>
-          <% if (item.oldprice) { %>
-            <span class="text">
-              ENDRING
-              <b class="number"><%= Math.floor(item.discount) %></b>
-              <b class="percent">%</b>
-            </span>
-          <% } %>
-        </div>
-
-        <div class="price">
-          <div class="prices">
-            <span class="text">
-              LITERPRIS <b class="number"><%= Math.ceil(item.literprice) %></b>
-            </span>
-
-            <% if (item.alcoholprice) { %>
               <span class="text">
-                ALKOHOLLITERPRIS <b class="number"><%= Math.ceil(item.alcoholprice) %></b>
-              </span>
-
-              <span class="text">
-                ALKOHOL <b class="number"><%= item.alcohol %></b><b class="percent">%</b>
+                ENDRING
+                <b class="number"><%= Math.floor(item.discount) %></b>
+                <b class="percent">%</b>
               </span>
             <% } %>
           </div>
-        </div>
+
+          <div class="price">
+            <div class="prices">
+              <span class="text">
+                LITERPRIS <b class="number"><%= Math.ceil(item.literprice) %></b>
+              </span>
+
+              <% if (item.alcoholprice) { %>
+                <span class="text">
+                  ALKOHOLLITERPRIS <b class="number"><%= Math.ceil(item.alcoholprice) %></b>
+                </span>
+
+                <span class="text">
+                  ALKOHOL <b class="number"><%= item.alcohol %></b><b class="percent">%</b>
+                </span>
+              <% } %>
+            </div>
+          </div>
+
+        <% } %>
 
         <hr>
 
@@ -133,6 +169,12 @@
                     <td class="val"><%= item.description.lang %></td>
                   </tr>
                 <% } %>
+                <% if (taxfree && item.taxfree.stores) { %>
+                  <tr>
+                    <td class="key">FLYPLASSER &nbsp;</td>
+                    <td class="val"><%= item.taxfree.stores.sort((a,b) => a.localeCompare(b)).join(' + ') %></td>
+                  </tr>
+                <% } %>
                 <% if (item.smell) { %>
                   <tr>
                     <td class="key">LUKT</td>
@@ -190,14 +232,14 @@
 
         <hr>
 
-        <!-- Price chart." -->
+        <!-- Price chart. -->
         <div>
           <b>PRISHISTORIKK</b>
           <canvas id="graph-<%= index %>"></canvas>
         </div>
 
         <script>
-        var prices = <%= JSON.stringify(item.prices) %>.map(price => Math.ceil(price));
+          var prices = <%= JSON.stringify(taxfree ? item.taxfree.prices : item.prices) %>.map(price => Math.ceil(price));
           if (!prices || prices.length === 0) {
             prices = [0, 0];
           }
@@ -216,45 +258,81 @@
 
         <hr>
 
-        <div class="price">
-          <div class="prices">
-            <span class="text">KR <b class="number"><%= Math.ceil(item.price) %></b></span>
+        <% if (taxfree) { %>
+
+          <div class="price">
+            <div class="prices">
+              <span class="text"><a href="<%= item.url %>" target="_blank">VINMONOPOLET</a> <b class="number"><%= Math.ceil(item.price) %></b></span>
+              <span class="text"><a href="<%= item.taxfree.url %>" target="_blank">TAX-FREE</a> <b class="number"><%= Math.ceil(item.taxfree.price) %></b></span>
+            </div>
+            <span class="text">
+                DIFFERANSE
+                <b class="number"><%= Math.floor(item.taxfree.discount) %></b>
+                <b class="percent">%</b>
+              </span>
+          </div>
+
+          <div class="price">
+            <div class="prices">
+              <span class="text">
+                LITERPRIS <b class="number"><%= Math.ceil(item.taxfree.literprice) %></b>
+              </span>
+
+              <% if (item.alcoholprice) { %>
+                <span class="text">
+                  ALKOHOLLITERPRIS <b class="number"><%= Math.ceil(item.taxfree.alcoholprice) %></b>
+                </span>
+
+                <span class="text">
+                  ALKOHOL <b class="number"><%= item.alcohol %></b><b class="percent">%</b>
+                </span>
+              <% } %>
+            </div>
+          </div>
+
+        <% } else { %>
+
+          <div class="price">
+            <div class="prices">
+              <span class="text">KR <b class="number"><%= Math.ceil(item.price) %></b></span>
+              <% if (item.oldprice) { %>
+                <span class="text">FØR <b class="number"><%= Math.ceil(item.oldprice) %></b></span>
+              <% } %>
+            </div>
             <% if (item.oldprice) { %>
-              <span class="text">FØR <b class="number"><%= Math.ceil(item.oldprice) %></b></span>
-            <% } %>
-          </div>
-          <% if (item.oldprice) { %>
-            <span class="text">
-              ENDRING
-              <b class="number"><%= Math.floor(item.discount) %></b>
-              <b class="percent">%</b>
-            </span>
-          <% } %>
-        </div>
-
-        <div class="price">
-          <div class="prices">
-            <span class="text">
-              LITERPRIS <b class="number"><%= Math.ceil(item.literprice) %></b>
-            </span>
-
-            <% if (item.alcoholprice) { %>
               <span class="text">
-                ALKOHOLLITERPRIS <b class="number"><%= Math.ceil(item.alcoholprice) %></b>
-              </span>
-
-              <span class="text">
-                ALKOHOL <b class="number"><%= item.alcohol %></b><b class="percent">%</b>
+                ENDRING
+                <b class="number"><%= Math.floor(item.discount) %></b>
+                <b class="percent">%</b>
               </span>
             <% } %>
           </div>
-        </div>
+
+          <div class="price">
+            <div class="prices">
+              <span class="text">
+                LITERPRIS <b class="number"><%= Math.ceil(item.literprice) %></b>
+              </span>
+
+              <% if (item.alcoholprice) { %>
+                <span class="text">
+                  ALKOHOLLITERPRIS <b class="number"><%= Math.ceil(item.alcoholprice) %></b>
+                </span>
+
+                <span class="text">
+                  ALKOHOL <b class="number"><%= item.alcohol %></b><b class="percent">%</b>
+                </span>
+              <% } %>
+            </div>
+          </div>
+
+        <% } %>
 
         <hr>
 
         <div class="heading">
             <div class="link">
-              <a href="<%= item.url %>" target="_blank"><img src="images/www.png" class="www"><%= item.name %></a>
+              <a href="<%= taxfree ? item.taxfree.url : item.url %>" target="_blank"><img src="images/www.png" class="www"><%= item.name %></a>
             </div>
             <div class="close" index="<%= index %>">x</div>
         </div>

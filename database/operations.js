@@ -1,3 +1,26 @@
+export async function incrementVisitor(collection, month, subdomain, fresh) {
+  const current = fresh ? "fresh" : "newpage";
+
+  await collection.updateOne(
+    { id: "visitors" },
+    {
+      $inc: {
+        [`${current}.total`]: 1,
+        [`${current}.month.${month}.${subdomain}`]: 1,
+      },
+    },
+    { upsert: true },
+  );
+}
+
+export async function getMetadata(collection) {
+  return (await collection.find({}, { _id: 0 }).toArray()).reduce((acc, item) => {
+    const { id, ...rest } = item;
+    acc[id] = rest;
+    return acc;
+  }, {});
+}
+
 export const categories = {
   null: null,
   alkoholfritt: "Alkoholfritt",

@@ -177,10 +177,10 @@ def delete_fields(records, fields) -> BulkWriteResult:
 def restore(date):
     _DATABASE.delete_many({})
 
-    if not os.path.exists("./backup"):
-        path = f"./database/backup/{date}.parquet"
+    if not os.path.exists("./backups"):
+        path = f"./backups/backup/{date}.parquet"
     else:
-        path = f"./backup/{date}.parquet"
+        path = f"./backups/{date}.parquet"
 
     df = pd.read_parquet(path)
 
@@ -221,10 +221,10 @@ def backup():
     df = pd.DataFrame(data)
     df = df.drop(columns=["_id"])
     df["year"] = df["year"].apply(lambda x: int(float(x)) if x not in ("None", None, "") and pd.notna(x) else None)
-    if not os.path.exists("./backup"):
-        path = f"./database/backup/{pd.Timestamp.now().strftime('%Y-%m-%d')}.parquet"
+    if not os.path.exists("./backups"):
+        path = f"./backups/backup/{pd.Timestamp.now().strftime('%Y-%m-%d')}.parquet"
     else:
-        path = f"./backup/{pd.Timestamp.now().strftime('%Y-%m-%d')}.parquet"
+        path = f"./backups/{pd.Timestamp.now().strftime('%Y-%m-%d')}.parquet"
     df.to_parquet(path)
     print("Saved backup to ", path)
 

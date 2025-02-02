@@ -84,7 +84,7 @@ document.querySelectorAll(".favourite-toggle").forEach((img) => {
 
     // Send POST request to server.
     const index = this.dataset.index;
-    await fetch("/api/favourite", {
+    await fetch("/account/favourite", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -118,9 +118,7 @@ function changeModal(currentModal, newModal, event) {
   document.getElementById(currentModal).style.display = "none";
   document.getElementById(newModal).style.display = "block";
 
-  if (!window.location.hostname.startsWith("taxfree")) {
-    graphPrice(itemIndex);
-  }
+  graphPrice(newModal);
 }
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -137,10 +135,8 @@ document.addEventListener("DOMContentLoaded", function () {
       }
       modal.style.display = "block";
 
-      // Graph the price history if the domain is not "taxfree.snublejuice.no"
-      if (!window.location.hostname.startsWith("taxfree")) {
-        graphPrice(itemIndex);
-      }
+      // Graph the price history
+      graphPrice(itemIndex);
     });
   });
 

@@ -40,7 +40,7 @@ for file in os.listdir(_DIR):
             f"{_DIR}{name}.png",
             bbox_inches='tight', pad_inches=0, transparent=not "web" in name
         )
-        if not "web" in name:
+        if name == "snublejuice":
             plt.savefig(
                 f"{_DIR}{name}.jpg",
                 bbox_inches='tight', pad_inches=0, transparent=False

@@ -11,6 +11,7 @@ git pull
 echo "Making scripts executable..."
 chmod +x ./fetch/monthly.sh
 chmod +x ./fetch/stock.sh
+chmod +x ./fetch/ratings.sh
 chmod +x ./fetch/update.sh
 
 echo "Repository updated"

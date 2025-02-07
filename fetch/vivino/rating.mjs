@@ -164,18 +164,19 @@ async function main() {
   const items = await itemCollection
     .find({
       index: { $exists: true },
+      name: { $exists: true },
       rating: { $exists: false },
       category: {
         $in: [
           "Rødvin",
-          // "Hvitvin",
-          // "Vin",
-          // "Musserende vin",
-          // "Perlende vin",
-          // "Rosévin",
-          // "Aromatisert vin",
-          // "Fruktvin",
-          // "Sterkvin",
+          "Hvitvin",
+          "Vin",
+          "Musserende vin",
+          "Perlende vin",
+          "Rosévin",
+          "Aromatisert vin",
+          "Fruktvin",
+          "Sterkvin",
         ],
       },
     })

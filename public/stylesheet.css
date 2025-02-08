@@ -476,6 +476,7 @@ section .metadata .information .name div {
     display: flex;
     flex-direction: row;
     align-items: center;
+    align-self: center;
     gap: var(--padding);
 }
 section .metadata .information .name img {
@@ -495,19 +496,20 @@ section .metadata .information .country {
     align-items: baseline;
     column-gap: var(--padding);
 }
-section .metadata .information .rating a {
+section .metadata .information .rating a,
+section .metadata .information .rating span {
     text-decoration: none;
+    color: var(--dimtext);
 
-    display: inline-flex;
     flex-direction: row;
     gap: var(--padding);
-    align-items: center;
 }
 section .metadata .information .rating a:hover {
     background-color: transparent;
     border-bottom: var(--underline) solid var(--green);
 }
 section .metadata .information .rating .number {
+    color: var(--text);
     text-align: end;
     font-size: 11px;
 }

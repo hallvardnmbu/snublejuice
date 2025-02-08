@@ -29,14 +29,15 @@
     <div class="information">
       <div class="name">
         <span><%= item.name %></span>
+
         <% if (user) { %>
-            <img
-                src="./images/favourite<%= user.favourites.includes(item.index) ? '-filled' : '' %>.png"
-                alt="Favoritt"
-                data-index="<%= item.index %>"
-                class="favourite-toggle"
-            >
-          <% } %>
+          <img
+              src="./images/favourite<%= user.favourites.includes(item.index) ? '-filled' : '' %>.png"
+              alt="Favoritt"
+              data-index="<%= item.index %>"
+              class="favourite-toggle"
+          >
+        <% } %>
       </div>
 
       <div class="category">
@@ -63,8 +64,8 @@
         <% } %>
       </div>
 
-      <div class="country">
-        <% if (storelike) { %>
+      <% if (storelike) { %>
+        <div class="country">
           <% const storeRegex = new RegExp(`(^|[^a-zæøåA-ZÆØÅ])${storelike}([^a-zæøåA-ZÆØÅ]|$)`, 'i') %>
           <% const matchingStores = item.stores.filter(store => storeRegex.test(store)) %>
           <% matchingStores.forEach((store, index) => { %>
@@ -81,15 +82,34 @@
               <div id="dot" style="font-size: 10px;">●</div>
             <% } %>
           <% }) %>
-        <% } %>
-      </div>
+        </div>
+      <% } %>
+
+      <% if (item.rating?.value) { %>
+        <div class="rating">
+          <% if (item.rating.url) { %>
+            <a href="<%= item.rating.url %>"
+                target="_blank"
+                rel="noopener noreferrer"
+                onclick="event.stopPropagation()">
+          <% } %>
+
+          <% for(let i = 1; i <= 5; i++) { %>
+            <span class="star <%= i <= item.rating.value ? 'filled' : '' %>">★</span>
+          <% } %>
+
+          <span class="number"><%= item.rating.value %></span>av<span class="number">5</span>
+
+          <% if (item.rating.url) { %>
+            </a>
+          <% } %>
+        </div>
+      <% } %>
+
+      <% if (item.description) { %>
+        <span class="description"><%= item.description.lang %></span>
+      <% } %>
     </div>
-
-
-    <% if (item.description) { %>
-      <span class="description"><%= item.description.lang %></span>
-    <% } %>
-
 
     <% if (!taxfree) { %>
       <div class="price">

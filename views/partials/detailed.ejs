@@ -128,9 +128,9 @@
                     </tr>
                     <% item.ingredients.forEach(function(ingredient) {
                       const patterns = [
-                        /(\d+)\s*%\s*([a-zA-ZæøåÆØÅéÉèÈêÊëËáÁàÀâÂäÄíÍìÌîÎïÏóÓòÒôÔöÖúÚùÙûÛüÜ, ()]+)/i, // Matches "90% eple" or "10% (rips, solbær)"
-                        /([a-zA-ZæøåÆØÅéÉèÈêÊëËáÁàÀâÂäÄíÍìÌîÎïÏóÓòÒôÔöÖúÚùÙûÛüÜ, ()]+)\s*(\d+)\s*prosent/i, // Matches "Sumoll (Vijariego Negro) 10 prosent" or "Pinot Bianco 80 prosent"
-                        /([a-zA-ZæøåÆØÅéÉèÈêÊëËáÁàÀâÂäÄíÍìÌîÎïÏóÓòÒôÔöÖúÚùÙûÛüÜ, ()]+)/i, // Matches single word types like "Riesling"
+                        /(\d+)\s*%\s*([a-zA-ZæøåÆØÅéÉèÈêÊëËáÁàÀâÂäÄíÍìÌîÎïÏóÓòÒôÔöÖúÚùÙûÛüÜñÑçÇßðÐþÞ\u0300-\u036f, ()]+)/i, // Matches "90% eple" or "10% (rips, solbær)"
+                        /([a-zA-ZæøåÆØÅéÉèÈêÊëËáÁàÀâÂäÄíÍìÌîÎïÏóÓòÒôÔöÖúÚùÙûÛüÜñÑçÇßðÐþÞ\u0300-\u036f, ()]+)\s*(\d+)\s*prosent/i, // Matches "Sumoll (Vijariego Negro) 10 prosent" or "Pinot Bianco 80 prosent"
+                        /([a-zA-ZæøåÆØÅéÉèÈêÊëËáÁàÀâÂäÄíÍìÌîÎïÏóÓòÒôÔöÖúÚùÙûÛüÜñÑçÇßðÐþÞ\u0300-\u036f, ()]+)/i, // Matches single word types like "Riesling"
                       ];
                       let result = null;
                       for (const pattern of patterns) {
@@ -167,6 +167,25 @@
                   <tr>
                     <td class="key">BESKRIVELSE &nbsp;</td>
                     <td class="val"><%= item.description.lang %></td>
+                  </tr>
+                <% } %>
+
+                <% if (item.rating?.value) { %>
+                  <tr>
+                    <td class="key">RATING</td>
+                    <td class="val">Vurdert <%= item.rating.value %> av 5 hos
+                      <% if (item.rating.url) { %>
+                        <a href="<%= item.rating.url %>"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onclick="event.stopPropagation()">vivino</a>.
+                      <% } else { %>
+                        vivino.
+                      <% } %>
+                      <% if (item.rating.updated) { %>
+                        Oppdatert <%= item.rating.updated.toLocaleString('nb-NO', { dateStyle: 'long' }) %>.
+                      <% } %>
+                    </td>
                   </tr>
                 <% } %>
                 <% if (taxfree && item.taxfree.stores) { %>

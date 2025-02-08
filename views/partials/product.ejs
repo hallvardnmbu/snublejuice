@@ -98,7 +98,9 @@
             <span class="star <%= i <= item.rating.value ? 'filled' : '' %>">★</span>
           <% } %>
 
-          <span class="number"><%= item.rating.value %></span>av<span class="number">5</span>
+          <span class="number"><%= item.rating.value %></span>
+          <span>av</span>
+          <span class="number">5</span>
 
           <% if (item.rating.url) { %>
             </a>

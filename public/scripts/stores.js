@@ -1,6 +1,6 @@
 const _DEFAULTS = {
-  vinmonopolet: "Spesifikk butikk",
-  taxfree: "Alle flyplasser",
+  vinmonopolet: { text: "Spesifikk butikk", value: null },
+  taxfree: { text: "Alle flyplasser", value: null },
 };
 
 async function fetchStores() {
@@ -24,8 +24,8 @@ function populateStores(stores, subdomain) {
 
   // Add default option
   const defaultOption = document.createElement("option");
-  defaultOption.value = _DEFAULTS[subdomain];
-  defaultOption.text = _DEFAULTS[subdomain];
+  defaultOption.value = _DEFAULTS[subdomain].value;
+  defaultOption.text = _DEFAULTS[subdomain].text;
   dropdown.appendChild(defaultOption);
 
   // Add new options
@@ -43,17 +43,17 @@ function populateStores(stores, subdomain) {
     dropdown.value = selected;
   } else {
     // Reset to default option if no selected store is found in sessionStorage
-    dropdown.value = _DEFAULTS[subdomain];
+    dropdown.value = _DEFAULTS[subdomain].value;
   }
 
   // Add event listener to save the selected store to local storage
   dropdown.addEventListener("change", () => {
     sessionStorage.setItem("store", dropdown.value);
-    displayMessage(_DEFAULTS[subdomain] !== dropdown.value || search?.value);
+    displayMessage(dropdown.value !== "null" || search?.value);
   });
 
   // Display message if a store other than "null" is selected on page load
-  displayMessage(_DEFAULTS[subdomain] !== dropdown.value || search?.value);
+  displayMessage(dropdown.value !== "null" || search?.value);
 }
 
 // Function to display a message if a store other than "null" is selected

@@ -170,7 +170,7 @@
                   </tr>
                 <% } %>
 
-                <% if (item.rating?.value) { %>
+                <% if (item.rating && (item.rating.value !== undefined && item.rating.value !== null)) { %>
                   <tr>
                     <td class="key">RATING</td>
                     <td class="val">Vurdert <%= item.rating.value %> av 5 hos

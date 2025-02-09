@@ -85,7 +85,7 @@
         </div>
       <% } %>
 
-      <% if (item.rating?.value) { %>
+      <% if (item.rating && (item.rating.value !== undefined && item.rating.value !== null)) { %>
         <div class="rating">
           <% if (item.rating.url) { %>
             <a href="<%= item.rating.url %>"
@@ -94,8 +94,8 @@
                 onclick="event.stopPropagation()">
           <% } %>
 
-          <% for(let i = 1; i <= 5; i++) { %>
-            <span class="star <%= i <= item.rating.value ? 'filled' : '' %>">★</span>
+          <% for(let i = 0; i < 5; i++) { %>
+            <span class="star <%= i < item.rating.value ? 'filled' : '' %>">★</span>
           <% } %>
 
           <span class="number"><%= item.rating.value %></span>

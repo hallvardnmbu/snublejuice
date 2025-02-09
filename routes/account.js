@@ -68,7 +68,7 @@ router.post("/register", async (req, res) => {
     const token = jwt.sign({ username: username }, process.env.JWT_KEY, { expiresIn: "365d" });
     res.cookie("token", token, {
       httpOnly: true,
-      secure: _PRODUCTION,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
       path: "/",
@@ -112,11 +112,11 @@ router.post("/login", async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: _PRODUCTION,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
       path: "/",
-      domain: _PRODUCTION ? ".snublejuice.no" : ".localhost",
+      domain: process.env.NODE_ENV === "production" ? ".snublejuice.no" : ".localhost",
     });
 
     res.status(201).json({
@@ -134,10 +134,10 @@ router.post("/login", async (req, res) => {
 router.post("/logout", async (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
-    secure: _PRODUCTION,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
     path: "/",
-    domain: _PRODUCTION ? ".snublejuice.no" : ".localhost",
+    domain: process.env.NODE_ENV === "production" ? ".snublejuice.no" : ".localhost",
   });
   res.status(200).json({ ok: true });
 });
@@ -167,7 +167,7 @@ router.post("/delete", async (req, res) => {
     await users.deleteOne({ username: username });
     res.clearCookie("token", {
       httpOnly: true,
-      secure: _PRODUCTION,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       path: "/",
     });

@@ -230,6 +230,7 @@ header #userMessage {
     width: 100%;
     color: var(--text);
     padding: var(--padding);
+    border-top: var(--padding) solid var(--block);
     margin-bottom: calc(-1 * var(--padding));
 }
 header #infobox div {

@@ -74,7 +74,11 @@
               <div id="dot" style="font-size: 10px;">●</div>
             <% } %>
           <% }) %>
-        <% } else if (taxfree && item.taxfree.stores) { %>
+        </div>
+      <% } %>
+
+      <% if (taxfree && item.taxfree.stores) { %>
+        <div class="country">
           <% const taxfreeStores = item.taxfree.stores.sort((a,b) => a.localeCompare(b)) %>
           <% taxfreeStores.forEach((store, index) => { %>
             <div style="font-size: 16px;"><%= store %></div>
@@ -113,35 +117,35 @@
       <% } %>
     </div>
 
-    <% if (!taxfree) { %>
-      <div class="price">
+    <div class="price">
         <div class="prices">
-          <span class="text">KR <b class="number"><%= Math.ceil(item.price) %></b></span>
-          <% if (item.oldprice) { %>
-            <span class="text">FØR <b class="number"><%= Math.ceil(item.oldprice) %></b></span>
-          <% } %>
+          <% if (!taxfree) { %>
+            <span class="text">KR <b class="number"><%= Math.ceil(item.price) %></b></span>
+            <% if (item.oldprice) { %>
+              <span class="text">FØR <b class="number"><%= Math.ceil(item.oldprice) %></b></span>
+            <% } %>
         </div>
-        <% if (item.oldprice) { %>
-          <span class="text">
-            ENDRING
-            <b class="number"><%= Math.floor(item.discount) %></b>
-            <b class="percent">%</b>
-          </span>
-        <% } %>
-      </div>
-    <% } else { %>
-      <div class="price">
-        <div class="prices">
+
+          <% if (item.oldprice) { %>
+            <span class="text">
+              ENDRING
+              <b class="number"><%= Math.floor(item.discount) %></b>
+              <b class="percent">%</b>
+            </span>
+          <% } %>
+
+        <% } else { %>
           <span class="text">VINMONOPOLET <b class="number"><%= Math.ceil(item.price) %></b></span>
           <span class="text">TAX-FREE <b class="number"><%= Math.ceil(item.taxfree.price) %></b></span>
         </div>
+
         <span class="text">
             DIFFERANSE
             <b class="number"><%= Math.floor(item.taxfree.discount) %></b>
             <b class="percent">%</b>
           </span>
-      </div>
-    <% } %>
+        <% } %>
+    </div>
   </div>
 
   <%- include('detailed', { taxfree: taxfree, item: item, index: index }) %>

@@ -161,30 +161,27 @@ async function getRatings(items) {
 }
 
 async function main() {
-  const items = (
-    await itemCollection
-      .find({
-        index: { $exists: true },
-        name: { $exists: true },
-        rating: { $exists: true },
-        "rating.updated": { $lt: new Date("2025-01-01") },
-        category: {
-          $in: [
-            "Rødvin",
-            "Hvitvin",
-            "Vin",
-            "Musserende vin",
-            "Perlende vin",
-            "Rosévin",
-            "Aromatisert vin",
-            "Fruktvin",
-            "Sterkvin",
-          ],
-        },
-      })
-      .project({ index: 1, name: 1, _id: 0 })
-      .toArray()
-  ).reverse();
+  const items = await itemCollection
+    .find({
+      index: { $exists: true },
+      name: { $exists: true },
+      rating: { $exists: false },
+      category: {
+        $in: [
+          "Rødvin",
+          "Hvitvin",
+          "Vin",
+          "Musserende vin",
+          "Perlende vin",
+          "Rosévin",
+          "Aromatisert vin",
+          "Fruktvin",
+          "Sterkvin",
+        ],
+      },
+    })
+    .project({ index: 1, name: 1, _id: 0 })
+    .toArray();
 
   console.log(`UPDATING | RATINGS | ${items.length} records.`);
 

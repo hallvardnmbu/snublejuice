@@ -11,6 +11,7 @@
       <div>
         <select name="sort" id="sort" onchange="applyFilters(true, false)">
           <option value="discount" <%= sort === 'discount' ? 'selected' : '' %>>Tilbud</option>
+          <option value="rating" <%= sort === 'rating' ? 'selected' : '' %>>Rating</option>
           <option value="price" <%= sort === 'price' ? 'selected' : '' %>>Pris</option>
           <option value="literprice" <%= sort === 'literprice' ? 'selected' : '' %>>Literpris</option>
           <option value="alcoholprice" <%= sort === 'alcoholprice' ? 'selected' : '' %>>Alkoholpris</option>

@@ -103,30 +103,42 @@ snublejuice.get("/", authenticate, async (req, res) => {
   }
 
   const page = parseInt(req.query.page) || 1;
-  const delta = parseInt(req.query.delta) || 1;
+  const favourites = req.query.favourites === "true";
+
   const sort = req.query.sort || "discount";
-  let sortBy = subdomain === "taxfree" && sort !== "alcohol" ? `taxfree.${sort}` : sort;
+  const sortBy =
+    subdomain === "taxfree" && sort !== "alcohol"
+      ? `taxfree.${sort}`
+      : sort === "rating"
+        ? "rating.value"
+        : sort;
+  const delta = parseInt(req.query.delta) || 1;
   const ascending = !(req.query.ascending === "false");
+
   const category = req.query.category || null;
   const country = req.query.country || null;
   const volume = parseFloat(req.query.volume) || null;
   const alcohol = parseFloat(req.query.alcohol) || null;
   const year = parseInt(req.query.year) || null;
+
   const search = req.query.search || null;
   const storelike = req.query.storelike || null;
-  let store = {
-    vinmonopolet: subdomain === "vinmonopolet" ? req.query["store-vinmonopolet"] : null || null,
-    taxfree: subdomain === "taxfree" ? req.query["store-taxfree"] || null : null,
-  };
-  const includeFavourites = req.query.favourites === "true";
 
-  let orderable = store.vinmonopolet === "Spesifikk butikk";
-  if (orderable) {
-    store.vinmonopolet = null;
-  }
-  if (store.taxfree === "Alle flyplasser") {
-    store.taxfree = null;
-  }
+  let store = {
+    vinmonopolet:
+      (subdomain === "vinmonopolet"
+        ? req.query["store-vinmonopolet"] === "null"
+          ? null
+          : req.query["store-vinmonopolet"]
+        : null) || null,
+    taxfree:
+      (subdomain === "taxfree"
+        ? req.query["store-taxfree"] === "null"
+          ? null
+          : req.query["store-taxfree"]
+        : null) || null,
+  };
+  let orderable = !store.vinmonopolet || store.vinmonopolet === "Spesifikk butikk";
 
   try {
     let { data, total, updated } = await load({
@@ -134,21 +146,14 @@ snublejuice.get("/", authenticate, async (req, res) => {
       meta,
       subdomain,
 
-      // Month delta:
-      delta: delta,
-
-      // Favourites:
-      favourites: includeFavourites ? user.favourites || [] : null,
+      // Return favourites only:
+      favourites: favourites ? user.favourites || [] : null,
 
       // Single parameters:
+      delta: delta,
       category: categories[category],
-      subcategory: null,
       country: country === "Alle land" ? null : country,
-      district: null,
-      subdistrict: null,
       year: year,
-      cork: null,
-      storage: null,
 
       // Include non-alcoholic products:
       nonalcoholic: false,
@@ -157,10 +162,7 @@ snublejuice.get("/", authenticate, async (req, res) => {
       orderable: orderable,
 
       // Array parameters:
-      description: null,
-      store: store.vinmonopolet,
-      taxfreeStore: store.taxfree,
-      pair: null,
+      store: store,
 
       // If specified, only include values >=:
       volume: volume,
@@ -186,7 +188,7 @@ snublejuice.get("/", authenticate, async (req, res) => {
       visitors: meta.visitors.fresh.month[month][subdomain],
       subdomain: subdomain,
       user: user,
-      favourites: includeFavourites,
+      favourites: favourites,
       updated: updated,
       message:
         delta > 1 && sort === "discount"

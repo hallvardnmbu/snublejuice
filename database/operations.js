@@ -52,29 +52,18 @@ export async function load({
 
   // Single parameters:
   category = null,
-  subcategory = null,
   country = null,
-  district = null,
-  subdistrict = null,
   year = null,
-  cork = null,
-  storage = null,
 
   // Include non-alcoholic products:
   nonalcoholic = false,
-
-  // Only show new products:
-  news = false,
 
   // Show orderable and instores products:
   orderable = true,
   instores = false,
 
   // Array parameters:
-  description = null,
-  store = null,
-  taxfreeStore = null,
-  pair = null,
+  store = { vinmonopolet: null, taxfree: null },
 
   // If specified, only include values >=:
   volume = null,
@@ -138,17 +127,12 @@ export async function load({
         },
       },
     });
-  } else if (taxfree && taxfreeStore) {
-    pipeline.push({
-      $match: {
-        "taxfree.stores": taxfreeStore,
-      },
-    });
   }
 
   if (favourites) {
     pipeline.push({ $match: { index: { $in: favourites } } });
   }
+
   let matchStage = {
     // Only include updated products.
     ...(!taxfree ? { updated: true } : { "taxfree.updated": true }),
@@ -158,23 +142,18 @@ export async function load({
 
     // Match the specified parameters if they are not null.
     ...(category && !search ? { category: category } : {}),
-    ...(subcategory && !search ? { subcategory: subcategory } : {}),
     ...(country && !search ? { country: country } : {}),
-    ...(district && !search ? { district: district } : {}),
-    ...(subdistrict && !search ? { subdistrict: subdistrict } : {}),
     ...(year && !search ? { year: { $lte: year } } : {}),
-    // ...(cork && !search ? { cork: cork } : {}),
-    // ...(storage && !search ? { storage: storage } : {}),
 
     // Parameters that are arrays are matched using the $in operator.
-    // ...(description.length && !search ? { "description.short": { $in: description } } : {}),
-    ...(store && !search && !storelike && !taxfreeStore ? { stores: { $in: [store] } } : {}),
-    ...(taxfree && taxfreeStore ? { "taxfree.stores": taxfreeStore } : {}),
-    // ...(pair.length && !search ? { pair: { $in: pair } } : {}),
+    ...(store.vinmonopolet && !search && !storelike && !taxfree
+      ? { stores: { $in: [store.vinmonopolet] } }
+      : {}),
+    ...(store.taxfree && !search && taxfree ? { "taxfree.stores": { $in: [store.taxfree] } } : {}),
   };
 
   let updated = null;
-  if (!store && !storelike && !search && !favourites && !taxfree) {
+  if (!store.vinmonopolet && !storelike && !search && !favourites && !taxfree) {
     if (orderable) {
       matchStage["orderable"] = true;
     }

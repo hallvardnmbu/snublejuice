@@ -165,7 +165,12 @@ async function main() {
     .find({
       index: { $exists: true },
       name: { $exists: true },
-      rating: { $exists: false },
+      rating: { $exists: true, $ne: null },
+      // "rating.updated": { $lt: new Date("2025-01-01") },
+      // TODO: Go through these?
+      // TODO: Via rating.url
+      // TODO: On the page, all vintages are combined to produce rating.
+      // "rating.value": { $exists: true, $eq: 0 },
       category: {
         $in: [
           "Rødvin",

@@ -418,6 +418,26 @@ section b {
     color: var(--text);
 }
 
+section .text {
+    display: flex;
+    align-items: center;
+    gap: var(--padding);
+    color: var(--dimtext);
+    flex-wrap: wrap;
+}
+section .number {
+    font-family: "m04", monospace;
+    font-weight: bold;
+    color: var(--text);
+}
+section .percent {
+    font-family: "alpha-beta", monospace;
+}
+section .alcohol,
+section .percent {
+    font-size: var(--fontsize-small);
+}
+
 section .image {
     display: flex;
     flex-direction: column;
@@ -439,6 +459,11 @@ section .metadata {
     justify-content: space-between;
     margin-left: var(--padding);
 }
+section .metadata .information {
+    display: flex;
+    flex-direction: column;
+    gap: var(--padding);
+}
 section .metadata .information .name {
     display: flex;
     flex-direction: row;
@@ -446,6 +471,13 @@ section .metadata .information .name {
     align-items: center;
     gap: var(--padding);
     color: var(--dimtext);
+}
+section .metadata .information .name div {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    align-self: center;
+    gap: var(--padding);
 }
 section .metadata .information .name img {
     max-height: var(--fontsize-largest);
@@ -456,7 +488,6 @@ section .metadata .information .category {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    padding-top: calc(var(--padding) * 2);
 }
 section .metadata .information .country {
     display: flex;
@@ -464,9 +495,32 @@ section .metadata .information .country {
     flex-direction: row;
     align-items: baseline;
     column-gap: var(--padding);
-    padding-top: var(--padding);
 }
-section .metadata .description {
+section .metadata .information .rating a,
+section .metadata .information .rating span {
+    text-decoration: none;
+    color: var(--dimtext);
+
+    flex-direction: row;
+    gap: var(--padding);
+}
+section .metadata .information .rating a:hover {
+    background-color: transparent;
+    border-bottom: var(--underline) solid var(--green);
+}
+section .metadata .information .rating .number {
+    color: var(--text);
+    text-align: end;
+    font-size: 11px;
+}
+section .metadata .information .rating .star {
+    font-size: var(--fontsize-largest);
+    color: var(--block);
+}
+section .metadata .information .rating .star.filled {
+    color: var(--green);
+}
+section .metadata .information .description {
     color: var(--dimtext);
     font-size: var(--fontsize-small);
 }
@@ -484,26 +538,6 @@ section .price .prices {
     display: flex;
     flex-wrap: wrap;
     gap: var(--padding);
-}
-
-section .text {
-    display: flex;
-    align-items: center;
-    gap: var(--padding);
-    color: var(--dimtext);
-    flex-wrap: wrap;
-}
-section .number {
-    font-family: "m04", monospace;
-    font-weight: bold;
-    color: var(--text);
-}
-section .percent {
-    font-family: "alpha-beta", monospace;
-}
-section .alcohol,
-section .percent {
-    font-size: var(--fontsize-small);
 }
 
 .modal {

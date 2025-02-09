@@ -161,30 +161,32 @@ async function getRatings(items) {
 }
 
 async function main() {
-  const items = (
-    await itemCollection
-      .find({
-        index: { $exists: true },
-        name: { $exists: true },
-        rating: { $exists: true },
-        "rating.updated": { $lt: new Date("2025-01-01") },
-        category: {
-          $in: [
-            "Rødvin",
-            "Hvitvin",
-            "Vin",
-            "Musserende vin",
-            "Perlende vin",
-            "Rosévin",
-            "Aromatisert vin",
-            "Fruktvin",
-            "Sterkvin",
-          ],
-        },
-      })
-      .project({ index: 1, name: 1, _id: 0 })
-      .toArray()
-  ).reverse();
+  const items = await itemCollection
+    .find({
+      index: { $exists: true },
+      name: { $exists: true },
+      rating: { $exists: true, $ne: null },
+      // "rating.updated": { $lt: new Date("2025-01-01") },
+      // TODO: Go through these?
+      // TODO: Via rating.url
+      // TODO: On the page, all vintages are combined to produce rating.
+      // "rating.value": { $exists: true, $eq: 0 },
+      category: {
+        $in: [
+          "Rødvin",
+          "Hvitvin",
+          "Vin",
+          "Musserende vin",
+          "Perlende vin",
+          "Rosévin",
+          "Aromatisert vin",
+          "Fruktvin",
+          "Sterkvin",
+        ],
+      },
+    })
+    .project({ index: 1, name: 1, _id: 0 })
+    .toArray();
 
   console.log(`UPDATING | RATINGS | ${items.length} records.`);
 

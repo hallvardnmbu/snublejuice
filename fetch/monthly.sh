@@ -3,6 +3,9 @@
 source ~/.profile
 cd /home/snublejuice/Documents/snublejuice
 
+# Include Bun
+export PATH=$PATH:/home/snublejuice/.bun/bin
+
 # 1. Connect to NordVPN and ensure connection is established
 echo "Connecting to NordVPN..."
 nordvpn connect || {

@@ -165,11 +165,9 @@ async function main() {
     .find({
       index: { $exists: true },
       name: { $exists: true },
-      rating: { $exists: true, $ne: null },
+      rating: { $exists: true, $eq: null },
+      "rating.updated": null,
       // "rating.updated": { $lt: new Date("2025-01-01") },
-      // TODO: Go through these?
-      // TODO: Via rating.url
-      // TODO: On the page, all vintages are combined to produce rating.
       // "rating.value": { $exists: true, $eq: 0 },
       category: {
         $in: [
@@ -190,7 +188,7 @@ async function main() {
 
   console.log(`UPDATING | RATINGS | ${items.length} records.`);
 
-  await getRatings(items);
+  await getRatings(items.reverse());
 }
 
 await main();

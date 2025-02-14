@@ -17,9 +17,13 @@ const HEADERS = {
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
 };
 const PATTERN = /<script type='application\/ld\+json'>([\s\S]*?)<\/script>/;
-const RETRY = {
+const TRIES = {
   max: 1,
   delay: 25, // seconds
+};
+const THRESHOLDS = {
+  short: 0.75,
+  long: 0.5,
 };
 
 async function getRatings(items) {
@@ -37,7 +41,7 @@ async function getRatings(items) {
         rating: {
           name: product.name,
           manufacturer: product.manufacturer.name,
-          url: product["@id"],
+          url: product["@id"], // TODO: Debug those updated but without URL.
 
           value: product.aggregateRating.ratingValue,
           count: product.aggregateRating.reviewCount,
@@ -56,7 +60,9 @@ async function getRatings(items) {
       const truth = target.name.toLowerCase().split(" ");
       if (
         truth.reduce((acc, word) => acc + (description.includes(word) ? 1 : 0), 0) / truth.length >
-        0.75
+        (description.length > 5 || truth.length > 5)
+          ? THRESHOLDS.long // For longer names, consider a lower threshold
+          : THRESHOLDS.short // For short names, consider a higher threshold
       ) {
         return processed;
       }
@@ -64,7 +70,13 @@ async function getRatings(items) {
 
     return {
       index: target.index,
-      rating: null,
+      rating: {
+        value: null,
+        response:
+          products.length > 0
+            ? JSON.stringify(products.slice(0, Math.min(3, products.length)))
+            : null,
+      },
     };
   }
 
@@ -86,10 +98,10 @@ async function getRatings(items) {
       } else if (response.status === 429) {
         console.log(`ERROR | RATINGS | Timeout.`);
 
-        if (retry < RETRY.max) {
-          console.log(`ERROR | RATINGS | Retry number ${retry + 1} in ${RETRY.delay} seconds.`);
+        if (retry < TRIES.max) {
+          console.log(`ERROR | RATINGS | Retry number ${retry + 1} in ${TRIES.delay} seconds.`);
 
-          await new Promise((resolve) => setTimeout(resolve, RETRY.delay * 1000));
+          await new Promise((resolve) => setTimeout(resolve, TRIES.delay * 1000));
           return getRating(target, retry + 1);
         }
 
@@ -165,8 +177,9 @@ async function main() {
     .find({
       index: { $exists: true },
       name: { $exists: true },
-      rating: { $exists: true, $eq: null },
-      "rating.updated": null,
+      $or: [{ rating: null }, { rating: { $exists: false } }],
+      // rating: { $exists: true, $eq: null },
+      // "rating.updated": null,
       // "rating.updated": { $lt: new Date("2025-01-01") },
       // "rating.value": { $exists: true, $eq: 0 },
       category: {
@@ -188,7 +201,7 @@ async function main() {
 
   console.log(`UPDATING | RATINGS | ${items.length} records.`);
 
-  await getRatings(items.reverse());
+  await getRatings(items);
 }
 
 await main();

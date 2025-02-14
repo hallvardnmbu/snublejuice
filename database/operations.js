@@ -190,6 +190,9 @@ export async function load({
     }
 
     matchStage[sort] = { ...matchStage[sort], $exists: true, $ne: null };
+    if (sort === "rating") {
+      matchStage["rating.value"] = { $exists: true, $ne: null };
+    }
   }
 
   pipeline.push({ $match: matchStage });

@@ -221,7 +221,7 @@ def backup():
     df = pd.DataFrame(data)
     df = df.drop(columns=["_id"])
     df["year"] = df["year"].apply(lambda x: int(float(x)) if x not in ("None", None, "") and pd.notna(x) else None)
-    if not os.path.exists("./backups"):
+    if not os.path.exists("./backup"):
         path = f"./backups/backup/{pd.Timestamp.now().strftime('%Y-%m-%d')}.parquet"
     else:
         path = f"./backups/{pd.Timestamp.now().strftime('%Y-%m-%d')}.parquet"

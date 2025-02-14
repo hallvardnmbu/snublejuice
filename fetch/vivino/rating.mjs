@@ -175,13 +175,18 @@ async function getRatings(items) {
 async function main() {
   const items = await itemCollection
     .find({
+      // Ensure that only vinmonopolet products are included.
+      // Tax-free-only products are through this filtered out.
       index: { $exists: true },
       name: { $exists: true },
+
+      // Specific filter for products to update.
       $or: [{ rating: null }, { rating: { $exists: false } }],
-      // rating: { $exists: true, $eq: null },
       // "rating.updated": null,
       // "rating.updated": { $lt: new Date("2025-01-01") },
       // "rating.value": { $exists: true, $eq: 0 },
+
+      // Vivino products are exclusively these categories.
       category: {
         $in: [
           "Rødvin",

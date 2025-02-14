@@ -5,6 +5,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
+import { Worker } from "worker_threads";
 
 import { apiAPP } from "./other/api/app.js";
 import { ordAPP } from "./other/ord/app.js";
@@ -217,6 +218,17 @@ snublejuice.get("/", authenticate, async (req, res) => {
     return res.redirect("/error?message=Noe gikk galt.");
   }
 });
+
+// BACKGROUND TASKS
+// ------------------------------------------------------------------------------------------------
+
+if (_PRODUCTION) {
+  const worker = new Worker("./fetch/vivino/rating.mjs");
+
+  worker.onmessage = (event) => {
+    console.log("Worker message:", event.data);
+  };
+}
 
 // FINAL APP
 // ------------------------------------------------------------------------------------------------

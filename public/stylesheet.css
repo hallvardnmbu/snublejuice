@@ -516,10 +516,12 @@ section .metadata .information .rating .number {
 }
 section .metadata .information .rating .star {
     font-size: var(--fontsize-largest);
-    color: var(--block);
-}
-section .metadata .information .rating .star.filled {
-    color: var(--green);
+
+    background: linear-gradient(90deg, var(--green) var(--fill), var(--block) var(--fill));
+
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 section .metadata .information .description {
     color: var(--dimtext);

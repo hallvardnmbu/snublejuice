@@ -1,5 +1,11 @@
-# snublejuice
+# Snublejuice
 
-Kildekode til [snublejuice](https://snublejuice.no).
+Hei. [Hallvard](https://dilettant.no) her.
 
-Basert på original [kildekode](https://github.com/hallvardnmbu/snublejuice-python).
+![Snublejuicen selv.](./public/images/snublejuice.png)
+
+I disse mappene finner du kildekoden til [snublejuice.no](https://snublejuice.no). I et forsøkt oversiktelig oppsett.
+
+Feil kan forekomme, så ta gjerne kontakt eller legg inn en issue om du har noen problemer eller ønsker.
+
+![Bare meg selv.](./other/solodev.png)

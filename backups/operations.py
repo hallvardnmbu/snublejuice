@@ -1,6 +1,7 @@
 """Code used to refactor the MongoDB database."""
 
 import os
+import json
 
 import pymongo
 from pymongo.mongo_client import MongoClient
@@ -220,7 +221,19 @@ def backup():
     data = _DATABASE.find({})
     df = pd.DataFrame(data)
     df = df.drop(columns=["_id"])
-    df["year"] = df["year"].apply(lambda x: int(float(x)) if x not in ("None", None, "") and pd.notna(x) else None)
+    df["year"] = df["year"].apply(
+        lambda x: int(float(x))
+        if x not in ("None", None, "")
+        and pd.notna(x)
+        else None
+    )
+    df["rating"] = df["rating"].apply(
+        lambda x: {**x, "updated": str(x.get("updated", "")), "count": str(x.get("count", ""))}
+        if x not in ("None", None, "")
+        and pd.notna(x)
+        and ("updated" in x or "count" in x)
+        else x
+    )
     if not os.path.exists("./backup"):
         path = f"./backups/backup/{pd.Timestamp.now().strftime('%Y-%m-%d')}.parquet"
     else:

@@ -239,8 +239,10 @@ async function aggregatedRatings(items) {
 }
 
 async function main() {
+  let items;
+
   // Search and extract ratings for products without ratings.
-  const noRating = await itemCollection
+  items = await itemCollection
     .find({
       // Ensure that only vinmonopolet products are included.
       // Tax-free-only products are through this filtered out.
@@ -270,12 +272,12 @@ async function main() {
     })
     .project({ index: 1, name: 1, _id: 0 })
     .toArray();
-  await searchRatings(noRating);
+  await searchRatings(items);
 
   // Extract ratings for products with zero ratings.
   // I.e., products with no rating for specific vintage.
   // Vivino thus aggregates ratings for all vintages.
-  const zeroRating = await itemCollection
+  items = await itemCollection
     .find({
       rating: { $exists: true, $ne: null },
       $or: [
@@ -287,7 +289,7 @@ async function main() {
     })
     .project({ index: 1, name: 1, rating: 1, _id: 0 })
     .toArray();
-  await aggregatedRatings(zeroRating);
+  await aggregatedRatings(items);
 }
 
 await main();

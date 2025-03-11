@@ -290,7 +290,7 @@ async function main() {
   await getProducts(startPage, alreadyUpdated);
 
   // [!] ONLY RUN THIS AFTER ALL PRICES HAVE BEEN UPDATED [!]
-  await syncUnupdatedProducts(100);
+  await syncUnupdatedProducts();
 
   await metaCollection.updateOne({ id: "stock" }, { $set: { "prices.vinmonopolet": true } });
 }

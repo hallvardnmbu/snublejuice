@@ -164,7 +164,10 @@ async function getPage(order, alreadyUpdated, retry = false) {
 
     if (response.status === 200) {
       const data = await response.json();
-      return processProducts(data.results[0].hits, alreadyUpdated);
+      return processProducts(
+        data.results.reduce((acc, curr) => acc.concat(curr.hits), []),
+        alreadyUpdated,
+      );
     }
 
     console.log(`STATUS   | ${response.status} | Order: ${order}.`);

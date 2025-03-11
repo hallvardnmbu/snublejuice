@@ -147,6 +147,8 @@ async function getNewProducts(itemIds) {
 const DETAIL = "https://www.vinmonopolet.no/vmpws/v3/vmp/products/{}?fields=FULL";
 
 async function updateInformation(itemIds) {
+  console.log(`Updating the information of ${itemIds.length} products.`);
+
   function processInformation(product) {
     const processed = {
       index: parseInt(product.code, 10) || null,

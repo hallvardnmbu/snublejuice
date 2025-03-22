@@ -144,6 +144,15 @@ menu {
     padding: var(--padding);
     background-color: var(--faint);
 }
+.landing-details span h1 {
+    display: inline-flex;
+    flex-direction: column;
+    margin: 0;
+    font-size: var(--fontsize-small);
+}
+.landing-details span p:last-of-type {
+    margin: 0;
+}
 .landing-details .corners {
     width: 100%;
 

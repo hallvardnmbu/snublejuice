@@ -53,7 +53,6 @@ export async function load({
   // Single parameters:
   category = null,
   country = null,
-  year = null,
 
   // Include non-alcoholic products:
   nonalcoholic = false,
@@ -65,9 +64,11 @@ export async function load({
   // Array parameters:
   store = { vinmonopolet: null, taxfree: null },
 
-  // If specified, only include values >=:
-  volume = null,
-  alcohol = null,
+  // Special parameters:
+  price = { value: null, exact: false },
+  volume = { value: null, exact: false },
+  alcohol = { value: null, exact: false },
+  year = { value: null, exact: false },
 
   // Sorting:
   sort = "discount",
@@ -143,7 +144,6 @@ export async function load({
     // Match the specified parameters if they are not null.
     ...(category && !search ? { category: category } : {}),
     ...(country && !search ? { country: country } : {}),
-    ...(year && !search ? { year: { $lte: year } } : {}),
 
     // Parameters that are arrays are matched using the $in operator.
     ...(store.vinmonopolet && !search && !storelike && !taxfree
@@ -178,13 +178,34 @@ export async function load({
   }
 
   if (!search) {
-    if (volume) {
-      matchStage["volume"] = { ...matchStage["volume"], $gte: volume };
+    if (price.value) {
+      matchStage["price"] = {
+        ...matchStage["price"],
+        [price["exact"] ? "$eq" : "$lte"]: price["value"],
+      };
     }
 
-    if (alcohol) {
-      matchStage["alcohol"] = { ...matchStage["alcohol"], $gte: alcohol };
+    if (volume.value) {
+      matchStage["volume"] = {
+        ...matchStage["volume"],
+        [volume["exact"] ? "$eq" : "$gte"]: volume["value"],
+      };
     }
+
+    if (alcohol.value) {
+      matchStage["alcohol"] = {
+        ...matchStage["alcohol"],
+        [alcohol["exact"] ? "$eq" : "$gte"]: alcohol["value"],
+      };
+    }
+
+    if (year.value) {
+      matchStage["year"] = {
+        ...matchStage["year"],
+        [year["exact"] ? "$eq" : "$lte"]: year["value"],
+      };
+    }
+
     if (!nonalcoholic) {
       matchStage["alcohol"] = { ...matchStage["alcohol"], $ne: null, $exists: true, $gt: 0 };
     }

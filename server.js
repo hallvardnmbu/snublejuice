@@ -118,9 +118,23 @@ snublejuice.get("/", authenticate, async (req, res) => {
 
   const category = req.query.category || null;
   const country = req.query.country || null;
-  const volume = parseFloat(req.query.volume) || null;
-  const alcohol = parseFloat(req.query.alcohol) || null;
-  const year = parseInt(req.query.year) || null;
+
+  const price = {
+    value: parseFloat(req.query.price) || null,
+    exact: req.query.cprice === "on",
+  };
+  const volume = {
+    value: parseFloat(req.query.volume) || null,
+    exact: req.query.cvolume === "on",
+  };
+  const alcohol = {
+    value: parseFloat(req.query.alcohol) || null,
+    exact: req.query.calcohol === "on",
+  };
+  const year = {
+    value: parseInt(req.query.year) || null,
+    exact: req.query.cyear === "on",
+  };
 
   const search = req.query.search || null;
   const storelike = req.query.storelike || null;
@@ -154,7 +168,6 @@ snublejuice.get("/", authenticate, async (req, res) => {
       delta: delta,
       category: categories[category],
       country: country === "Alle land" ? null : country,
-      year: year,
 
       // Include non-alcoholic products:
       nonalcoholic: false,
@@ -165,9 +178,11 @@ snublejuice.get("/", authenticate, async (req, res) => {
       // Array parameters:
       store: store,
 
-      // If specified, only include values >=:
+      // Special parameters:
+      price: price,
       volume: volume,
       alcohol: alcohol,
+      year: year,
 
       // Sorting:
       sort: sortBy,
@@ -205,9 +220,16 @@ snublejuice.get("/", authenticate, async (req, res) => {
       ascending: ascending,
       category: category,
       country: country,
-      volume: volume,
-      alcohol: alcohol,
-      year: year,
+
+      price: price.value,
+      cprice: price.exact,
+      volume: volume.value,
+      cvolume: volume.exact,
+      alcohol: alcohol.value,
+      calcohol: alcohol.exact,
+      year: year.value,
+      cyear: year.exact,
+
       search: search,
       storelike: storelike,
       store: store.vinmonopolet,

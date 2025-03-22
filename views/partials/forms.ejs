@@ -102,18 +102,27 @@
       <% } %>
 
       <div>
-        <input type="float" id="fvolume" name="volume" min="0" step="1" value="<%= volume || null %>" placeholder="Volum over ...">
-        <label>cL</label>
+        <input type="float" id="price" name="price" min="0" step="1" value="<%= price || null %>" placeholder="Makspris">
+        <label for="cprice"><%= cprice ? 'eksakt' : 'under' %></label>
+        <input type="checkbox" id="cprice" name="cprice" <%= cprice || false ? 'checked' : '' %>>
       </div>
 
       <div>
-        <input type="float" id="falcohol" name="alcohol" min="0" step="0.5" value="<%= alcohol || null %>" placeholder="Alkohol over ...">
-        <label id="percent">%</label>
+        <input type="float" id="volume" name="volume" min="0" step="1" value="<%= volume || null %>" placeholder="Volum i cL">
+        <label for="cvolume"><%= cvolume ? 'eksakt' : 'over' %></label>
+        <input type="checkbox" id="cvolume" name="cvolume" <%= cvolume || false ? 'checked' : '' %>>
       </div>
 
       <div>
-        <input type="number" id="iyear" name="year" min="1900" step="10" value="<%= year || null %>" placeholder="Årgang før ...">
-        <label>a.D.</label>
+        <input type="float" id="alcohol" name="alcohol" min="0" step="0.5" value="<%= alcohol || null %>" placeholder="Alkoholprosent">
+        <label for="calcohol"><%= calcohol ? 'eksakt' : 'over' %></label>
+        <input type="checkbox" id="calcohol" name="calcohol" <%= calcohol || false ? 'checked' : '' %>>
+      </div>
+
+      <div>
+        <input type="number" id="year" name="year" min="1900" step="10" value="<%= year || null %>" placeholder="Årgang">
+        <label for="cyear"><%= cyear ? 'eksakt' : 'under' %></label>
+        <input type="checkbox" id="cyear" name="cyear" <%= cyear || false ? 'checked' : '' %>>
       </div>
     </div>
   </form>

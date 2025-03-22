@@ -316,12 +316,13 @@ a:hover {
 
     gap: var(--padding);
     align-items: center;
+    justify-content: space-between;
     width: 100%;
     max-width: 350px;
 
     white-space: nowrap;
 }
-#advanced div input {
+#advanced div input:first-of-type {
     width: 100%;
 }
 
@@ -375,6 +376,20 @@ input[type="search"]::-webkit-search-cancel-button,
 input[type="search"]::-webkit-search-results-button,
 input[type="search"]::-webkit-search-results-decoration {
     -webkit-appearance: none;
+}
+input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    flex-shrink: 0;
+    height: var(--fontsize-small);
+    width: var(--fontsize-small);
+    border: var(--underline) solid var(--dimtext);
+    cursor: pointer;
+    background-color: var(--faint);
+}
+input[type="checkbox"]:checked,
+input[type="checkbox"]:hover {
+    background-color: var(--block);
 }
 
 .message {

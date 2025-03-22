@@ -57,14 +57,30 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("toggleAdvanced").innerHTML = isVisible ? "Skjul valg" : "Flere valg";
 });
 
-// Volume, alcohol and search change.
-document.getElementById("fvolume").addEventListener("change", function () {
+// Price, volume, alcohol and search change.
+document.getElementById("price").addEventListener("change", function () {
   applyFilters(true, false);
 });
-document.getElementById("falcohol").addEventListener("change", function () {
+document.getElementById("cprice").addEventListener("change", function () {
   applyFilters(true, false);
 });
-document.getElementById("iyear").addEventListener("change", function () {
+document.getElementById("volume").addEventListener("change", function () {
+  applyFilters(true, false);
+});
+document.getElementById("cvolume").addEventListener("change", function () {
+  applyFilters(true, false);
+});
+document.getElementById("alcohol").addEventListener("change", function () {
+  applyFilters(true, false);
+});
+document.getElementById("calcohol").addEventListener("change", function () {
+  applyFilters(true, false);
+});
+document.getElementById("year").addEventListener("change", function () {
+  applyFilters(true, false);
+});
+document.getElementById("cyear").addEventListener("change", function () {
+  console.log("Here!");
   applyFilters(true, false);
 });
 document.getElementById("nsearch").addEventListener("change", function () {

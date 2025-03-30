@@ -61,6 +61,10 @@
         <td>Passord</td>
         <td><input type="password" id="passwordRegister" name="password" minlength="4" required></td>
       </tr>
+      <tr>
+        <td>Månedsvarsel&nbsp;</td>
+        <td><input type="checkbox" id="notifyRegister" name="notify" value="true"></td>
+      </tr>
     </table>
 
     <button type="submit">Registrer</button>
@@ -68,6 +72,37 @@
 </search>
 
 <search id="profile" style="display: none;">
+  <menu>
+      <li><button onclick="toggleView('notifications')">
+        Varslinger
+      </button></li>
+      <span>|</span>
+      <li><button onclick="toggleView('deletion')">
+        Slett meg
+      </button></li>
+  </menu>
+</search>
+
+<search id="notifications" style="display: none;">
+  <form id="notifyUserForm">
+    <input type="hidden" id="usernameNotify" name="username" value="<%= user?.username %>">
+
+    <table>
+      <tr>
+        <td>E-post</td>
+        <td><%= user?.email %></td>
+      </tr>
+      <tr>
+        <td>Månedsvarsel&nbsp;</td>
+        <td><input type="checkbox" id="activeNotify" name="notify" <%= user?.notify ? 'checked' : '' %>></td>
+      </tr>
+    </table>
+
+    <button type="submit">Oppdater varslinger</button>
+  </form>
+</search>
+
+<search id="deletion" style="display: none;">
   <form id="deleteUserForm">
     <input type="hidden" id="usernameDelete" name="username" value="<%= user?.username %>">
 

@@ -33,7 +33,7 @@ export const authenticate = async (req, res, next) => {
 
 router.post("/register", async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, notify, password } = req.body;
     const users = req.app.locals.users;
 
     // Check if user already exists.
@@ -61,6 +61,7 @@ router.post("/register", async (req, res) => {
     await users.insertOne({
       username,
       email,
+      notify,
       password: hashedPassword,
       favourites: [],
     });
@@ -209,6 +210,30 @@ router.post("/favourite", authenticate, async (req, res) => {
 
     res.status(201).json({
       message: "Favoritt er oppdatert!",
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Noe gikk galt :-(",
+      error: error.message,
+    });
+  }
+});
+
+router.post("/notification", authenticate, async (req, res) => {
+  try {
+    const { username, notify } = req.body;
+    const users = req.app.locals.users;
+
+    await users.updateOne({ username: username }, [
+      {
+        $set: {
+          notify: notify,
+        },
+      },
+    ]);
+
+    res.status(201).json({
+      message: `Du har ${notify ? "aktivert" : "deaktiveret"} varslin når nye tilbud er tilgjengelig!`,
     });
   } catch (error) {
     res.status(500).json({

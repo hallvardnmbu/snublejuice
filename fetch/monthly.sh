@@ -30,6 +30,11 @@ bun run ./fetch/taxfree/price.mjs || {
     nordvpn disconnect
     exit 1
 }
+bun run ./fetch/email.mjs || {
+    echo "Failed to run fetch/email.mjs";
+    nordvpn disconnect
+    exit 1
+}
 
 # 3. Disconnect from NordVPN
 echo "Disconnecting from NordVPN..."

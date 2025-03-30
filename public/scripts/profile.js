@@ -1,4 +1,4 @@
-const _MODALS = ["login", "register", "profile"];
+const _MODALS = ["login", "register", "profile", "notifications", "deletion"];
 
 function toggleView(modal) {
   // Close all modals except the one that was clicked.
@@ -66,6 +66,7 @@ document.getElementById("registerForm").onsubmit = async function (event) {
 
   const formData = {
     email: document.getElementById("emailRegister").value,
+    notify: document.getElementById("notifyRegister").checked,
     username: document.getElementById("usernameRegister").value,
     password: document.getElementById("passwordRegister").value,
   };
@@ -103,6 +104,45 @@ document.getElementById("registerForm").onsubmit = async function (event) {
 
 // PROFILE
 // ------------------------------------------------------------------------------------------------
+
+document.getElementById("notifyUserForm").onsubmit = async function (event) {
+  event.preventDefault();
+
+  const formData = {
+    username: document.getElementById("usernameNotify").value,
+    notify: document.getElementById("activeNotify").checked,
+  };
+
+  try {
+    const response = await fetch("/account/notification", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(formData),
+    });
+
+    const data = await response.json();
+    userMessage.style.display = "block";
+    userMessage.style.backgroundColor = response.ok ? "var(--positive)" : "var(--negative)";
+
+    if (response.ok) {
+      userMessage.textContent = data.message;
+
+      // Reload the page after successful register.
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } else {
+      userMessage.textContent = data.message;
+    }
+  } catch (error) {
+    userMessage.style.display = "block";
+    userMessage.style.backgroundColor = "var(--negative)";
+    userMessage.textContent = "Hmm, noe gikk galt...";
+  }
+};
 
 document.getElementById("deleteUserForm").onsubmit = async function (event) {
   event.preventDefault();

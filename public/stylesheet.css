@@ -144,6 +144,10 @@ menu {
     padding: var(--padding);
     background-color: var(--faint);
 }
+.landing-details #new {
+    color: var(--text);
+    background-color: var(--positive);
+}
 .landing-details span h1 {
     display: inline-flex;
     flex-direction: column;

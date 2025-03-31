@@ -5,8 +5,6 @@ dotenv.config();
 
 import { databaseConnection } from "../database/connect.js";
 
-dotenv.config();
-
 const collections = await databaseConnection();
 const users = await collections.users
   .find({ notify: true }, { projection: { email: 1, _id: 0 } })

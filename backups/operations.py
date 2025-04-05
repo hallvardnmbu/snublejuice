@@ -178,12 +178,27 @@ def delete_fields(records, fields) -> BulkWriteResult:
 def restore(date):
     _DATABASE.delete_many({})
 
-    if not os.path.exists("./backups"):
-        path = f"./backups/backup/{date}.parquet"
-    else:
-        path = f"./backups/{date}.parquet"
-
+    path = f"./backups/backup/{date}.parquet"
     df = pd.read_parquet(path)
+
+    def _convert(obj):
+        """Recursively convert numpy arrays to lists in nested structures."""
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        elif isinstance(obj, dict):
+            return {k: _convert(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [_convert(item) for item in obj]
+        elif isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.bool_):
+            return bool(obj)
+        elif isinstance(obj, np.str_):
+            return str(obj)
+        else:
+            return obj
 
     # Convert numpy types to python types
     for column in df.columns:
@@ -196,15 +211,19 @@ def restore(date):
         elif pd.api.types.is_string_dtype(df[column]):
             df[column] = df[column].astype(str)
         elif pd.api.types.is_object_dtype(df[column]):
-            try:
-                df[column] = df[column].apply(lambda x: x.tolist() if isinstance(x, np.ndarray) else x)
-            except AttributeError:
-                pass
+            df[column] = df[column].apply(_convert)
         elif pd.api.types.is_datetime64_any_dtype(df[column]):
             df[column] = df[column].dt.to_pydatetime()
 
     records = df.to_dict(orient='records')
-    _DATABASE.insert_many(records)
+
+    START = 0
+    BATCH_SIZE = 1000
+    exists = list(_DATABASE.distinct("index"))
+    records = [record for record in records if record["index"] not in exists]
+    for batch in range(START, len(records), BATCH_SIZE):
+        print(f"Inserting batch {batch} to {batch+BATCH_SIZE} of {len(records)}")
+        _DATABASE.insert_many(records[batch:batch+BATCH_SIZE], ordered=False, bypass_document_validation=True)
 
 
 def scan_and_update_products():

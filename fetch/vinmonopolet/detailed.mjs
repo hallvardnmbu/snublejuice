@@ -26,7 +26,9 @@ const IMAGE = {
 
 async function getNewProducts(itemIds) {
   function processImages(images) {
-    return images ? images.reduce((acc, img) => ({ ...acc, [img.format]: img.url }), {}) : IMAGE;
+    return images
+      ? images.reduce((acc, img) => ({ ...acc, [img.format]: img.url }), {})
+      : IMAGE;
   }
 
   function processProducts(products) {
@@ -70,13 +72,19 @@ async function getNewProducts(itemIds) {
         expired: product.expired || true,
         status: product.status || null,
 
-        orderable: product.productAvailability?.deliveryAvailability?.availableForPurchase || false,
+        orderable:
+          product.productAvailability?.deliveryAvailability
+            ?.availableForPurchase || false,
         orderinfo:
-          product.productAvailability?.deliveryAvailability?.infos?.[0]?.readableValue || null,
+          product.productAvailability?.deliveryAvailability?.infos?.[0]
+            ?.readableValue || null,
 
-        instores: product.productAvailability?.storesAvailability?.availableForPurchase || false,
+        instores:
+          product.productAvailability?.storesAvailability
+            ?.availableForPurchase || false,
         storeinfo:
-          product.productAvailability?.storesAvailability?.infos?.[0]?.readableValue || null,
+          product.productAvailability?.storesAvailability?.infos?.[0]
+            ?.readableValue || null,
       });
     }
 
@@ -90,7 +98,9 @@ async function getNewProducts(itemIds) {
       });
 
       if (response.status === 200) {
-        return processProducts(response.data["productSearchResult"]["products"]);
+        return processProducts(
+          response.data["productSearchResult"]["products"],
+        );
       }
     } catch (err) {
       console.log(`ERROR | NEW | Page: ${page} | ${err.message}`);
@@ -144,7 +154,8 @@ async function getNewProducts(itemIds) {
 
 // DETAILED INFORMATION:
 
-const DETAIL = "https://www.vinmonopolet.no/vmpws/v3/vmp/products/{}?fields=FULL";
+const DETAIL =
+  "https://www.vinmonopolet.no/vmpws/v3/vmp/products/{}?fields=FULL";
 
 async function updateInformation(itemIds) {
   console.log(`Updating the information of ${itemIds.length} products.`);
@@ -161,12 +172,18 @@ async function updateInformation(itemIds) {
       colour: product.color || null,
 
       characteristics:
-        product.content?.characteristics?.map((characteristic) => characteristic.readableValue) ||
-        [],
+        product.content?.characteristics?.map(
+          (characteristic) => characteristic.readableValue,
+        ) || [],
       ingredients:
-        product.content?.ingredients?.map((ingredient) => ingredient.readableValue) || [],
+        product.content?.ingredients?.map(
+          (ingredient) => ingredient.readableValue,
+        ) || [],
       ...product.content?.traits?.reduce(
-        (acc, trait) => ({ ...acc, [trait.name.toLowerCase()]: trait.readableValue }),
+        (acc, trait) => ({
+          ...acc,
+          [trait.name.toLowerCase()]: trait.readableValue,
+        }),
         {},
       ),
       smell: product.smell || null,
@@ -177,9 +194,15 @@ async function updateInformation(itemIds) {
       storage: product.content?.storagePotential?.formattedValue || null,
       cork: product.cork || null,
 
-      alcohol: product.traits?.find((trait) => trait.name === "Alkohol")?.readableValue || null,
-      sugar: product.traits?.find((trait) => trait.name === "Sukker")?.readableValue || null,
-      acid: product.traits?.find((trait) => trait.name === "Syre")?.readableValue || null,
+      alcohol:
+        product.traits?.find((trait) => trait.name === "Alkohol")
+          ?.readableValue || null,
+      sugar:
+        product.traits?.find((trait) => trait.name === "Sukker")
+          ?.readableValue || null,
+      acid:
+        product.traits?.find((trait) => trait.name === "Syre")?.readableValue ||
+        null,
 
       description: {
         lang: product.content?.style?.description || null,
@@ -199,12 +222,16 @@ async function updateInformation(itemIds) {
     if (processed.alkohol || processed.alcohol) {
       // Split the string at the first space character, and convert to float.
       if (processed.alkohol) {
-        processed.alcohol = parseFloat(processed.alkohol.split(" ")[0].replace(",", "."));
+        processed.alcohol = parseFloat(
+          processed.alkohol.split(" ")[0].replace(",", "."),
+        );
 
         // Remove the "alkohol" key from the object.
         delete processed.alkohol;
       } else {
-        processed.alcohol = parseFloat(processed.alcohol.split(" ")[0].replace(",", "."));
+        processed.alcohol = parseFloat(
+          processed.alcohol.split(" ")[0].replace(",", "."),
+        );
       }
 
       // Calculate the alcohol price.
@@ -251,6 +278,10 @@ async function updateInformation(itemIds) {
 
   for (const element of itemIds) {
     const id = element["index"];
+    if (!id) {
+      // Products only available in taxfree stores, but not in vinmonopolets. We skip these.
+      continue;
+    }
 
     try {
       let product = await getInformation(id);
@@ -276,7 +307,9 @@ async function updateInformation(itemIds) {
 
       items = [];
 
-      console.log(`UPDATING | DETAILED | Progress: ${Math.floor((current / total) * 100)} %`);
+      console.log(
+        `UPDATING | DETAILED | Progress: ${Math.floor((current / total) * 100)} %`,
+      );
     }
 
     current++;

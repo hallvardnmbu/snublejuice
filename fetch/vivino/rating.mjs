@@ -1,4 +1,4 @@
-import { MongoClient } from "mongodb";
+import { Db, MongoClient } from "mongodb";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -77,7 +77,11 @@ async function searchRatings(items) {
       const description = product.description.toLowerCase().split(" ");
       const truth = target.name.toLowerCase().split(" ");
       if (
-        truth.reduce((acc, word) => acc + (description.includes(word) ? 1 : 0), 0) / truth.length >
+        truth.reduce(
+          (acc, word) => acc + (description.includes(word) ? 1 : 0),
+          0,
+        ) /
+          truth.length >
         (description.length > 5 || truth.length > 5)
           ? THRESHOLDS.long
           : THRESHOLDS.short
@@ -109,7 +113,9 @@ async function searchRatings(items) {
 
     if (response.status === 429) {
       if (retry < TRIES.max) {
-        console.log(`Timed out after ${retry + 1} retries. Retrying in ${TRIES.delay} seconds.`);
+        console.log(
+          `Timed out after ${retry + 1} retries. Retrying in ${TRIES.delay} seconds.`,
+        );
 
         await new Promise((resolve) => setTimeout(resolve, TRIES.delay * 1000));
         return search(target, retry + 1);
@@ -149,7 +155,9 @@ async function searchRatings(items) {
       };
       products = products.concat(product);
     } catch (err) {
-      console.log(`Error when searching for ${item.name} (${item.index}): ${err}`);
+      console.log(
+        `Error when searching for ${item.name} (${item.index}): ${err}`,
+      );
     }
 
     // To comply with vivino.com/robots.txt and avoid rate limiting.
@@ -171,7 +179,9 @@ async function searchRatings(items) {
 }
 
 async function aggregatedRatings(items) {
-  console.log(`Extracting aggregated ratings for ${items.length} products on Vivino.`);
+  console.log(
+    `Extracting aggregated ratings for ${items.length} products on Vivino.`,
+  );
 
   async function search(item, retry = 0) {
     const response = await fetch(item.rating.url, {
@@ -182,7 +192,9 @@ async function aggregatedRatings(items) {
 
     if (response.status === 429) {
       if (retry < TRIES.max) {
-        console.log(`Timed out after ${retry + 1} retries. Retrying in ${TRIES.delay} seconds.`);
+        console.log(
+          `Timed out after ${retry + 1} retries. Retrying in ${TRIES.delay} seconds.`,
+        );
 
         await new Promise((resolve) => setTimeout(resolve, TRIES.delay * 1000));
         return search(item, retry + 1);
@@ -217,7 +229,9 @@ async function aggregatedRatings(items) {
       if (!product) continue;
       products = products.concat(product);
     } catch (err) {
-      console.log(`Error when searching for ${item.name} (${item.index}): ${err}`);
+      console.log(
+        `Error when searching for ${item.name} (${item.index}): ${err}`,
+      );
     }
 
     // To comply with vivino.com/robots.txt and avoid rate limiting.
@@ -234,51 +248,142 @@ async function aggregatedRatings(items) {
     await updateDatabase(products, false);
   }
 
-  console.log(`Finished extracting aggregated ratings for ${items.length} products on Vivino.`);
+  console.log(
+    `Finished extracting aggregated ratings for ${items.length} products on Vivino.`,
+  );
+  return;
+}
+
+async function updateRatings(items) {
+  console.log(`Updating ratings for ${items.length} products on Vivino.`);
+
+  async function search(item, retry = 0) {
+    const response = await fetch(item.rating.url, {
+      method: "GET",
+      headers: HEADERS,
+      timeout: 10000,
+    });
+
+    if (response.status === 429) {
+      if (retry < TRIES.max) {
+        console.log(
+          `Timed out after ${retry + 1} retries. Retrying in ${TRIES.delay} seconds.`,
+        );
+
+        await new Promise((resolve) => setTimeout(resolve, TRIES.delay * 1000));
+        return search(item, retry + 1);
+      }
+
+      throw new Error(`Timed out for ${retry + 1} tries.`);
+    } else if (response.status !== 200) {
+      throw new Error(`Status ${response.status}: ${response.statusText}.`);
+    }
+
+    const text = await response.text();
+    let match = text.match(PATTERNS.search);
+    if (!match) {
+      throw new Error(`No pattern match found.`);
+    }
+    match = JSON.parse(match[1]);
+
+    return {
+      index: item.index,
+      rating: {
+        description: match.description,
+        value: parseFloat(match.aggregateRating.ratingValue),
+        count: parseInt(match.aggregateRating.ratingCount),
+        reviews: parseInt(match.aggregateRating.reviewCount),
+        updated: new Date(),
+      },
+    };
+  }
+
+  let products = [];
+
+  for (const item of items) {
+    try {
+      let product = await search(item);
+      if (!product) continue;
+      products = products.concat(product);
+    } catch (err) {
+      console.log(
+        `Error when searching for ${item.name} (${item.index}): ${err}`,
+      );
+    }
+
+    // To comply with vivino.com/robots.txt and avoid rate limiting.
+    await new Promise((resolve) => setTimeout(resolve, 10000));
+
+    if (products.length >= 25) {
+      await updateDatabase(products, false);
+      products = [];
+    }
+  }
+
+  // Insert the remaining products, if any.
+  if (products.length !== 0) {
+    await updateDatabase(products, false);
+  }
+
+  console.log(
+    `Finished updating ratings for ${items.length} products on Vivino.`,
+  );
   return;
 }
 
 async function main() {
   let items;
+  let processed = [];
 
   // Search and extract ratings for products without ratings.
-  items = await itemCollection
-    .find({
-      // Ensure that only vinmonopolet products are included.
-      // Tax-free-only products are through this filtered out.
-      index: { $exists: true },
-      name: { $exists: true },
+  items = (
+    await itemCollection
+      .find({
+        // Ensure that only vinmonopolet products are included.
+        // Tax-free-only products are through this filtered out.
+        index: { $exists: true, $ne: null },
+        name: { $exists: true },
 
-      // Specific filter for products to update.
-      $or: [{ rating: null }, { rating: { $exists: false } }],
-      // "rating.updated": null,
-      // "rating.updated": { $lt: new Date("2025-01-01") },
-      // "rating.value": { $exists: true, $eq: 0 },
+        // Specific filter for products to update.
+        $or: [{ rating: null }, { rating: { $exists: false } }],
+        // "rating.updated": null,
+        // "rating.updated": { $lt: new Date("2025-01-01") },
+        // "rating.value": { $exists: true, $eq: 0 },
 
-      // Vivino products are exclusively these categories.
-      category: {
-        $in: [
-          "Rødvin",
-          "Hvitvin",
-          "Vin",
-          "Musserende vin",
-          "Perlende vin",
-          "Rosévin",
-          "Aromatisert vin",
-          "Fruktvin",
-          "Sterkvin",
-        ],
-      },
-    })
-    .project({ index: 1, name: 1, _id: 0 })
-    .toArray();
+        // Vivino products are exclusively these categories.
+        category: {
+          $in: [
+            "Rødvin",
+            "Hvitvin",
+            "Vin",
+            "Musserende vin",
+            "Perlende vin",
+            "Rosévin",
+            "Aromatisert vin",
+            "Fruktvin",
+            "Sterkvin",
+          ],
+        },
+      })
+      .project({ index: 1, name: 1, _id: 0 })
+      .toArray()
+  ).filter(
+    (item) =>
+      item.index !== undefined &&
+      item.index !== null &&
+      !isNaN(Number(item.index)),
+  );
   await searchRatings(items);
+
+  processed = [...processed, ...items.map((item) => item.index)];
+  console.log(processed);
 
   // Extract ratings for products with zero ratings.
   // I.e., products with no rating for specific vintage.
   // Vivino thus aggregates ratings for all vintages.
   items = await itemCollection
     .find({
+      index: { $nin: processed },
       rating: { $exists: true, $ne: null },
       $or: [
         { "rating.value": { $exists: false } },
@@ -290,6 +395,28 @@ async function main() {
     .project({ index: 1, name: 1, rating: 1, _id: 0 })
     .toArray();
   await aggregatedRatings(items);
+
+  processed = [...processed, ...items.map((item) => item.index)];
+
+  // Update ratings for products with url.
+  const delta = new Date();
+  delta.setDate(delta.getDate() - 7);
+  while (delta < new Date()) {
+    items = await itemCollection
+      .find({
+        index: { $nin: processed },
+        "rating.url": { $exists: true, $ne: null },
+        "rating.updated": {
+          $or: [{ $exists: false }, { $eq: null }, { $lte: delta }],
+        },
+      })
+      .project({ index: 1, name: 1, rating: 1, _id: 0 })
+      .toArray();
+    await updateRatings(items);
+
+    delta.setDate(delta.getDate() + 2);
+    processed = [...processed, ...items.map((item) => item.index)];
+  }
 }
 
 await main();

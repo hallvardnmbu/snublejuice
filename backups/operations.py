@@ -235,6 +235,31 @@ def scan_and_update_products():
         )
 
 
+def set_date_type():
+    data = _DATABASE.find({"rating": {"$ne": None}, "rating.updated": {"$exists": True, "$ne": None}}, {"_id": 0})
+
+    operations = []
+    for item in data:
+        if "updated" not in item["rating"]:
+            continue
+        if not item["rating"]["updated"] or item["rating"]["updated"] in ["", None, "None"]:
+            continue
+
+        operations.append(
+            pymongo.UpdateOne(
+                {'index': item['index']},
+                {
+                    "$set": {
+                        "rating.updated": pd.Timestamp(item["rating"]["updated"])
+                    }
+                }
+            )
+        )
+
+    print("Updating", len(operations))
+    return _DATABASE.bulk_write(operations)
+
+
 def backup():
     data = _DATABASE.find({})
     df = pd.DataFrame(data)

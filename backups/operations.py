@@ -1,7 +1,6 @@
 """Code used to refactor the MongoDB database."""
 
 import os
-import json
 
 import pymongo
 from pymongo.mongo_client import MongoClient

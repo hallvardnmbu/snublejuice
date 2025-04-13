@@ -14,7 +14,12 @@ import accountRouter, { authenticate } from "./routes/account.js";
 import dataRouter from "./routes/data.js";
 
 import { databaseConnection } from "./database/connect.js";
-import { incrementVisitor, getMetadata, categories, load } from "./database/operations.js";
+import {
+  incrementVisitor,
+  getMetadata,
+  categories,
+  load,
+} from "./database/operations.js";
 
 dotenv.config();
 
@@ -136,8 +141,8 @@ snublejuice.get("/", authenticate, async (req, res) => {
     exact: req.query.cyear === "on",
   };
 
-  const search = req.query.search || null;
-  const storelike = req.query.storelike || null;
+  const search = req.query.search?.trim() || null;
+  const storelike = req.query.storelike?.trim() || null;
 
   let store = {
     vinmonopolet:
@@ -153,7 +158,8 @@ snublejuice.get("/", authenticate, async (req, res) => {
           : req.query["store-taxfree"]
         : null) || null,
   };
-  let orderable = !store.vinmonopolet || store.vinmonopolet === "Spesifikk butikk";
+  let orderable =
+    !store.vinmonopolet || store.vinmonopolet === "Spesifikk butikk";
 
   try {
     let { data, total, updated } = await load({

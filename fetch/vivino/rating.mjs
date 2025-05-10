@@ -4,15 +4,10 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const log = (level, message) => {
-  console.log(`[${new Date().toISOString()}] [${level}] ${message}`);
+  console.log(`[${new Date().toISOString()}] [viv rat] [${level}] ${message}`);
 };
 
-const abort = (error) => {
-  log("ERROR", error.message || error);
-  process.exit(1);
-};
-
-log("INFO", "Starting Vivino rating script.");
+log("?", "Starting Vivino rating script.");
 
 const client = new MongoClient(
   `mongodb+srv://${process.env.MONGO_USR}:${process.env.MONGO_PWD}@snublejuice.faktu.mongodb.net/?retryWrites=true&w=majority&appName=snublejuice`,
@@ -20,9 +15,10 @@ const client = new MongoClient(
 
 try {
   await client.connect();
-  log("INFO", "Connected to MongoDB.");
+  log("?", "Connected to database.");
 } catch (error) {
-  abort(`Failed to connect to MongoDB: ${error.message}`);
+  log("!", `Failed to connect to database: ${error.message}`);
+  process.exit(1);
 }
 
 const database = client.db("snublejuice");
@@ -62,7 +58,7 @@ async function updateDatabase(data, upsert = false) {
 }
 
 async function searchRatings(items) {
-  log("INFO", `Starting search for ${items.length} products on Vivino.`);
+  log("?", `Starting search for ${items.length} products on Vivino.`);
 
   function process(products, target) {
     if (!target.index || !products) {
@@ -130,7 +126,8 @@ async function searchRatings(items) {
 
     if (response.status === 429) {
       if (retry < TRIES.max) {
-        console.log(
+        log(
+          "!",
           `Timed out after ${retry + 1} retries. Retrying in ${TRIES.delay} seconds.`,
         );
 
@@ -172,7 +169,10 @@ async function searchRatings(items) {
       };
       products = products.concat(product);
     } catch (err) {
-      log("ERROR", `Error when searching for ${item.name} (${item.index}): ${err.message}`);
+      log(
+        "!",
+        `Error when searching for ${item.name} (${item.index}): ${err.message}`,
+      );
     }
 
     // To comply with vivino.com/robots.txt and avoid rate limiting.
@@ -189,12 +189,15 @@ async function searchRatings(items) {
     await updateDatabase(products, false);
   }
 
-  log("INFO", `Finished searching for ${items.length} products on Vivino.`);
+  log("?", `Finished searching for ${items.length} products on Vivino.`);
   return;
 }
 
 async function aggregatedRatings(items) {
-  log("INFO", `Extracting aggregated ratings for ${items.length} products on Vivino.`);
+  log(
+    "?",
+    `Extracting aggregated ratings for ${items.length} products on Vivino.`,
+  );
 
   async function search(item, retry = 0) {
     const response = await fetch(item.rating.url, {
@@ -205,7 +208,8 @@ async function aggregatedRatings(items) {
 
     if (response.status === 429) {
       if (retry < TRIES.max) {
-        console.log(
+        log(
+          "!",
           `Timed out after ${retry + 1} retries. Retrying in ${TRIES.delay} seconds.`,
         );
 
@@ -242,7 +246,10 @@ async function aggregatedRatings(items) {
       if (!product) continue;
       products = products.concat(product);
     } catch (err) {
-      log("ERROR", `Error when searching for ${item.name} (${item.index}): ${err.message}`);
+      log(
+        "!",
+        `Error when searching for ${item.name} (${item.index}): ${err.message}`,
+      );
     }
 
     // To comply with vivino.com/robots.txt and avoid rate limiting.
@@ -259,12 +266,15 @@ async function aggregatedRatings(items) {
     await updateDatabase(products, false);
   }
 
-  log("INFO", `Finished extracting aggregated ratings for ${items.length} products on Vivino.`);
+  log(
+    "?",
+    `Finished extracting aggregated ratings for ${items.length} products on Vivino.`,
+  );
   return;
 }
 
 async function updateRatings(items) {
-  log("INFO", `Updating ratings for ${items.length} products on Vivino.`);
+  log("?", `Updating ratings for ${items.length} products on Vivino.`);
 
   async function search(item, retry = 0) {
     const response = await fetch(item.rating.url, {
@@ -275,7 +285,8 @@ async function updateRatings(items) {
 
     if (response.status === 429) {
       if (retry < TRIES.max) {
-        console.log(
+        log(
+          "!",
           `Timed out after ${retry + 1} retries. Retrying in ${TRIES.delay} seconds.`,
         );
 
@@ -315,7 +326,10 @@ async function updateRatings(items) {
       if (!product) continue;
       products = products.concat(product);
     } catch (err) {
-      log("ERROR", `Error when searching for ${item.name} (${item.index}): ${err.message}`);
+      log(
+        "!",
+        `Error when searching for ${item.name} (${item.index}): ${err.message}`,
+      );
     }
 
     // To comply with vivino.com/robots.txt and avoid rate limiting.
@@ -332,7 +346,7 @@ async function updateRatings(items) {
     await updateDatabase(products, false);
   }
 
-  log("INFO", `Finished updating ratings for ${items.length} products on Vivino.`);
+  log("?", `Finished updating ratings for ${items.length} products on Vivino.`);
   return;
 }
 
@@ -381,7 +395,7 @@ async function main() {
   await searchRatings(items);
 
   processed = [...processed, ...items.map((item) => item.index)];
-  console.log(processed);
+  log("?", `Processed items: ${processed}`);
 
   // Extract ratings for products with zero ratings.
   // I.e., products with no rating for specific vintage.
@@ -426,10 +440,11 @@ async function main() {
 
 try {
   await main();
-  log("INFO", "Vivino rating script completed successfully.");
+  log("?", "Vivino rating script completed successfully.");
 } catch (error) {
-  abort(`Script failed: ${error.message}`);
+  log("!", `Script failed: ${error.message}`);
+  process.exit(1);
 } finally {
   await client.close();
-  log("INFO", "MongoDB connection closed.");
+  log("?", "Database connection closed.");
 }

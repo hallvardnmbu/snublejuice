@@ -5,12 +5,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const log = (level, message) => {
-  console.log(`[${new Date().toISOString()}] [${level}] ${message}`);
-};
-
-const abort = (error) => {
-  log("ERROR", error.message || error);
-  process.exit(1);
+  console.log(`[${new Date().toISOString()}] [vmp pri] [${level}] ${message}`);
 };
 
 const client = new MongoClient(
@@ -25,9 +20,10 @@ const client = new MongoClient(
 );
 try {
   await client.connect();
-  log("INFO", "Connected to MongoDB.");
+  log("?", "Connected to database.");
 } catch (error) {
-  abort(`Failed to connect to MongoDB: ${error.message}`);
+  log("!", `Failed to connect to database: ${error.message}`);
+  process.exit(1);
 }
 
 const database = client.db("snublejuice");
@@ -126,19 +122,19 @@ async function getPage(page, alreadyUpdated, retry = false) {
       );
     }
 
-    log("WARN", `STATUS | ${response.status} | Page: ${page}.`);
+    log("!", `Status code ${response.status} for page ${page}.`);
   } catch (err) {
     if (retry) {
       return null;
     }
 
-    log("ERROR", `Page: ${page} | Retrying. ${err.message}`);
+    log("!", `Page: ${page}. Retrying. ${err.message}`);
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 5000));
       return getPage(page, alreadyUpdated, true);
     } catch (err) {
-      log("ERROR", `Page: ${page} | Failed. ${err.message}`);
+      log("!", `Page: ${page} failed: ${err.message}`);
     }
   }
 }
@@ -238,7 +234,7 @@ async function getProducts(startPage = 0, alreadyUpdated = []) {
     try {
       let products = await getPage(page, alreadyUpdated);
       if (products.length === 0) {
-        log("INFO", `DONE | Final page: ${page - 1}.`);
+        log("?", `Done. Final page: ${page - 1}.`);
         break;
       }
 
@@ -246,7 +242,7 @@ async function getProducts(startPage = 0, alreadyUpdated = []) {
 
       await new Promise((resolve) => setTimeout(resolve, 900));
     } catch (err) {
-      console.log(`ERROR    | Page: ${page} | ${err}`);
+      log("!", `Page: ${page}. ${err}`);
       break;
     }
 
@@ -258,14 +254,14 @@ async function getProducts(startPage = 0, alreadyUpdated = []) {
 
       current += items.length;
 
-      log("INFO", `UPDATING | ${items.length} records.`);
+      log("+", `Updating ${items.length} records.`);
       const result = await updateDatabase(items);
-      log("INFO", `Modified ${result.modifiedCount} records.`);
-      log("INFO", `Upserted ${result.upsertedCount} records.`);
+      log("+", ` Modified ${result.modifiedCount}.`);
+      log("+", ` Upserted ${result.upsertedCount}.`);
 
       items = [];
 
-      log("INFO", `Progress: ${Math.floor((current / (total * 24)) * 100)}%`);
+      log("?", `Progress: ${Math.floor((current / (total * 24)) * 100)} %`);
     }
   }
 
@@ -273,10 +269,10 @@ async function getProducts(startPage = 0, alreadyUpdated = []) {
   if (items.length === 0) {
     return;
   }
-  console.log(`UPDATING | ${items.length} final records.`);
+  log("+", `Updating ${items.length} final records.`);
   const result = await updateDatabase(items);
-  console.log(`         | Modified ${result.modifiedCount}.`);
-  console.log(`         | Upserted ${result.upsertedCount}.`);
+  log("+", ` Modified ${result.modifiedCount}.`);
+  log("+", ` Upserted ${result.upsertedCount}.`);
 }
 
 async function syncUnupdatedProducts(threshold = null) {
@@ -284,12 +280,9 @@ async function syncUnupdatedProducts(threshold = null) {
     index: { $exists: true },
     updated: false,
   });
-  log("INFO", `NOT UPDATED | Items: ${unupdatedCount}`);
+  log("?", `Non-updated items: ${unupdatedCount}`);
   if (threshold && unupdatedCount >= threshold) {
-    log(
-      "ERROR",
-      `Above threshold (${unupdatedCount} >= ${threshold}). Aborting.`,
-    );
+    log("!", `Above threshold (${unupdatedCount} >= ${threshold}). Aborting.`);
     return;
   }
 
@@ -312,11 +305,11 @@ async function syncUnupdatedProducts(threshold = null) {
     );
 
     log(
-      "INFO",
-      `MODIFIED ${result.modifiedCount} empty prices to unupdated products.`,
+      "+",
+      `Modified ${result.modifiedCount} empty prices to unupdated products.`,
     );
   } catch (err) {
-    log("ERROR", `Adding unupdated prices: ${err.message}`);
+    log("!", `Adding unupdated prices: ${err.message}`);
   }
 }
 
@@ -328,9 +321,10 @@ async function main() {
       { id: "stock" },
       { $set: { "prices.vinmonopolet": false } },
     );
-    log("INFO", "Set prices.vinmonopolet to false in metadata.");
+    log("+", "Set prices.vinmonopolet to false in metadata.");
   } catch (error) {
-    abort(`Failed to update metadata: ${error.message}`);
+    log("!", `Failed to update metadata: ${error.message}`);
+    process.exit(1);
   }
 
   await itemCollection.updateMany({}, { $set: { updated: false } });
@@ -350,7 +344,7 @@ async function main() {
       { id: "stock" },
       { $set: { "prices.vinmonopolet": true } },
     );
-    log("INFO", "Set prices.vinmonopolet to true in metadata.");
+    log("+", "Set prices.vinmonopolet to true in metadata.");
   } catch (error) {
     abort(`Failed to update metadata: ${error.message}`);
   }
@@ -360,7 +354,7 @@ await main();
 
 try {
   await client.close();
-  log("INFO", "MongoDB connection closed.");
+  log("?", "Database connection closed.");
 } catch (error) {
-  log("ERROR", `Failed to close MongoDB connection: ${error.message}`);
+  log("!", `Failed to close database connection: ${error.message}`);
 }

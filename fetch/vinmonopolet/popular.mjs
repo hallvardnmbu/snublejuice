@@ -5,12 +5,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const log = (level, message) => {
-  console.log(`[${new Date().toISOString()}] [${level}] ${message}`);
-};
-
-const abort = (error) => {
-  log("ERROR", error.message || error);
-  process.exit(1);
+  console.log(`[${new Date().toISOString()}] [vmp pop] [${level}] ${message}`);
 };
 
 const client = new MongoClient(
@@ -26,9 +21,10 @@ const client = new MongoClient(
 
 try {
   await client.connect();
-  log("INFO", "Connected to MongoDB.");
+  log("?", "Connected to database.");
 } catch (error) {
-  abort(`Failed to connect to MongoDB: ${error.message}`);
+  log("!", `Failed to connect to database: ${error.message}`);
+  process.exit(1);
 }
 
 const database = client.db("snublejuice");
@@ -80,28 +76,34 @@ async function processId(index, retry = false) {
         buyable: product.buyable || false,
         expired: product.expired || true,
 
-        orderable: product.productAvailability?.deliveryAvailability?.availableForPurchase || false,
+        orderable:
+          product.productAvailability?.deliveryAvailability
+            ?.availableForPurchase || false,
         orderinfo:
-          product.productAvailability?.deliveryAvailability?.infos?.[0]?.readableValue || null,
-        instores: product.productAvailability?.storesAvailability?.availableForPurchase || false,
+          product.productAvailability?.deliveryAvailability?.infos?.[0]
+            ?.readableValue || null,
+        instores:
+          product.productAvailability?.storesAvailability
+            ?.availableForPurchase || false,
         storeinfo:
-          product.productAvailability?.storesAvailability?.infos?.[0]?.readableValue || null,
+          product.productAvailability?.storesAvailability?.infos?.[0]
+            ?.readableValue || null,
       };
     }
 
-    log("INFO", `STATUS | ${response.status} | Item: ${index}.`);
+    log("?", `Status ${response.status} for item ${index}.`);
   } catch (err) {
     if (retry) {
       return null;
     }
 
-    log("WARN", `ERROR | Item: ${index} | Retrying. ${err.message}`);
+    log("!", `Item ${index}. Retrying. ${err.message}`);
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 5000));
       return processId(index, true);
     } catch (err) {
-      log("ERROR", `ERROR | Item: ${index} | Failed. ${err.message}`);
+      log("!", `Item ${index} failed. ${err.message}`);
     }
   }
 }
@@ -123,7 +125,7 @@ async function updateStores(itemIds) {
   let current = 0;
   const total = itemIds.length;
 
-  log("INFO", `UPDATING | ${total} discounted items.`);
+  log("?", `Updating ${total} discounted items.`);
 
   for (const element of itemIds) {
     const id = element["index"];
@@ -131,7 +133,7 @@ async function updateStores(itemIds) {
     try {
       let product = await processId(id);
       if (!product) {
-        log("ERROR", `ERROR | Item: ${id} | Aborting.`);
+        log("!", `Could not process item ${id}. Aborting.`);
         break;
       } else {
         items.push(product);
@@ -139,16 +141,16 @@ async function updateStores(itemIds) {
         await new Promise((resolve) => setTimeout(resolve, 1100));
       }
     } catch (err) {
-      log("ERROR", `ERROR | Item: ${id} | Aborting. | ${err.message}`);
+      log("!", `Item ${id}. Aborting. ${err.message}`);
       break;
     }
 
     // Upsert to the database every 10 items.
     if (items.length >= 10) {
-      log("INFO", `UPDATING | ${items.length} records.`);
+      log("+", `Updating ${items.length} records.`);
       const result = await updateDatabase(items);
-      log("INFO", `Modified ${result.modifiedCount} records.`);
-      log("INFO", `Upserted ${result.upsertedCount} records.`);
+      log("+", ` Modified ${result.modifiedCount}.`);
+      log("+", ` Upserted ${result.upsertedCount}.`);
 
       items = [];
     }
@@ -156,7 +158,7 @@ async function updateStores(itemIds) {
     current++;
 
     if (current % 10 === 0) {
-      log("INFO", `Progress: ${Math.floor((current / total) * 100)} %`);
+      log("?", `Progress: ${Math.floor((current / total) * 100)} %`);
     }
   }
 
@@ -164,17 +166,20 @@ async function updateStores(itemIds) {
   if (items.length === 0) {
     return;
   }
-  log("INFO", `UPDATING | ${items.length} records.`);
+  log("+", `Updating ${items.length} final records.`);
   const result = await updateDatabase(items);
-  log("INFO", `Modified ${result.modifiedCount} records.`);
-  log("INFO", `Upserted ${result.upsertedCount} records.`);
+  log("+", ` Modified ${result.modifiedCount}.`);
+  log("+", ` Upserted ${result.upsertedCount}.`);
 }
 
 const session = axios.create();
 
 async function main() {
   // Reset stores prior to fetching new data.
-  await itemCollection.updateMany({ stores: { $exists: true } }, { $set: { stores: [] } });
+  await itemCollection.updateMany(
+    { stores: { $exists: true } },
+    { $set: { stores: [] } },
+  );
 
   // Fetch products with discount.
   const itemIds = await itemCollection
@@ -193,12 +198,13 @@ async function main() {
 
 try {
   await main();
-  log("INFO", "Script completed successfully.");
+  log("?", "Script completed successfully.");
 } catch (error) {
-  abort(`Script failed: ${error.message}`);
+  log("!", `Script failed: ${error.message}`);
+  process.exit(1);
 } finally {
   await client.close();
-  log("INFO", "MongoDB connection closed.");
+  log("?", "Database connection closed.");
 }
 
 client.close();

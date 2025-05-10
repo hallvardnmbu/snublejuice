@@ -5,23 +5,19 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const log = (level, message) => {
-  console.log(`[${new Date().toISOString()}] [${level}] ${message}`);
+  console.log(`[${new Date().toISOString()}] [vmp det] [${level}] ${message}`);
 };
 
-const abort = (error) => {
-  log("ERROR", error.message || error);
-  process.exit(1);
-};
-
-log("INFO", "Connecting to MongoDB...");
+log("?", "Connecting to database.");
 const client = new MongoClient(
   `mongodb+srv://${process.env.MONGO_USR}:${process.env.MONGO_PWD}@snublejuice.faktu.mongodb.net/?retryWrites=true&w=majority&appName=snublejuice`,
 );
 try {
   await client.connect();
-  log("INFO", "Connected to MongoDB.");
+  log("?", "Connected to MongoDB.");
 } catch (error) {
-  abort(`Failed to connect to MongoDB: ${error.message}`);
+  log("!", `Failed to connect to MongoDB: ${error.message}`);
+  process.exit(1);
 }
 
 const database = client.db("snublejuice");
@@ -117,24 +113,21 @@ async function getNewProducts(itemIds) {
           response.data["productSearchResult"]["products"],
         );
       } else {
-        log("WARN", `Received status ${response.status} for page ${page}.`);
+        log("!", `Received status ${response.status} for page ${page}.`);
       }
     } catch (err) {
-      log("ERROR", `Failed to fetch page ${page}: ${err.message}`);
+      log("!", `Failed to fetch page ${page}: ${err.message}`);
     }
   }
 
   async function updateNewDatabase(data) {
     try {
-      log("INFO", `Inserting ${data.length} new products into the database...`);
+      log("?", `Inserting ${data.length} new products into the database...`);
       const result = await itemCollection.insertMany(data);
-      log("INFO", `Successfully inserted ${result.insertedCount} products.`);
+      log("?", `Successfully inserted ${result.insertedCount} products.`);
       return result;
     } catch (error) {
-      log(
-        "ERROR",
-        `Failed to insert products into the database: ${error.message}`,
-      );
+      log("!", `Failed to insert products into the database: ${error.message}`);
       throw error;
     }
   }
@@ -145,7 +138,7 @@ async function getNewProducts(itemIds) {
     try {
       let products = await getPage(page);
       if (products.length === 0 || !products) {
-        log("INFO", `No more products found. Final page: ${page}.`);
+        log("?", `No more products found. Final page: ${page}.`);
         break;
       }
 
@@ -153,23 +146,20 @@ async function getNewProducts(itemIds) {
 
       await new Promise((resolve) => setTimeout(resolve, 1100));
     } catch (err) {
-      log("ERROR", `Error processing page ${page}: ${err.message}`);
+      log("!", `Error processing page ${page}: ${err.message}`);
       break;
     }
 
     // Upsert to the database every 10 pages.
     if (page % 10 === 0) {
       if (items.length === 0) {
-        log("WARN", "No items to update in the last 10 pages.");
+        log("!", "No items to update in the last 10 pages.");
         return;
       }
 
-      log("INFO", `Updating database with ${items.length} records.`);
+      log("+", `Updating database with ${items.length} records.`);
       const result = await updateNewDatabase(items);
-      log(
-        "INFO",
-        `Inserted ${result.insertedCount} records into the database.`,
-      );
+      log("+", ` Inserted ${result.insertedCount}.`);
 
       items = [];
     }
@@ -179,12 +169,9 @@ async function getNewProducts(itemIds) {
   if (items.length === 0) {
     return;
   }
-  log("INFO", `Final batch: ${items.length} records.`);
+  log("?", `Final batch: ${items.length} records.`);
   const result = await updateNewDatabase(items);
-  log(
-    "INFO",
-    `Inserted ${result.insertedCount} final records into the database.`,
-  );
+  log("+", `Inserted ${result.insertedCount} final records.`);
 }
 
 // DETAILED INFORMATION:
@@ -193,7 +180,7 @@ const DETAIL =
   "https://www.vinmonopolet.no/vmpws/v3/vmp/products/{}?fields=FULL";
 
 async function updateInformation(itemIds) {
-  console.log(`Updating the information of ${itemIds.length} products.`);
+  log("?", `Updating the information of ${itemIds.length} products.`);
 
   function processInformation(product) {
     const processed = {
@@ -289,9 +276,12 @@ async function updateInformation(itemIds) {
         return processInformation(response.data);
       }
 
-      console.log(`STATUS | DETAILED | ${response.status}  | Item: ${id}.`);
+      log(
+        "!",
+        `Detailed fetch returned status ${response.status} for item ${id}.`,
+      );
     } catch (err) {
-      console.log(`ERROR | DETAILED | Item: ${id} | ${err.message}`);
+      log("!", `Detailed fetch for item: ${id}: ${err.message}`);
     }
   }
 
@@ -321,7 +311,7 @@ async function updateInformation(itemIds) {
     try {
       let product = await getInformation(id);
       if (!product) {
-        console.log(`NONEXISTING | DETAILED | Item: ${id} | Aborting.`);
+        log("!", `Detailed fetch for item ${id}. Aborting.`);
         break;
       }
 
@@ -329,22 +319,20 @@ async function updateInformation(itemIds) {
 
       await new Promise((resolve) => setTimeout(resolve, 1100));
     } catch (err) {
-      console.log(`ERROR | DETAILED | Item: ${id} | Aborting. | ${err}`);
+      log("!", `Fetching info for item ${id} failed. Aborting. | ${err}`);
       break;
     }
 
     // Upsert to the database every 10 items.
     if (items.length >= 10) {
-      console.log(`UPDATING | DETAILED | ${items.length} records.`);
+      log("+", `Updating ${items.length} records.`);
       const result = await updateDetailedDatabase(items);
-      console.log(`         | Modified ${result.modifiedCount}.`);
-      console.log(`         | Upserted ${result.upsertedCount}.`);
+      log("+", ` Modified ${result.modifiedCount}.`);
+      log("+", ` Upserted ${result.upsertedCount}.`);
 
       items = [];
 
-      console.log(
-        `UPDATING | DETAILED | Progress: ${Math.floor((current / total) * 100)} %`,
-      );
+      log("?", `Progress: ${Math.floor((current / total) * 100)} %`);
     }
 
     current++;
@@ -354,10 +342,10 @@ async function updateInformation(itemIds) {
   if (items.length === 0) {
     return;
   }
-  console.log(`UPDATING | DETAILED | ${items.length} final records.`);
+  log("+", `Updating ${items.length} final records.`);
   const result = await updateDetailedDatabase(items);
-  console.log(`         | Modified ${result.modifiedCount}.`);
-  console.log(`         | Upserted ${result.upsertedCount}.`);
+  log("+", ` Modified ${result.modifiedCount}.`);
+  log("+", ` Upserted ${result.upsertedCount}.`);
 }
 
 const session = axios.create();
@@ -375,10 +363,10 @@ async function main() {
 
 try {
   await main();
-  log("INFO", "Script completed successfully.");
+  log("?", "Script completed successfully.");
 } catch (error) {
-  log("ERROR", `Script terminated with error: ${error.message}`);
+  log("!", `Script terminated with error: ${error.message}`);
 } finally {
-  log("INFO", "Closing MongoDB connection.");
+  log("?", "Closing database connection.");
   await client.close();
 }

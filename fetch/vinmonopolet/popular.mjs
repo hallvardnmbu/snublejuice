@@ -40,6 +40,11 @@ async function processId(index, retry = false) {
       timeout: 10000,
     });
 
+    console.log(response);
+    console.log(response.data);
+    console.log(JSON.stringify(response.data));
+    process.exit(1);
+
     if (response.status === 200) {
       const responseData = response.data.productSearchResult || {};
 
@@ -176,24 +181,22 @@ const session = axios.create();
 
 async function main() {
   // Reset stores prior to fetching new data.
-  await itemCollection.updateMany(
-    { stores: { $exists: true } },
-    { $set: { stores: [] } },
-  );
-
+  // await itemCollection.updateMany(
+  //   { stores: { $exists: true } },
+  //   { $set: { stores: [] } },
+  // );
   // Fetch products with discount.
-  const itemIds = await itemCollection
-    .find({ discount: { $lt: 0.0 } })
-    .project({ index: 1, _id: 0 })
-    .toArray();
-  await updateStores(itemIds);
-
-  // Store the time of the last update.
-  await metaCollection.updateOne(
-    { id: "stock" },
-    { $set: { vinmonopolet: new Date() } },
-    { upsert: true },
-  );
+  // const itemIds = await itemCollection
+  //   .find({ discount: { $lt: -2.0 } })
+  //   .project({ index: 1, _id: 0 })
+  //   .toArray();
+  // await updateStores(itemIds);
+  // // Store the time of the last update.
+  // await metaCollection.updateOne(
+  //   { id: "stock" },
+  //   { $set: { vinmonopolet: new Date() } },
+  //   { upsert: true },
+  // );
 }
 
 try {

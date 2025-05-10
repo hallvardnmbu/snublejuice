@@ -12,12 +12,13 @@ const users = await collections.users
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const { _data, error } = await resend.batch.send(
-  users.map((user) => ({
-    from: "Snublejuice <varsling@snublejuice.no>",
-    to: [user.email],
-    subject: "Ny måned; nye priser!",
-    html: `
+async function sendEmails() {
+  const { _data, error } = await resend.batch.send(
+    users.map((user) => ({
+      from: "Snublejuice <varsling@snublejuice.no>",
+      to: [user.email],
+      subject: "Ny måned; nye priser!",
+      html: `
       <!doctype html>
       <html>
         <head>
@@ -169,9 +170,14 @@ const { _data, error } = await resend.batch.send(
         </body>
       </html>
     `,
-  })),
-);
+    })),
+  );
 
-if (error) {
-  return console.error({ error });
+  if (error) {
+    console.error("Error sending emails:", error);
+    return;
+  }
 }
+
+await sendEmails();
+process.exit(1);

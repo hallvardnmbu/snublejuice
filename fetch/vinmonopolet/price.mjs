@@ -254,7 +254,7 @@ async function getProducts(startPage = 0, alreadyUpdated = []) {
 
       current += items.length;
 
-      log("+", `Updating ${items.length} records.`);
+      log("+", ` Updating ${items.length} records.`);
       const result = await updateDatabase(items);
       log("+", ` Modified ${result.modifiedCount}.`);
       log("+", ` Upserted ${result.upsertedCount}.`);
@@ -269,7 +269,7 @@ async function getProducts(startPage = 0, alreadyUpdated = []) {
   if (items.length === 0) {
     return;
   }
-  log("+", `Updating ${items.length} final records.`);
+  log("+", ` Updating ${items.length} final records.`);
   const result = await updateDatabase(items);
   log("+", ` Modified ${result.modifiedCount}.`);
   log("+", ` Upserted ${result.upsertedCount}.`);

@@ -147,7 +147,7 @@ async function updateStores(itemIds) {
 
     // Upsert to the database every 10 items.
     if (items.length >= 10) {
-      log("+", `Updating ${items.length} records.`);
+      log("+", ` Updating ${items.length} records.`);
       const result = await updateDatabase(items);
       log("+", ` Modified ${result.modifiedCount}.`);
       log("+", ` Upserted ${result.upsertedCount}.`);
@@ -166,7 +166,7 @@ async function updateStores(itemIds) {
   if (items.length === 0) {
     return;
   }
-  log("+", `Updating ${items.length} final records.`);
+  log("+", ` Updating ${items.length} final records.`);
   const result = await updateDatabase(items);
   log("+", ` Modified ${result.modifiedCount}.`);
   log("+", ` Upserted ${result.upsertedCount}.`);

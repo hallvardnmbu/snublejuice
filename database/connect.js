@@ -20,7 +20,7 @@ export async function databaseConnection() {
       products: db.collection("products"),
     };
   } catch (err) {
-    console.error("Failed to connect to MongoDB", err);
+    console.error("Failed to connect to database", err);
     process.exit(1);
   }
 }

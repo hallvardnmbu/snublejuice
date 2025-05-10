@@ -12,5 +12,8 @@ backups/backup/
 **/node_modules/
 **/package-lock.json
 
+uv.lock
+.python-version
+
 bun.lockb
 jsconfig.json

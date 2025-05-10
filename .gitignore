@@ -2,6 +2,8 @@
 .idea/
 Icon?
 
+*.env
+
 **/__pycache__/
 **/*.pattern
 

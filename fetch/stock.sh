@@ -1,15 +1,15 @@
 #!/bin/bash
 
-LOG_FILE="/home/snublejuice/Documents/snublejuice/logs/stock_$(date +'%Y-%m-%d').log"
+LOG_FILE="/home/snublejuice/Documents/snublejuice/logs/stock-$(date +'%Y-%m-%d').log"
 
 log() {
-    local level="$1"
-    local message="$2"
-    echo "$(date +'%Y-%m-%d %H:%M:%S') [$level] $message" | tee -a "$LOG_FILE"
+    local message="$1"
+    echo "$(date +'%Y-%m-%d %H:%M:%S') [?] $message" | tee -a "$LOG_FILE"
 }
 
 abort() {
-    log "ERROR" "$1"
+    log "$1"
+    nordvpn disconnect
     exit 1
 }
 
@@ -21,13 +21,11 @@ if [ -f .env ]; then
     export $(grep -v '^#' .env | xargs)
 fi
 
-log "INFO" "Starting script."
-
-# Include Bun
+# Include bun executable
 export PATH=$PATH:/home/snublejuice/.bun/bin
 
-# 1. Connect to NordVPN and ensure connection is established
-log "INFO" "Connecting to NordVPN..."
+# 1. Connect to internet and ensure connection is established
+log "Connecting to internet"
 nordvpn connect || abort "Failed to connect to VPN."
 sleep 5
 if ! nordvpn status | grep -i "connected"; then
@@ -35,17 +33,13 @@ if ! nordvpn status | grep -i "connected"; then
 fi
 
 # 2. Run the scripts
-log "INFO" "Running fetch/vinmonopolet/detailed.mjs..."
+log "Updating stock"
 bun run ./fetch/vinmonopolet/detailed.mjs || abort "Failed to run fetch/vinmonopolet/detailed.mjs."
-
-log "INFO" "Running fetch/vinmonopolet/popular.mjs..."
 bun run ./fetch/vinmonopolet/popular.mjs || abort "Failed to run fetch/vinmonopolet/popular.mjs."
-
-log "INFO" "Running fetch/taxfree/stock.mjs..."
 bun run ./fetch/taxfree/stock.mjs || abort "Failed to run fetch/taxfree/stock.mjs."
 
 # 3. Disconnect from NordVPN
-log "INFO" "Disconnecting from NordVPN..."
+log "Disconnecting from internet"
 nordvpn disconnect || abort "Failed to disconnect from VPN."
 
-log "INFO" "Script completed successfully."
+log "Script completed successfully."

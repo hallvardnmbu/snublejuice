@@ -470,7 +470,7 @@ async function getProducts(existing = []) {
 
     count += items.length;
 
-    log("+", `Updating ${items.length} records.`);
+    log("+", ` Updating ${items.length} records.`);
     const result = await updateDatabase(items, existing);
     log("+", ` Modified: ${result.modifiedCount}.`);
     log("+", ` Upserted: ${result.upsertedCount}.`);

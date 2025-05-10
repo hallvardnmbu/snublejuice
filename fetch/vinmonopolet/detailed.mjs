@@ -14,9 +14,9 @@ const client = new MongoClient(
 );
 try {
   await client.connect();
-  log("?", "Connected to MongoDB.");
+  log("?", "Connected to database.");
 } catch (error) {
-  log("!", `Failed to connect to MongoDB: ${error.message}`);
+  log("!", `Failed to connect to database: ${error.message}`);
   process.exit(1);
 }
 
@@ -157,7 +157,7 @@ async function getNewProducts(itemIds) {
         return;
       }
 
-      log("+", `Updating database with ${items.length} records.`);
+      log("+", ` Updating database with ${items.length} records.`);
       const result = await updateNewDatabase(items);
       log("+", ` Inserted ${result.insertedCount}.`);
 
@@ -325,7 +325,7 @@ async function updateInformation(itemIds) {
 
     // Upsert to the database every 10 items.
     if (items.length >= 10) {
-      log("+", `Updating ${items.length} records.`);
+      log("+", ` Updating ${items.length} records.`);
       const result = await updateDetailedDatabase(items);
       log("+", ` Modified ${result.modifiedCount}.`);
       log("+", ` Upserted ${result.upsertedCount}.`);
@@ -342,7 +342,7 @@ async function updateInformation(itemIds) {
   if (items.length === 0) {
     return;
   }
-  log("+", `Updating ${items.length} final records.`);
+  log("+", ` Updating ${items.length} final records.`);
   const result = await updateDetailedDatabase(items);
   log("+", ` Modified ${result.modifiedCount}.`);
   log("+", ` Upserted ${result.upsertedCount}.`);

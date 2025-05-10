@@ -1,15 +1,15 @@
 #!/bin/bash
 
-LOG_FILE="/home/snublejuice/Documents/snublejuice/logs/ratings_$(date +'%Y-%m-%d').log"
+LOG_FILE="/home/snublejuice/Documents/snublejuice/logs/ratings-$(date +'%Y-%m-%d').log"
 
 log() {
-    local level="$1"
-    local message="$2"
-    echo "$(date +'%Y-%m-%d %H:%M:%S') [$level] $message" | tee -a "$LOG_FILE"
+    local message="$1"
+    echo "$(date +'%Y-%m-%d %H:%M:%S') [?] $message" | tee -a "$LOG_FILE"
 }
 
 abort() {
-    log "ERROR" "$1"
+    log "$1"
+    nordvpn disconnect
     exit 1
 }
 
@@ -21,13 +21,11 @@ if [ -f .env ]; then
     export $(grep -v '^#' .env | xargs)
 fi
 
-log "INFO" "Starting script."
-
-# Include Bun
+# Include bun executable
 export PATH=$PATH:/home/snublejuice/.bun/bin
 
-# 1. Connect to NordVPN and ensure connection is established
-log "INFO" "Connecting to NordVPN..."
+# 1. Connect to internet and ensure connection is established
+log "Connecting to internet"
 nordvpn connect || abort "Failed to connect to VPN."
 sleep 5
 if ! nordvpn status | grep -i "connected"; then
@@ -35,11 +33,11 @@ if ! nordvpn status | grep -i "connected"; then
 fi
 
 # 2. Run the script
-log "INFO" "Running fetch/vivino/rating.mjs..."
-bun run ./fetch/vivino/rating.mjs || abort "Failed to run fetch/vivino/rating.mjs."
+log "Updating ratings"
+bun run ./fetch/vivino/rating.mjs || abort "Failed to update ratings"
 
 # 3. Disconnect from NordVPN
-log "INFO" "Disconnecting from NordVPN..."
+log "Disconnecting from internet"
 nordvpn disconnect || abort "Failed to disconnect from VPN."
 
-log "INFO" "Script completed successfully."
+log "Script completed successfully."

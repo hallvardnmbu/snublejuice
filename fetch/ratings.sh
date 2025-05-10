@@ -3,6 +3,14 @@
 source ~/.profile
 cd /home/snublejuice/Documents/snublejuice
 
+# Load environment variables from .env
+if [ -f .env ]; then
+    export $(grep -v '^#' .env | xargs)
+fi
+
+# Echo current timestamp
+echo "Starting script at $(date)"
+
 # Include Bun
 export PATH=$PATH:/home/snublejuice/.bun/bin
 

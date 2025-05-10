@@ -4,6 +4,15 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+const log = (level, message) => {
+  console.log(`[${new Date().toISOString()}] [${level}] ${message}`);
+};
+
+const abort = (error) => {
+  log("ERROR", error.message || error);
+  process.exit(1);
+};
+
 const client = new MongoClient(
   `mongodb+srv://${process.env.MONGO_USR}:${process.env.MONGO_PWD}@snublejuice.faktu.mongodb.net/?retryWrites=true&w=majority&appName=snublejuice`,
   {
@@ -14,7 +23,13 @@ const client = new MongoClient(
     },
   },
 );
-await client.connect();
+
+try {
+  await client.connect();
+  log("INFO", "Connected to MongoDB.");
+} catch (error) {
+  abort(`Failed to connect to MongoDB: ${error.message}`);
+}
 
 const database = client.db("snublejuice");
 const itemCollection = database.collection("products");
@@ -74,19 +89,19 @@ async function processId(index, retry = false) {
       };
     }
 
-    console.log(`STATUS   | ${response.status}  | Item: ${index}.`);
+    log("INFO", `STATUS | ${response.status} | Item: ${index}.`);
   } catch (err) {
     if (retry) {
       return null;
     }
 
-    console.log(`ERROR    | Item: ${index} | Retrying. ${err}`);
+    log("WARN", `ERROR | Item: ${index} | Retrying. ${err.message}`);
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 5000));
       return processId(index, true);
     } catch (err) {
-      console.log(`ERROR    | Item: ${index} | Failed. ${err}`);
+      log("ERROR", `ERROR | Item: ${index} | Failed. ${err.message}`);
     }
   }
 }
@@ -108,7 +123,7 @@ async function updateStores(itemIds) {
   let current = 0;
   const total = itemIds.length;
 
-  console.log(`UPDATING | ${total} discounted items.`);
+  log("INFO", `UPDATING | ${total} discounted items.`);
 
   for (const element of itemIds) {
     const id = element["index"];
@@ -116,7 +131,7 @@ async function updateStores(itemIds) {
     try {
       let product = await processId(id);
       if (!product) {
-        console.log(`ERROR    | Item: ${id} | Aborting.`);
+        log("ERROR", `ERROR | Item: ${id} | Aborting.`);
         break;
       } else {
         items.push(product);
@@ -124,16 +139,16 @@ async function updateStores(itemIds) {
         await new Promise((resolve) => setTimeout(resolve, 1100));
       }
     } catch (err) {
-      console.log(`ERROR    | Item: ${id} | Aborting. | ${err}`);
+      log("ERROR", `ERROR | Item: ${id} | Aborting. | ${err.message}`);
       break;
     }
 
     // Upsert to the database every 10 items.
     if (items.length >= 10) {
-      console.log(`UPDATING | ${items.length} records.`);
+      log("INFO", `UPDATING | ${items.length} records.`);
       const result = await updateDatabase(items);
-      console.log(`         | Modified ${result.modifiedCount}.`);
-      console.log(`         | Upserted ${result.upsertedCount}.`);
+      log("INFO", `Modified ${result.modifiedCount} records.`);
+      log("INFO", `Upserted ${result.upsertedCount} records.`);
 
       items = [];
     }
@@ -141,7 +156,7 @@ async function updateStores(itemIds) {
     current++;
 
     if (current % 10 === 0) {
-      console.log(`UPDATING | Progress: ${Math.floor((current / total) * 100)} %`);
+      log("INFO", `Progress: ${Math.floor((current / total) * 100)} %`);
     }
   }
 
@@ -149,10 +164,10 @@ async function updateStores(itemIds) {
   if (items.length === 0) {
     return;
   }
-  console.log(`UPDATING | ${items.length} records.`);
+  log("INFO", `UPDATING | ${items.length} records.`);
   const result = await updateDatabase(items);
-  console.log(`         | Modified ${result.modifiedCount}.`);
-  console.log(`         | Upserted ${result.upsertedCount}.`);
+  log("INFO", `Modified ${result.modifiedCount} records.`);
+  log("INFO", `Upserted ${result.upsertedCount} records.`);
 }
 
 const session = axios.create();
@@ -176,6 +191,14 @@ async function main() {
   );
 }
 
-await main();
+try {
+  await main();
+  log("INFO", "Script completed successfully.");
+} catch (error) {
+  abort(`Script failed: ${error.message}`);
+} finally {
+  await client.close();
+  log("INFO", "MongoDB connection closed.");
+}
 
 client.close();

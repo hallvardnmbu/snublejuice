@@ -4,6 +4,15 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+const log = (level, message) => {
+  console.log(`[${new Date().toISOString()}] [${level}] ${message}`);
+};
+
+const abort = (error) => {
+  log("ERROR", error.message || error);
+  process.exit(1);
+};
+
 const client = new MongoClient(
   `mongodb+srv://${process.env.MONGO_USR}:${process.env.MONGO_PWD}@snublejuice.faktu.mongodb.net/?retryWrites=true&w=majority&appName=snublejuice`,
   {
@@ -14,7 +23,12 @@ const client = new MongoClient(
     },
   },
 );
-await client.connect();
+try {
+  await client.connect();
+  log("INFO", "Connected to MongoDB.");
+} catch (error) {
+  abort(`Failed to connect to MongoDB: ${error.message}`);
+}
 
 const database = client.db("snublejuice");
 const itemCollection = database.collection("products");
@@ -30,7 +44,9 @@ const IMAGE = {
 };
 
 function processImages(images) {
-  return images ? images.reduce((acc, img) => ({ ...acc, [img.format]: img.url }), {}) : IMAGE;
+  return images
+    ? images.reduce((acc, img) => ({ ...acc, [img.format]: img.url }), {})
+    : IMAGE;
 }
 
 function processProducts(products, alreadyUpdated) {
@@ -78,12 +94,19 @@ function processProducts(products, alreadyUpdated) {
       expired: product.expired || true,
       status: product.status || null,
 
-      orderable: product.productAvailability?.deliveryAvailability?.availableForPurchase || false,
+      orderable:
+        product.productAvailability?.deliveryAvailability
+          ?.availableForPurchase || false,
       orderinfo:
-        product.productAvailability?.deliveryAvailability?.infos?.[0]?.readableValue || null,
+        product.productAvailability?.deliveryAvailability?.infos?.[0]
+          ?.readableValue || null,
 
-      instores: product.productAvailability?.storesAvailability?.availableForPurchase || false,
-      storeinfo: product.productAvailability?.storesAvailability?.infos?.[0]?.readableValue || null,
+      instores:
+        product.productAvailability?.storesAvailability?.availableForPurchase ||
+        false,
+      storeinfo:
+        product.productAvailability?.storesAvailability?.infos?.[0]
+          ?.readableValue || null,
     });
   }
 
@@ -97,22 +120,25 @@ async function getPage(page, alreadyUpdated, retry = false) {
     });
 
     if (response.status === 200) {
-      return processProducts(response.data["productSearchResult"]["products"], alreadyUpdated);
+      return processProducts(
+        response.data["productSearchResult"]["products"],
+        alreadyUpdated,
+      );
     }
 
-    console.log(`STATUS   | ${response.status} | Page: ${page}.`);
+    log("WARN", `STATUS | ${response.status} | Page: ${page}.`);
   } catch (err) {
     if (retry) {
       return null;
     }
 
-    console.log(`ERROR    | Page: ${page} | Retrying. ${err}`);
+    log("ERROR", `Page: ${page} | Retrying. ${err.message}`);
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 5000));
       return getPage(page, alreadyUpdated, true);
     } catch (err) {
-      console.log(`ERROR    | Page: ${page} | Failed. ${err}`);
+      log("ERROR", `Page: ${page} | Failed. ${err.message}`);
     }
   }
 }
@@ -141,7 +167,10 @@ async function updateDatabase(data) {
                 then: {
                   $multiply: [
                     {
-                      $divide: [{ $subtract: ["$price", "$oldprice"] }, "$oldprice"],
+                      $divide: [
+                        { $subtract: ["$price", "$oldprice"] },
+                        "$oldprice",
+                      ],
                     },
                     100,
                   ],
@@ -209,7 +238,7 @@ async function getProducts(startPage = 0, alreadyUpdated = []) {
     try {
       let products = await getPage(page, alreadyUpdated);
       if (products.length === 0) {
-        console.log(`DONE      | Final page: ${page - 1}.`);
+        log("INFO", `DONE | Final page: ${page - 1}.`);
         break;
       }
 
@@ -229,14 +258,14 @@ async function getProducts(startPage = 0, alreadyUpdated = []) {
 
       current += items.length;
 
-      console.log(`UPDATING | ${items.length} records.`);
+      log("INFO", `UPDATING | ${items.length} records.`);
       const result = await updateDatabase(items);
-      console.log(`         | Modified ${result.modifiedCount}.`);
-      console.log(`         | Upserted ${result.upsertedCount}.`);
+      log("INFO", `Modified ${result.modifiedCount} records.`);
+      log("INFO", `Upserted ${result.upsertedCount} records.`);
 
       items = [];
 
-      console.log(`UPDATING | Progress: ${Math.floor((current / (total * 24)) * 100)} %`);
+      log("INFO", `Progress: ${Math.floor((current / (total * 24)) * 100)}%`);
     }
   }
 
@@ -255,30 +284,54 @@ async function syncUnupdatedProducts(threshold = null) {
     index: { $exists: true },
     updated: false,
   });
-  console.log(`NOT UPDATED | Items: ${unupdatedCount}`);
+  log("INFO", `NOT UPDATED | Items: ${unupdatedCount}`);
   if (threshold && unupdatedCount >= threshold) {
-    console.log(`ERROR    | Above threshold. | Aborting.`);
+    log(
+      "ERROR",
+      `Above threshold (${unupdatedCount} >= ${threshold}). Aborting.`,
+    );
     return;
   }
 
   try {
-    const result = await itemCollection.updateMany({ index: { $exists: true }, updated: false }, [
-      { $set: { oldprice: "$price" } },
-      { $set: { price: "$oldprice", discount: 0, literprice: 0, alcoholprice: null } },
-      { $set: { prices: { $ifNull: ["$prices", []] } } },
-      { $set: { prices: { $concatArrays: ["$prices", ["$price"]] } } },
-    ]);
+    const result = await itemCollection.updateMany(
+      { index: { $exists: true }, updated: false },
+      [
+        { $set: { oldprice: "$price" } },
+        {
+          $set: {
+            price: "$oldprice",
+            discount: 0,
+            literprice: 0,
+            alcoholprice: null,
+          },
+        },
+        { $set: { prices: { $ifNull: ["$prices", []] } } },
+        { $set: { prices: { $concatArrays: ["$prices", ["$price"]] } } },
+      ],
+    );
 
-    console.log(`MODIFIED ${result.modifiedCount} empty prices to unupdated products.`);
+    log(
+      "INFO",
+      `MODIFIED ${result.modifiedCount} empty prices to unupdated products.`,
+    );
   } catch (err) {
-    console.error(`ERROR    | Adding unupdated prices. | ${err}`);
+    log("ERROR", `Adding unupdated prices: ${err.message}`);
   }
 }
 
 const session = axios.create();
 
 async function main() {
-  await metaCollection.updateOne({ id: "stock" }, { $set: { "prices.vinmonopolet": false } });
+  try {
+    await metaCollection.updateOne(
+      { id: "stock" },
+      { $set: { "prices.vinmonopolet": false } },
+    );
+    log("INFO", "Set prices.vinmonopolet to false in metadata.");
+  } catch (error) {
+    abort(`Failed to update metadata: ${error.message}`);
+  }
 
   await itemCollection.updateMany({}, { $set: { updated: false } });
   const alreadyUpdated = await itemCollection
@@ -292,9 +345,22 @@ async function main() {
   // [!] ONLY RUN THIS AFTER ALL PRICES HAVE BEEN UPDATED [!]
   await syncUnupdatedProducts();
 
-  await metaCollection.updateOne({ id: "stock" }, { $set: { "prices.vinmonopolet": true } });
+  try {
+    await metaCollection.updateOne(
+      { id: "stock" },
+      { $set: { "prices.vinmonopolet": true } },
+    );
+    log("INFO", "Set prices.vinmonopolet to true in metadata.");
+  } catch (error) {
+    abort(`Failed to update metadata: ${error.message}`);
+  }
 }
 
 await main();
 
-client.close();
+try {
+  await client.close();
+  log("INFO", "MongoDB connection closed.");
+} catch (error) {
+  log("ERROR", `Failed to close MongoDB connection: ${error.message}`);
+}

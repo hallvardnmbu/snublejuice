@@ -2,12 +2,14 @@
 
 import os
 
+import argparse
+import numpy as np
+import pandas as pd
+
 import pymongo
 from pymongo.mongo_client import MongoClient
 from pymongo.results import BulkWriteResult
 
-import pandas as pd
-import numpy as np
 
 
 _DATABASE = MongoClient(
@@ -174,10 +176,32 @@ def delete_fields(records, fields) -> BulkWriteResult:
     return _DATABASE.bulk_write(operations)
 
 
-def restore(date):
+def restore(date: str | None = None):
+    # Check that a backed up version actually exists.
+    backup_dir = "./backups/backup/"
+    if not os.path.exists(backup_dir):
+        print("NO BACKUP DIRECTORY EXISTS")
+        return
+
+    if date is None:
+        # If no date is passed, the most recent backup is used.
+        backup_files = sorted(
+            [f for f in os.listdir(backup_dir) if f.endswith(".parquet")],
+            reverse=True
+        )
+        if not backup_files:
+            print("NO BACKUP FILES FOUND")
+            return
+        backup_file = backup_files[0]
+    else:
+        backup_file = f"{date}.parquet"
+        if not os.path.exists(os.path.join(backup_dir, backup_file)):
+            print(f"BACKUP FILE FOR DATE {date} DOES NOT EXIST")
+            return
+
     _DATABASE.delete_many({})
 
-    path = f"./backups/backup/{date}.parquet"
+    path = os.path.join(backup_dir, backup_file)
     df = pd.read_parquet(path)
 
     def _convert(obj):
@@ -277,13 +301,22 @@ def backup():
         and ("updated" in x or "count" in x)
         else x
     )
-    if not os.path.exists("./backup"):
-        path = f"./backups/backup/{pd.Timestamp.now().strftime('%Y-%m-%d')}.parquet"
-    else:
-        path = f"./backups/{pd.Timestamp.now().strftime('%Y-%m-%d')}.parquet"
+
+    os.makedirs("./backups/backup/", exist_ok=True)
+    path = f"./backups/backup/{pd.Timestamp.now().strftime('%Y-%m-%d')}.parquet"
+
     df.to_parquet(path)
     print("Saved backup to ", path)
 
 
-backup()
-# restore("2025-04-13")
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Run operations on the database.")
+    parser.add_argument("function", type=str, help="The function to run (backup or restore).")
+    parser.add_argument("--date", type=str, help="The date argument for the restore function (e.g., 2025-04-13).")
+
+    args = parser.parse_args()
+
+    if args.function == "backup":
+        backup()
+    elif args.function == "restore":
+        restore(args.date)

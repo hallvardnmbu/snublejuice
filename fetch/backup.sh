@@ -14,6 +14,9 @@ abort() {
 
 cd /home/snublejuice/Documents/snublejuice || abort "Failed to change directory to project root."
 
+# Include uv executable
+export PATH=$PATH:/home/snublejuice/.local/bin/uv
+
 # 1. Backing up database
 log "Backing up database"
 uv run backups/operations.py backup || abort "Something went wrong!"

@@ -9,7 +9,6 @@ log() {
 
 abort() {
     log "$1"
-    nordvpn disconnect
     exit 1
 }
 
@@ -26,5 +25,7 @@ chmod +x ./fetch/monthly.sh || abort "Failed to make monthly.sh executable."
 chmod +x ./fetch/stock.sh || abort "Failed to make stock.sh executable."
 chmod +x ./fetch/ratings.sh || abort "Failed to make ratings.sh executable."
 chmod +x ./fetch/update.sh || abort "Failed to make update.sh executable."
+chmod +x ./fetch/backup.sh || abort "Failed to make backup.sh executable."
+chmod +x ./fetch/restore.sh || abort "Failed to make restore.sh executable."
 
 log "Repository updated successfully."

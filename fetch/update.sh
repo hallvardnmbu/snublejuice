@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LOG_FILE="/home/snublejuice/Documents/logs/update-$(date +'%Y-%m-%d').log"
+LOG_FILE="/home/snublejuice/Documents/logs/update-$(date +'%Y-%m-%d_%H-%M-%S').log"
 
 log() {
     local message="$1"

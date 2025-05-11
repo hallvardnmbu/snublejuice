@@ -32,7 +32,7 @@ const itemCollection = database.collection("products");
 const metaCollection = database.collection("metadata");
 
 const URL =
-  "https://www.vinmonopolet.no/vmpws/v2/vmp/search?fields=FULL&searchType=product&q={}:relevance";
+  "https://www.vinmonopolet.no/vmpws/v2/vmp/products/search?fields=FULL&pageSize=1&currentPage=0&q={}%3Arelevance";
 
 async function processId(index, retry = false) {
   try {
@@ -40,21 +40,20 @@ async function processId(index, retry = false) {
       timeout: 10000,
     });
 
-    console.log(response);
-    console.log(response.data);
-    console.log(JSON.stringify(response.data));
-    process.exit(1);
-
     if (response.status === 200) {
-      const responseData = response.data.productSearchResult || {};
+      const responseData = response.data || {};
 
       const store = responseData.facets
         ? responseData.facets
-            .filter((element) => element.name.toLowerCase() === "butikker")
+            .filter((element) => element.code === "availableInStores")
             .map((element) => element.values || [])
         : [];
 
-      if (!responseData.products || responseData.products.length === 0) {
+      if (
+        !responseData.products ||
+        responseData.products.length === 0 ||
+        parseInt(responseData.products[0].code) !== index
+      ) {
         return {
           index: index,
           updated: false,
@@ -76,6 +75,7 @@ async function processId(index, retry = false) {
         updated: true,
 
         stores: store.flat().map((element) => element.name),
+        // TODO: Include `store.element.count`?
 
         status: product.status || null,
         buyable: product.buyable || false,
@@ -181,22 +181,35 @@ const session = axios.create();
 
 async function main() {
   // Reset stores prior to fetching new data.
-  // await itemCollection.updateMany(
-  //   { stores: { $exists: true } },
-  //   { $set: { stores: [] } },
-  // );
+  await itemCollection.updateMany(
+    { stores: { $exists: true } },
+    { $set: { stores: [] } },
+  );
+
+  // Set the limit to `-2.0` if the month is may 2025.
+  // This is to reduce the number of items that needs fetching.
+  // I.e., because the number of discounted items of may 2025 is +2000.
+  const date = new Date();
+  const limit =
+    date.getFullYear() === 2025 && date.getMonth() === 4 ? -2.0 : 0.0;
+
   // Fetch products with discount.
-  // const itemIds = await itemCollection
-  //   .find({ discount: { $lt: -2.0 } })
-  //   .project({ index: 1, _id: 0 })
-  //   .toArray();
-  // await updateStores(itemIds);
-  // // Store the time of the last update.
-  // await metaCollection.updateOne(
-  //   { id: "stock" },
-  //   { $set: { vinmonopolet: new Date() } },
-  //   { upsert: true },
-  // );
+  const itemIds = await itemCollection
+    .find({
+      discount: {
+        $lt: limit,
+      },
+    })
+    .project({ index: 1, _id: 0 })
+    .toArray();
+  await updateStores(itemIds);
+
+  // Store the time of the last update.
+  await metaCollection.updateOne(
+    { id: "stock" },
+    { $set: { vinmonopolet: new Date() } },
+    { upsert: true },
+  );
 }
 
 try {

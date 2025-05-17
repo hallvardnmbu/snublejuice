@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LOG_FILE="/home/snublejuice/Documents/logs/ratings-$(date +'%Y-%m-%d_%H-%M-%S').log"
+LOG_FILE="~/Documents/logs/ratings-$(date +'%Y-%m-%d_%H-%M-%S').log"
 
 log() {
     local message="$1"
@@ -13,8 +13,7 @@ abort() {
     exit 1
 }
 
-source ~/.profile
-cd /home/snublejuice/Documents/snublejuice || abort "Failed to change directory to project root."
+cd ~/Documents/snublejuice || abort "Failed to change directory to project root."
 
 # Load environment variables from .env
 if [ -f .env ]; then
@@ -22,7 +21,7 @@ if [ -f .env ]; then
 fi
 
 # Include bun executable
-export PATH=$PATH:/home/snublejuice/.bun/bin
+export PATH=$PATH:~/.bun/bin
 
 # 1. Connect to internet and ensure connection is established
 log "Connecting to internet"

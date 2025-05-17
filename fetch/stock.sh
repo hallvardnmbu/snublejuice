@@ -34,9 +34,9 @@ fi
 
 # 2. Run the scripts
 log "Updating stock"
-bun run ./fetch/vinmonopolet/detailed.mjs || abort "Failed to run fetch/vinmonopolet/detailed.mjs."
-bun run ./fetch/vinmonopolet/popular.mjs || abort "Failed to run fetch/vinmonopolet/popular.mjs."
-bun run ./fetch/taxfree/stock.mjs || abort "Failed to run fetch/taxfree/stock.mjs."
+bun run ./fetch/vinmonopolet/detailed.mjs >> "$LOG_FILE" 2>&1 || abort "Failed to run fetch/vinmonopolet/detailed.mjs."
+bun run ./fetch/vinmonopolet/popular.mjs >> "$LOG_FILE" 2>&1 || abort "Failed to run fetch/vinmonopolet/popular.mjs."
+bun run ./fetch/taxfree/stock.mjs >> "$LOG_FILE" 2>&1 || abort "Failed to run fetch/taxfree/stock.mjs."
 
 # 3. Disconnect from NordVPN
 log "Disconnecting from internet"

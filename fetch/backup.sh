@@ -16,6 +16,7 @@ cd /home/snublejuice/Documents/snublejuice || abort "Failed to change directory 
 
 # 1. Backing up database
 log "Backing up database"
-/home/snublejuice/.local/bin/uv run backups/operations.py backup || abort "Something went wrong!"
+/home/snublejuice/.local/bin/uv sync || abort "Unable to sync python environment."
+/home/snublejuice/.local/bin/uv run ./backups/operations.py backup >> "$LOG_FILE" 2>&1 || abort "Something went wrong!"
 
 log "Backup saved."

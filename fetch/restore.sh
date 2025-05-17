@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LOG_FILE="/home/snublejuice/Documents/logs/restore-$(date +'%Y-%m-%d_%H-%M-%S').log"
+LOG_FILE="~/Documents/logs/restore-$(date +'%Y-%m-%d_%H-%M-%S').log"
 
 log() {
     local message="$1"
@@ -12,9 +12,14 @@ abort() {
     exit 1
 }
 
-cd /home/snublejuice/Documents/snublejuice || abort "Failed to change directory to project root."
+cd ~/Documents/snublejuice || abort "Failed to change directory to project root."
 
-/home/snublejuice/.local/bin/uv sync || abort "Unable to sync python environment."
+# Load environment variables from .env
+if [ -f .env ]; then
+    export $(grep -v '^#' .env | xargs)
+fi
+
+~/.local/bin/uv sync || abort "Unable to sync python environment."
 
 # 1. Restoring database
 log "Restoring database"
@@ -25,10 +30,10 @@ if [ -n "$1" ]; then
     fi
 
     log "Running backup with input."
-    # /home/snublejuice/.local/bin/uv run backups/operations.py restore --date "$1" >> "$LOG_FILE" 2>&1 || abort "Something went wrong!"
+    # ~/.local/bin/uv run backups/operations.py restore --date "$1" >> "$LOG_FILE" 2>&1 || abort "Something went wrong!"
 else
     log "Running backup without input."
-    # /home/snublejuice/.local/bin/uv run backups/operations.py restore >> "$LOG_FILE" 2>&1 || abort "Something went wrong!"
+    # ~/.local/bin/uv run backups/operations.py restore >> "$LOG_FILE" 2>&1 || abort "Something went wrong!"
 fi
 
 log "Backup saved."

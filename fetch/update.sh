@@ -16,8 +16,8 @@ cd /home/snublejuice/Documents/snublejuice || abort "Failed to change directory 
 
 # 1. Version control
 log "Updating codebase wrt. remote changes"
-git reset --hard HEAD  2>&1 | while IFS= read -r line; do log "$line"; done || abort "Failed to reset git repository."
-git pull  2>&1 | while IFS= read -r line; do log "$line"; done || abort "Failed to pull latest changes from git repository."
+git reset --hard HEAD 2>&1 | while IFS= read -r line; do log "$line"; done || abort "Failed to reset git repository."
+git pull 2>&1 | while IFS= read -r line; do log "$line"; done || abort "Failed to pull latest changes from git repository."
 
 # 2. Make the scripts executable
 log "Making scripts executable"

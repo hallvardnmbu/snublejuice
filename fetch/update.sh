@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LOG_FILE="~/Documents/logs/update-$(date +'%Y-%m-%d_%H-%M-%S').log"
+LOG_FILE="/home/snublejuice/Documents/logs/update-$(date +'%Y-%m-%d_%H-%M-%S').log"
 
 log() {
     local message="$1"
@@ -12,7 +12,7 @@ abort() {
     exit 1
 }
 
-cd ~/Documents/snublejuice || abort "Failed to change directory to project root."
+cd /home/snublejuice/Documents/snublejuice || abort "Failed to change directory to project root."
 
 # 1. Version control
 log "Updating codebase wrt. remote changes"

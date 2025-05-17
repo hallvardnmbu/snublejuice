@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LOG_FILE="~/Documents/logs/backup-$(date +'%Y-%m-%d_%H-%M-%S').log"
+LOG_FILE="/home/snublejuice/Documents/logs/backup-$(date +'%Y-%m-%d_%H-%M-%S').log"
 
 log() {
     local message="$1"
@@ -12,7 +12,7 @@ abort() {
     exit 1
 }
 
-cd ~/Documents/snublejuice || abort "Failed to change directory to project root."
+cd /home/snublejuice/Documents/snublejuice || abort "Failed to change directory to project root."
 
 # Load environment variables from .env
 if [ -f .env ]; then
@@ -21,7 +21,7 @@ fi
 
 # 1. Backing up database
 log "Backing up database"
-~/.local/bin/uv sync || abort "Unable to sync python environment."
-~/.local/bin/uv run ./backups/operations.py backup >> "$LOG_FILE" 2>&1 || abort "Something went wrong!"
+/home/snublejuice/.local/bin/uv sync || abort "Unable to sync python environment."
+/home/snublejuice/.local/bin/uv run ./backups/operations.py backup >> "$LOG_FILE" 2>&1 || abort "Something went wrong!"
 
 log "Backup saved."

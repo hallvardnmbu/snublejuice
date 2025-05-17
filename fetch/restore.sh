@@ -4,7 +4,13 @@ LOG_FILE="/home/snublejuice/Documents/logs/restore-$(date +'%Y-%m-%d_%H-%M-%S').
 
 log() {
     local message="$1"
-    echo "$(date +'%Y-%m-%d %H:%M:%S') [?] $message" | tee -a "$LOG_FILE"
+    local level="${2:-1}"
+
+    if [ "$level" = "0" ]; then
+        echo "$(date +'%Y-%m-%d %H:%M:%S')     $message" | tee -a "$LOG_FILE"
+    else
+        echo "$(date +'%Y-%m-%d %H:%M:%S') [?] $message" | tee -a "$LOG_FILE"
+    fi
 }
 
 abort() {
@@ -30,10 +36,10 @@ if [ -n "$1" ]; then
     fi
 
     log "Running backup with input."
-    # /home/snublejuice/.local/bin/uv run backups/operations.py restore --date "$1" >> "$LOG_FILE" 2>&1 || abort "Something went wrong!"
+    # /home/snublejuice/.local/bin/uv run backups/operations.py restore --date "$1" 2>&1 | while IFS= read -r line; do log "$line" 0; done || abort "Something went wrong!"
 else
     log "Running backup without input."
-    # /home/snublejuice/.local/bin/uv run backups/operations.py restore >> "$LOG_FILE" 2>&1 || abort "Something went wrong!"
+    # /home/snublejuice/.local/bin/uv run backups/operations.py restore 2>&1 | while IFS= read -r line; do log "$line" 0; done || abort "Something went wrong!"
 fi
 
 log "Backup saved."

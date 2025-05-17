@@ -4,7 +4,13 @@ LOG_FILE="/home/snublejuice/Documents/logs/ratings-$(date +'%Y-%m-%d_%H-%M-%S').
 
 log() {
     local message="$1"
-    echo "$(date +'%Y-%m-%d %H:%M:%S') [?] $message" | tee -a "$LOG_FILE"
+    local level="${2:-1}"
+
+    if [ "$level" = "0" ]; then
+        echo "$(date +'%Y-%m-%d %H:%M:%S')     $message" | tee -a "$LOG_FILE"
+    else
+        echo "$(date +'%Y-%m-%d %H:%M:%S') [?] $message" | tee -a "$LOG_FILE"
+    fi
 }
 
 abort() {
@@ -33,7 +39,7 @@ fi
 
 # 2. Run the script
 log "Updating ratings"
-bun run ./fetch/vivino/rating.mjs >> "$LOG_FILE" 2>&1 || abort "Failed to update ratings"
+bun run ./fetch/vivino/rating.mjs 2>&1 | while IFS= read -r line; do log "$line" 0; done || abort "Failed to update ratings"
 
 # 3. Disconnect from NordVPN
 log "Disconnecting from internet"

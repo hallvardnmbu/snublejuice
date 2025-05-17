@@ -4,7 +4,13 @@ LOG_FILE="/home/snublejuice/Documents/logs/update-$(date +'%Y-%m-%d_%H-%M-%S').l
 
 log() {
     local message="$1"
-    echo "$(date +'%Y-%m-%d %H:%M:%S') [?] $message" | tee -a "$LOG_FILE"
+    local level="${2:-1}"
+
+    if [ "$level" = "0" ]; then
+        echo "$(date +'%Y-%m-%d %H:%M:%S')     $message" | tee -a "$LOG_FILE"
+    else
+        echo "$(date +'%Y-%m-%d %H:%M:%S') [?] $message" | tee -a "$LOG_FILE"
+    fi
 }
 
 abort() {
@@ -16,8 +22,8 @@ cd /home/snublejuice/Documents/snublejuice || abort "Failed to change directory 
 
 # 1. Version control
 log "Updating codebase wrt. remote changes"
-git reset --hard HEAD 2>&1 | while IFS= read -r line; do log "$line"; done || abort "Failed to reset git repository."
-git pull 2>&1 | while IFS= read -r line; do log "$line"; done || abort "Failed to pull latest changes from git repository."
+git reset --hard HEAD 2>&1 | while IFS= read -r line; do log "$line" 0; done || abort "Failed to reset git repository."
+git pull 2>&1 | while IFS= read -r line; do log "$line" 0; done || abort "Failed to pull latest changes from git repository."
 
 # 2. Make the scripts executable
 log "Making scripts executable"

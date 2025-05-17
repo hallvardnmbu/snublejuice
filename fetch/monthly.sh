@@ -4,7 +4,13 @@ LOG_FILE="/home/snublejuice/Documents/logs/monthly-$(date +'%Y-%m-%d_%H-%M-%S').
 
 log() {
     local message="$1"
-    echo "$(date +'%Y-%m-%d %H:%M:%S') [?] $message" | tee -a "$LOG_FILE"
+    local level="${2:-1}"
+
+    if [ "$level" = "0" ]; then
+        echo "$(date +'%Y-%m-%d %H:%M:%S')     $message" | tee -a "$LOG_FILE"
+    else
+        echo "$(date +'%Y-%m-%d %H:%M:%S') [?] $message" | tee -a "$LOG_FILE"
+    fi
 }
 
 abort() {
@@ -33,18 +39,18 @@ fi
 
 # 2. Update prices
 log "Updating prices"
-bun run ./fetch/vinmonopolet/price.mjs >> "$LOG_FILE" 2>&1 || abort "Failed to run fetch/vinmonopolet/price.mjs"
-bun run ./fetch/taxfree/price.mjs >> "$LOG_FILE" 2>&1 || abort "Failed to run fetch/taxfree/price.mjs"
+bun run ./fetch/vinmonopolet/price.mjs 2>&1 | while IFS= read -r line; do log "$line" 0; done || abort "Failed to run fetch/vinmonopolet/price.mjs"
+bun run ./fetch/taxfree/price.mjs 2>&1 | while IFS= read -r line; do log "$line" 0; done || abort "Failed to run fetch/taxfree/price.mjs"
 
 # 3. Update stock
 log "Updating stock"
-bun run ./fetch/vinmonopolet/detailed.mjs >> "$LOG_FILE" 2>&1 || abort "Failed to run fetch/vinmonopolet/detailed.mjs."
-bun run ./fetch/vinmonopolet/popular.mjs >> "$LOG_FILE" 2>&1 || abort "Failed to run fetch/vinmonopolet/popular.mjs."
-bun run ./fetch/taxfree/stock.mjs >> "$LOG_FILE" 2>&1 || abort "Failed to run fetch/taxfree/stock.mjs."
+bun run ./fetch/vinmonopolet/detailed.mjs 2>&1 | while IFS= read -r line; do log "$line" 0; done || abort "Failed to run fetch/vinmonopolet/detailed.mjs."
+bun run ./fetch/vinmonopolet/popular.mjs 2>&1 | while IFS= read -r line; do log "$line" 0; done || abort "Failed to run fetch/vinmonopolet/popular.mjs."
+bun run ./fetch/taxfree/stock.mjs 2>&1 | while IFS= read -r line; do log "$line" 0; done || abort "Failed to run fetch/taxfree/stock.mjs."
 
 # 4. Send mails to subscribers
 log "Mailing subscribers"
-bun run ./fetch/email.mjs >> "$LOG_FILE" 2>&1 || abort "Failed to run fetch/email.mjs"
+bun run ./fetch/email.mjs 2>&1 | while IFS= read -r line; do log "$line" 0; done || abort "Failed to run fetch/email.mjs"
 
 # 3. Disconnect from NordVPN
 log "Disconnecting from internet"

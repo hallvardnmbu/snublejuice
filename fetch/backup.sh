@@ -4,7 +4,13 @@ LOG_FILE="/home/snublejuice/Documents/logs/backup-$(date +'%Y-%m-%d_%H-%M-%S').l
 
 log() {
     local message="$1"
-    echo "$(date +'%Y-%m-%d %H:%M:%S') [?] $message" | tee -a "$LOG_FILE"
+    local level="${2:-1}"
+
+    if [ "$level" = "0" ]; then
+        echo "$(date +'%Y-%m-%d %H:%M:%S')     $message" | tee -a "$LOG_FILE"
+    else
+        echo "$(date +'%Y-%m-%d %H:%M:%S') [?] $message" | tee -a "$LOG_FILE"
+    fi
 }
 
 abort() {
@@ -22,6 +28,6 @@ fi
 # 1. Backing up database
 log "Backing up database"
 /home/snublejuice/.local/bin/uv sync || abort "Unable to sync python environment."
-/home/snublejuice/.local/bin/uv run ./backups/operations.py backup >> "$LOG_FILE" 2>&1 || abort "Something went wrong!"
+/home/snublejuice/.local/bin/uv run ./backups/operations.py backup 2>&1 | while IFS= read -r line; do log "$line" 0; done || abort "Something went wrong!"
 
 log "Backup saved."

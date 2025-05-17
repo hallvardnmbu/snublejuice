@@ -34,7 +34,7 @@ fi
 
 # 2. Run the script
 log "Updating ratings"
-bun run ./fetch/vivino/rating.mjs || abort "Failed to update ratings"
+bun run ./fetch/vivino/rating.mjs >> "$LOG_FILE" 2>&1 || abort "Failed to update ratings"
 
 # 3. Disconnect from NordVPN
 log "Disconnecting from internet"

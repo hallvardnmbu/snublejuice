@@ -34,18 +34,18 @@ fi
 
 # 2. Update prices
 log "Updating prices"
-bun run ./fetch/vinmonopolet/price.mjs || abort "Failed to run fetch/vinmonopolet/price.mjs"
-bun run ./fetch/taxfree/price.mjs || abort "Failed to run fetch/taxfree/price.mjs"
+bun run ./fetch/vinmonopolet/price.mjs >> "$LOG_FILE" 2>&1 || abort "Failed to run fetch/vinmonopolet/price.mjs"
+bun run ./fetch/taxfree/price.mjs >> "$LOG_FILE" 2>&1 || abort "Failed to run fetch/taxfree/price.mjs"
 
 # 3. Update stock
 log "Updating stock"
-bun run ./fetch/vinmonopolet/detailed.mjs || abort "Failed to run fetch/vinmonopolet/detailed.mjs."
-bun run ./fetch/vinmonopolet/popular.mjs || abort "Failed to run fetch/vinmonopolet/popular.mjs."
-bun run ./fetch/taxfree/stock.mjs || abort "Failed to run fetch/taxfree/stock.mjs."
+bun run ./fetch/vinmonopolet/detailed.mjs >> "$LOG_FILE" 2>&1 || abort "Failed to run fetch/vinmonopolet/detailed.mjs."
+bun run ./fetch/vinmonopolet/popular.mjs >> "$LOG_FILE" 2>&1 || abort "Failed to run fetch/vinmonopolet/popular.mjs."
+bun run ./fetch/taxfree/stock.mjs >> "$LOG_FILE" 2>&1 || abort "Failed to run fetch/taxfree/stock.mjs."
 
 # 4. Send mails to subscribers
 log "Mailing subscribers"
-bun run ./fetch/email.mjs || abort "Failed to run fetch/email.mjs"
+bun run ./fetch/email.mjs >> "$LOG_FILE" 2>&1 || abort "Failed to run fetch/email.mjs"
 
 # 3. Disconnect from NordVPN
 log "Disconnecting from internet"

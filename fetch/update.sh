@@ -16,8 +16,8 @@ cd ~/Documents/snublejuice || abort "Failed to change directory to project root.
 
 # 1. Version control
 log "Updating codebase wrt. remote changes"
-git reset --hard HEAD || abort "Failed to reset git repository."
-git pull || abort "Failed to pull latest changes from git repository."
+git reset --hard HEAD >> "$LOG_FILE" 2>&1 || abort "Failed to reset git repository."
+git pull >> "$LOG_FILE" 2>&1 || abort "Failed to pull latest changes from git repository."
 
 # 2. Make the scripts executable
 log "Making scripts executable"

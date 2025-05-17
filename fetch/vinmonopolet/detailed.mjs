@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const log = (level, message) => {
-  console.log(`[${new Date().toISOString()}] [vmp det] [${level}] ${message}`);
+  console.log(`[vmp det] [${level}] ${message}`);
 };
 
 log("?", "Connecting to database.");
@@ -354,10 +354,11 @@ async function main() {
   const items = await itemCollection.distinct("index");
   await getNewProducts(items);
 
-  const itemIds = await itemCollection
+  let itemIds = await itemCollection
     .find({ index: { $exists: true }, description: null })
     .project({ index: 1, _id: 0 })
     .toArray();
+  itemIds = itemIds.filter((item) => !isNaN(item.index));
   await updateInformation(itemIds);
 }
 

@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const log = (level, message) => {
-  console.log(`[${new Date().toISOString()}] [tax sto] [${level}] ${message}`);
+  console.log(`[tax sto] [${level}] ${message}`);
 };
 
 const client = new MongoClient(

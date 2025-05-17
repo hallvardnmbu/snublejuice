@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const log = (level, message) => {
-  console.log(`[${new Date().toISOString()}] [viv rat] [${level}] ${message}`);
+  console.log(`[viv rat] [${level}] ${message}`);
 };
 
 log("?", "Starting Vivino rating script.");

@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const log = (level, message) => {
-  console.log(`[vmp pri] [${level}] ${message}`);
+  console.log(`${level} [vmp-price] ${message}`);
 };
 
 const client = new MongoClient(

@@ -7,9 +7,9 @@ log() {
     local level="${2:-1}"
 
     if [ "$level" = "0" ]; then
-        echo "$(date +'%Y-%m-%d %H:%M:%S')     $message" | tee -a "$LOG_FILE"
+        echo "$(date +'%Y-%m-%d %H:%M:%S')   $message" | tee -a "$LOG_FILE"
     else
-        echo "$(date +'%Y-%m-%d %H:%M:%S') [?] $message" | tee -a "$LOG_FILE"
+        echo "$(date +'%Y-%m-%d %H:%M:%S') ? $message" | tee -a "$LOG_FILE"
     fi
 }
 

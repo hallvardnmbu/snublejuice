@@ -448,3 +448,5 @@ try {
   await client.close();
   log("?", "Database connection closed.");
 }
+
+process.exit(1);

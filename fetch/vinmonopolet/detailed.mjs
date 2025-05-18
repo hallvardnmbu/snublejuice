@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const log = (level, message) => {
-  console.log(`[vmp det] [${level}] ${message}`);
+  console.log(`${level} [vmp-detailed] ${message}`);
 };
 
 log("?", "Connecting to database.");

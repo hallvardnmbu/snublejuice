@@ -223,4 +223,4 @@ try {
   log("?", "Database connection closed.");
 }
 
-client.close();
+process.exit(1);

@@ -358,3 +358,5 @@ try {
 } catch (error) {
   log("!", `Failed to close database connection: ${error.message}`);
 }
+
+process.exit(1);

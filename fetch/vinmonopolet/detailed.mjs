@@ -371,3 +371,5 @@ try {
   log("?", "Closing database connection.");
   await client.close();
 }
+
+process.exit(1);

@@ -105,7 +105,7 @@ async function processId(index, retry = false) {
     log("!", `Item ${index}. Retrying. ${err.message}`);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 15000));
       return processId(index, true);
     } catch (err) {
       log("!", `Item ${index} failed. ${err.message}`);

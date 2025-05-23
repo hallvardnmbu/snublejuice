@@ -15,7 +15,6 @@ log() {
 
 abort() {
     log "$1"
-    nordvpn disconnect
     exit 1
 }
 
@@ -40,9 +39,5 @@ fi
 # 2. Run the script
 log "Updating ratings"
 bun run ./fetch/vivino/rating.mjs 2>&1 | while IFS= read -r line; do log "$line" 0; done || abort "Failed to update ratings"
-
-# 3. Disconnect from NordVPN
-log "Disconnecting from internet"
-nordvpn disconnect || abort "Failed to disconnect from VPN."
 
 log "Script completed successfully."

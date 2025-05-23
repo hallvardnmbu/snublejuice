@@ -15,7 +15,6 @@ log() {
 
 abort() {
     log "$1"
-    nordvpn disconnect
     exit 1
 }
 
@@ -51,9 +50,5 @@ bun run ./fetch/taxfree/stock.mjs 2>&1 | while IFS= read -r line; do log "$line"
 # 4. Send mails to subscribers
 log "Mailing subscribers"
 bun run ./fetch/email.mjs 2>&1 | while IFS= read -r line; do log "$line" 0; done || abort "Failed to run fetch/email.mjs"
-
-# 3. Disconnect from NordVPN
-log "Disconnecting from internet"
-nordvpn disconnect || abort "Failed to disconnect from VPN."
 
 log "Script completed successfully."

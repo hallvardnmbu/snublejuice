@@ -15,7 +15,6 @@ log() {
 
 abort() {
     log "$1"
-    nordvpn disconnect
     exit 1
 }
 
@@ -42,9 +41,5 @@ log "Updating stock"
 bun run ./fetch/vinmonopolet/detailed.mjs 2>&1 | while IFS= read -r line; do log "$line" 0; done || abort "Failed to run fetch/vinmonopolet/detailed.mjs."
 bun run ./fetch/vinmonopolet/popular.mjs 2>&1 | while IFS= read -r line; do log "$line" 0; done || abort "Failed to run fetch/vinmonopolet/popular.mjs."
 bun run ./fetch/taxfree/stock.mjs 2>&1 | while IFS= read -r line; do log "$line" 0; done || abort "Failed to run fetch/taxfree/stock.mjs."
-
-# 3. Disconnect from NordVPN
-log "Disconnecting from internet"
-nordvpn disconnect || abort "Failed to disconnect from VPN."
 
 log "Script completed successfully."

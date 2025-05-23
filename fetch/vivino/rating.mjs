@@ -4,7 +4,9 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const log = (level, message) => {
-  console.log(`${level} [vivino-ratings] ${message}`);
+  console.log(
+    `${new Date().toISOString()} ${level} [vivino-ratings] ${message}`,
+  );
 };
 
 log("?", "Starting Vivino rating script.");
@@ -192,7 +194,7 @@ async function processStoredResults() {
       const storedProducts = JSON.parse(item.rating.response);
       const match = findBestMatch(item, storedProducts);
 
-      if (match && match.score > 0.6) {
+      if (match) {
         const processed_item = {
           index: item.index,
           rating: {
@@ -244,7 +246,7 @@ async function searchRatings(items) {
     // Try to find best match using improved algorithm
     const match = findBestMatch(target, products);
 
-    if (match && match.score > 0.7) {
+    if (match) {
       return {
         index: target.index,
         rating: {
@@ -259,7 +261,7 @@ async function searchRatings(items) {
       };
     }
 
-    // Store top 3 results for later processing
+    // Store top 3 results for later processing if not matched
     return {
       index: target.index,
       rating: {
@@ -452,7 +454,11 @@ async function getWorkItems() {
     .find({
       index: { $exists: true, $ne: null },
       name: { $exists: true },
-      $or: [{ rating: null }, { rating: { $exists: false } }],
+      $or: [
+        { rating: null },
+        { rating: { $exists: false } },
+        { $and: [{ rating: { $exists: true } }, { "rating.value": null }] },
+      ],
       category: {
         $in: [
           "Rødvin",

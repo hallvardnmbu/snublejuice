@@ -2,12 +2,14 @@
 
 import os
 
+import argparse
+import numpy as np
+import pandas as pd
+
 import pymongo
 from pymongo.mongo_client import MongoClient
 from pymongo.results import BulkWriteResult
 
-import pandas as pd
-import numpy as np
 
 
 _DATABASE = MongoClient(
@@ -174,15 +176,52 @@ def delete_fields(records, fields) -> BulkWriteResult:
     return _DATABASE.bulk_write(operations)
 
 
-def restore(date):
+def restore(date: str | None = None):
+    # Check that a backed up version actually exists.
+    backup_dir = "./backups/backup/"
+    if not os.path.exists(backup_dir):
+        print("NO BACKUP DIRECTORY EXISTS")
+        return
+
+    if date is None:
+        # If no date is passed, the most recent backup is used.
+        backup_files = sorted(
+            [f for f in os.listdir(backup_dir) if f.endswith(".parquet")],
+            reverse=True
+        )
+        if not backup_files:
+            print("NO BACKUP FILES FOUND")
+            return
+        backup_file = backup_files[0]
+    else:
+        backup_file = f"{date}.parquet"
+        if not os.path.exists(os.path.join(backup_dir, backup_file)):
+            print(f"BACKUP FILE FOR DATE {date} DOES NOT EXIST")
+            return
+
     _DATABASE.delete_many({})
 
-    if not os.path.exists("./backups"):
-        path = f"./backups/backup/{date}.parquet"
-    else:
-        path = f"./backups/{date}.parquet"
-
+    path = os.path.join(backup_dir, backup_file)
     df = pd.read_parquet(path)
+
+    def _convert(obj):
+        """Recursively convert numpy arrays to lists in nested structures."""
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        elif isinstance(obj, dict):
+            return {k: _convert(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [_convert(item) for item in obj]
+        elif isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.bool_):
+            return bool(obj)
+        elif isinstance(obj, np.str_):
+            return str(obj)
+        else:
+            return obj
 
     # Convert numpy types to python types
     for column in df.columns:
@@ -195,15 +234,19 @@ def restore(date):
         elif pd.api.types.is_string_dtype(df[column]):
             df[column] = df[column].astype(str)
         elif pd.api.types.is_object_dtype(df[column]):
-            try:
-                df[column] = df[column].apply(lambda x: x.tolist() if isinstance(x, np.ndarray) else x)
-            except AttributeError:
-                pass
+            df[column] = df[column].apply(_convert)
         elif pd.api.types.is_datetime64_any_dtype(df[column]):
             df[column] = df[column].dt.to_pydatetime()
 
     records = df.to_dict(orient='records')
-    _DATABASE.insert_many(records)
+
+    START = 0
+    BATCH_SIZE = 1000
+    exists = list(_DATABASE.distinct("index"))
+    records = [record for record in records if record["index"] not in exists]
+    for batch in range(START, len(records), BATCH_SIZE):
+        print(f"Inserting batch {batch} to {batch+BATCH_SIZE} of {len(records)}")
+        _DATABASE.insert_many(records[batch:batch+BATCH_SIZE], ordered=False, bypass_document_validation=True)
 
 
 def scan_and_update_products():
@@ -216,17 +259,64 @@ def scan_and_update_products():
         )
 
 
+def set_date_type():
+    data = _DATABASE.find({"rating": {"$ne": None}, "rating.updated": {"$exists": True, "$ne": None}}, {"_id": 0})
+
+    operations = []
+    for item in data:
+        if "updated" not in item["rating"]:
+            continue
+        if not item["rating"]["updated"] or item["rating"]["updated"] in ["", None, "None"]:
+            continue
+
+        operations.append(
+            pymongo.UpdateOne(
+                {'index': item['index']},
+                {
+                    "$set": {
+                        "rating.updated": pd.Timestamp(item["rating"]["updated"])
+                    }
+                }
+            )
+        )
+
+    print("Updating", len(operations))
+    return _DATABASE.bulk_write(operations)
+
+
 def backup():
     data = _DATABASE.find({})
     df = pd.DataFrame(data)
     df = df.drop(columns=["_id"])
-    df["year"] = df["year"].apply(lambda x: int(float(x)) if x not in ("None", None, "") and pd.notna(x) else None)
-    if not os.path.exists("./backups"):
-        path = f"./backups/backup/{pd.Timestamp.now().strftime('%Y-%m-%d')}.parquet"
-    else:
-        path = f"./backups/{pd.Timestamp.now().strftime('%Y-%m-%d')}.parquet"
+    df["year"] = df["year"].apply(
+        lambda x: int(float(x))
+        if x not in ("None", None, "")
+        and pd.notna(x)
+        else None
+    )
+    df["rating"] = df["rating"].apply(
+        lambda x: {**x, "updated": str(x.get("updated", "")), "count": str(x.get("count", ""))}
+        if x not in ("None", None, "")
+        and pd.notna(x)
+        and ("updated" in x or "count" in x)
+        else x
+    )
+
+    os.makedirs("./backups/backup/", exist_ok=True)
+    path = f"./backups/backup/{pd.Timestamp.now().strftime('%Y-%m-%d')}.parquet"
+
     df.to_parquet(path)
     print("Saved backup to ", path)
 
 
-backup()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Run operations on the database.")
+    parser.add_argument("function", type=str, help="The function to run (backup or restore).")
+    parser.add_argument("--date", type=str, help="The date argument for the restore function (e.g., 2025-04-13).")
+
+    args = parser.parse_args()
+
+    if args.function == "backup":
+        backup()
+    elif args.function == "restore":
+        restore(args.date)

@@ -3,6 +3,10 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+const log = (level, message) => {
+  console.log(`${level} [tax-price] ${message}`);
+};
+
 const client = new MongoClient(
   `mongodb+srv://${process.env.MONGO_USR}:${process.env.MONGO_PWD}@snublejuice.faktu.mongodb.net/?retryWrites=true&w=majority&appName=snublejuice`,
   {
@@ -19,7 +23,7 @@ const database = client.db("snublejuice");
 const itemCollection = database.collection("products");
 const metaCollection = database.collection("metadata");
 
-const URL = JSON.parse(process.env.TAXFREE);
+const URL = JSON.parse(String(process.env.TAXFREE));
 
 const STORES = {
   5135: "Stavanger, Avgang & Ankomst",
@@ -56,18 +60,23 @@ function processImages(images) {
   if (!images) return IMAGE;
 
   return Object.fromEntries(
-    Object.entries(images).map(([format, urlEnd]) => [format, `${LINKS.image}${urlEnd}`]),
+    Object.entries(images).map(([format, urlEnd]) => [
+      format,
+      `${LINKS.image}${urlEnd}`,
+    ]),
   );
 }
 
 function processCategories(category, subcategory) {
   if (!category) return { category: category, subcategory: subcategory };
 
-  if (category in CATEGORIES) return { category: category, subcategory: subcategory };
+  if (category in CATEGORIES)
+    return { category: category, subcategory: subcategory };
 
   return {
     category: category,
-    subcategory: subcategory in SUBCATEGORIES ? SUBCATEGORIES[subcategory] : subcategory,
+    subcategory:
+      subcategory in SUBCATEGORIES ? SUBCATEGORIES[subcategory] : subcategory,
   };
 }
 
@@ -113,10 +122,12 @@ function processProducts(products, alreadyUpdated) {
           product.categoriesLevel1?.no?.at(0).split(" > ").at(-1) || null,
           product.categoriesLevel2?.no?.at(0).split(" > ").at(-1) || null,
         ),
-        subsubcategory: product.categoriesLevel3?.no?.at(0).split(" > ").at(-1) || null,
+        subsubcategory:
+          product.categoriesLevel3?.no?.at(0).split(" > ").at(-1) || null,
 
         country: product.country?.no || null,
-        district: product.region?.no || product.wineGrowingAhreaDetail?.no || null,
+        district:
+          product.region?.no || product.wineGrowingAhreaDetail?.no || null,
         subdistrict: product.wineGrowingAhreaDetail?.no || null,
 
         taste: {
@@ -164,28 +175,35 @@ async function getPage(order, alreadyUpdated, retry = false) {
 
     if (response.status === 200) {
       const data = await response.json();
-      return processProducts(data.results[0].hits, alreadyUpdated);
+      return processProducts(
+        data.results.reduce((acc, curr) => acc.concat(curr.hits), []),
+        alreadyUpdated,
+      );
     }
 
-    console.log(`STATUS   | ${response.status} | Order: ${order}.`);
+    log("?", `Status code ${response.status} received for order ${order}.`);
   } catch (err) {
     if (retry) {
       return [];
     }
 
-    console.log(`ERROR    | Order: ${order} | Retrying. ${err}`);
+    log(
+      "!",
+      `Error while processing order ${order}. Retrying. Details: ${err}`,
+    );
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 5000));
       return getPage(order, alreadyUpdated, true);
     } catch (err) {
-      console.log(`ERROR    | Order: ${order} | Failed. ${err}`);
+      log("!", `Failed to process order ${order}. Details: ${err}`);
     }
   }
 }
 
 async function existingMatch(record) {
-  const designations = record.taxfree.name.match(/V\.S\.O\.P\.|V\.S\.|X\.O\./gi) || [];
+  const designations =
+    record.taxfree.name.match(/V\.S\.O\.P\.|V\.S\.|X\.O\./gi) || [];
 
   record.taxfree.name = record.taxfree.name
     // Remove volume measurements, case insensitive:
@@ -336,10 +354,14 @@ async function updateDatabase(data, existing = []) {
             { $set: { "taxfree.oldprice": "$taxfree.price" } },
             { $set: { taxfree: record.taxfree } },
             { $set: { "taxfree.score": vinmonoopolet.score } },
-            { $set: { "taxfree.prices": { $ifNull: ["$taxfree.prices", []] } } },
+            {
+              $set: { "taxfree.prices": { $ifNull: ["$taxfree.prices", []] } },
+            },
             {
               $set: {
-                "taxfree.prices": { $concatArrays: ["$taxfree.prices", ["$taxfree.price"]] },
+                "taxfree.prices": {
+                  $concatArrays: ["$taxfree.prices", ["$taxfree.price"]],
+                },
               },
             },
             {
@@ -357,7 +379,10 @@ async function updateDatabase(data, existing = []) {
                     then: {
                       $multiply: [
                         {
-                          $divide: [{ $subtract: ["$taxfree.price", "$price"] }, "$price"],
+                          $divide: [
+                            { $subtract: ["$taxfree.price", "$price"] },
+                            "$price",
+                          ],
                         },
                         100,
                       ],
@@ -386,10 +411,14 @@ async function updateDatabase(data, existing = []) {
                   : {},
             },
             { $set: { taxfree: record.taxfree } },
-            { $set: { "taxfree.prices": { $ifNull: ["$taxfree.prices", []] } } },
+            {
+              $set: { "taxfree.prices": { $ifNull: ["$taxfree.prices", []] } },
+            },
             {
               $set: {
-                "taxfree.prices": { $concatArrays: ["$taxfree.prices", ["$taxfree.price"]] },
+                "taxfree.prices": {
+                  $concatArrays: ["$taxfree.prices", ["$taxfree.price"]],
+                },
               },
             },
           ],
@@ -399,7 +428,10 @@ async function updateDatabase(data, existing = []) {
     }
   }
 
-  console.log(`MATCHING | ${counts.match} | UNMATCHED | ${counts.unmatch}`);
+  log(
+    "?",
+    `Matching items: ${counts.match}, Unmatched items: ${counts.unmatch}`,
+  );
 
   return await itemCollection.bulkWrite(operations);
 }
@@ -414,16 +446,21 @@ async function getProducts(existing = []) {
     try {
       let products = await getPage(order, alreadyUpdated);
       if (products.length === 0) {
-        console.log(`DONE | Final order: ${order}.`);
+        log("?", `Processing completed for final order: ${order}.`);
         break;
       }
 
       items = items.concat(products);
-      alreadyUpdated = alreadyUpdated.concat(items.map((item) => item.taxfree.index));
+      alreadyUpdated = alreadyUpdated.concat(
+        items.map((item) => item.taxfree.index),
+      );
 
       await new Promise((resolve) => setTimeout(resolve, 900));
     } catch (err) {
-      console.log(`ERROR | Order: ${order} | ${err}`);
+      log(
+        "!",
+        `Error encountered while processing order ${order}. Details: ${err}`,
+      );
       break;
     }
 
@@ -433,15 +470,15 @@ async function getProducts(existing = []) {
 
     count += items.length;
 
-    console.log(`UPDATING | ${items.length} records.`);
+    log("+", ` Updating ${items.length} records.`);
     const result = await updateDatabase(items, existing);
-    console.log(`         | Modified ${result.modifiedCount}.`);
-    console.log(`         | Upserted ${result.upsertedCount}.`);
+    log("+", ` Modified: ${result.modifiedCount}.`);
+    log("+", ` Upserted: ${result.upsertedCount}.`);
 
     items = [];
   }
 
-  console.log(`DONE | Total items: ${count}.`);
+  log("?", `Processing completed. Total items processed: ${count}.`);
   return;
 }
 
@@ -450,9 +487,9 @@ async function syncUnupdatedProducts(threshold = null) {
     "taxfree.updated": false,
     "taxfree.name": { $exists: true },
   });
-  console.log(`NOT UPDATED | Items: ${unupdatedCount}`);
+  log("?", `Number of items not updated: ${unupdatedCount}`);
   if (threshold && unupdatedCount >= threshold) {
-    console.log(`ERROR | Above threshold. | Aborting.`);
+    log("!", `Threshold exceeded. Aborting operation.`);
     return;
   }
 
@@ -470,18 +507,30 @@ async function syncUnupdatedProducts(threshold = null) {
           },
         },
         { $set: { "taxfree.prices": { $ifNull: ["$taxfree.prices", []] } } },
-        { $set: { "taxfree.prices": { $concatArrays: ["$taxfree.prices", ["$taxfree.price"]] } } },
+        {
+          $set: {
+            "taxfree.prices": {
+              $concatArrays: ["$taxfree.prices", ["$taxfree.price"]],
+            },
+          },
+        },
       ],
     );
 
-    console.log(`MODIFIED ${result.modifiedCount} empty prices to unupdated products.`);
+    log(
+      "+",
+      `Modified ${result.modifiedCount} empty prices for unupdated products.`,
+    );
   } catch (err) {
-    console.error(`ERROR | Adding unupdated prices. | ${err}`);
+    log("!", `Error while adding unupdated prices. Details: ${err}`);
   }
 }
 
 async function main() {
-  await metaCollection.updateOne({ id: "stock" }, { $set: { "prices.taxfree": false } });
+  await metaCollection.updateOne(
+    { id: "stock" },
+    { $set: { "prices.taxfree": false } },
+  );
 
   await itemCollection.updateMany({}, { $set: { "taxfree.updated": false } });
   // await itemCollection.deleteMany({ name: { $exists: false } });

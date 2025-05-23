@@ -4,6 +4,10 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+const log = (level, message) => {
+  console.log(`${level} [vmp-popular] ${message}`);
+};
+
 const client = new MongoClient(
   `mongodb+srv://${process.env.MONGO_USR}:${process.env.MONGO_PWD}@snublejuice.faktu.mongodb.net/?retryWrites=true&w=majority&appName=snublejuice`,
   {
@@ -14,14 +18,21 @@ const client = new MongoClient(
     },
   },
 );
-await client.connect();
+
+try {
+  await client.connect();
+  log("?", "Connected to database.");
+} catch (error) {
+  log("!", `Failed to connect to database: ${error.message}`);
+  process.exit(1);
+}
 
 const database = client.db("snublejuice");
 const itemCollection = database.collection("products");
 const metaCollection = database.collection("metadata");
 
 const URL =
-  "https://www.vinmonopolet.no/vmpws/v2/vmp/search?fields=FULL&searchType=product&q={}:relevance";
+  "https://www.vinmonopolet.no/vmpws/v2/vmp/products/search?fields=FULL&pageSize=1&currentPage=0&q={}%3Arelevance";
 
 async function processId(index, retry = false) {
   try {
@@ -30,15 +41,19 @@ async function processId(index, retry = false) {
     });
 
     if (response.status === 200) {
-      const responseData = response.data.productSearchResult || {};
+      const responseData = response.data || {};
 
       const store = responseData.facets
         ? responseData.facets
-            .filter((element) => element.name.toLowerCase() === "butikker")
+            .filter((element) => element.code === "availableInStores")
             .map((element) => element.values || [])
         : [];
 
-      if (!responseData.products || responseData.products.length === 0) {
+      if (
+        !responseData.products ||
+        responseData.products.length === 0 ||
+        parseInt(responseData.products[0].code) !== index
+      ) {
         return {
           index: index,
           updated: false,
@@ -60,33 +75,40 @@ async function processId(index, retry = false) {
         updated: true,
 
         stores: store.flat().map((element) => element.name),
+        // TODO: Include `store.element.count`?
 
         status: product.status || null,
         buyable: product.buyable || false,
         expired: product.expired || true,
 
-        orderable: product.productAvailability?.deliveryAvailability?.availableForPurchase || false,
+        orderable:
+          product.productAvailability?.deliveryAvailability
+            ?.availableForPurchase || false,
         orderinfo:
-          product.productAvailability?.deliveryAvailability?.infos?.[0]?.readableValue || null,
-        instores: product.productAvailability?.storesAvailability?.availableForPurchase || false,
+          product.productAvailability?.deliveryAvailability?.infos?.[0]
+            ?.readableValue || null,
+        instores:
+          product.productAvailability?.storesAvailability
+            ?.availableForPurchase || false,
         storeinfo:
-          product.productAvailability?.storesAvailability?.infos?.[0]?.readableValue || null,
+          product.productAvailability?.storesAvailability?.infos?.[0]
+            ?.readableValue || null,
       };
     }
 
-    console.log(`STATUS   | ${response.status}  | Item: ${index}.`);
+    log("?", `Status ${response.status} for item ${index}.`);
   } catch (err) {
     if (retry) {
       return null;
     }
 
-    console.log(`ERROR    | Item: ${index} | Retrying. ${err}`);
+    log("!", `Item ${index}. Retrying. ${err.message}`);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 15000));
       return processId(index, true);
     } catch (err) {
-      console.log(`ERROR    | Item: ${index} | Failed. ${err}`);
+      log("!", `Item ${index} failed. ${err.message}`);
     }
   }
 }
@@ -108,7 +130,7 @@ async function updateStores(itemIds) {
   let current = 0;
   const total = itemIds.length;
 
-  console.log(`UPDATING | ${total} discounted items.`);
+  log("?", `Updating ${total} discounted items.`);
 
   for (const element of itemIds) {
     const id = element["index"];
@@ -116,7 +138,7 @@ async function updateStores(itemIds) {
     try {
       let product = await processId(id);
       if (!product) {
-        console.log(`ERROR    | Item: ${id} | Aborting.`);
+        log("!", `Could not process item ${id}. Aborting.`);
         break;
       } else {
         items.push(product);
@@ -124,16 +146,16 @@ async function updateStores(itemIds) {
         await new Promise((resolve) => setTimeout(resolve, 1100));
       }
     } catch (err) {
-      console.log(`ERROR    | Item: ${id} | Aborting. | ${err}`);
+      log("!", `Item ${id}. Aborting. ${err.message}`);
       break;
     }
 
     // Upsert to the database every 10 items.
     if (items.length >= 10) {
-      console.log(`UPDATING | ${items.length} records.`);
+      log("+", ` Updating ${items.length} records.`);
       const result = await updateDatabase(items);
-      console.log(`         | Modified ${result.modifiedCount}.`);
-      console.log(`         | Upserted ${result.upsertedCount}.`);
+      log("+", ` Modified ${result.modifiedCount}.`);
+      log("+", ` Upserted ${result.upsertedCount}.`);
 
       items = [];
     }
@@ -141,7 +163,7 @@ async function updateStores(itemIds) {
     current++;
 
     if (current % 10 === 0) {
-      console.log(`UPDATING | Progress: ${Math.floor((current / total) * 100)} %`);
+      log("?", `Progress: ${Math.floor((current / total) * 100)} %`);
     }
   }
 
@@ -149,21 +171,35 @@ async function updateStores(itemIds) {
   if (items.length === 0) {
     return;
   }
-  console.log(`UPDATING | ${items.length} records.`);
+  log("+", ` Updating ${items.length} final records.`);
   const result = await updateDatabase(items);
-  console.log(`         | Modified ${result.modifiedCount}.`);
-  console.log(`         | Upserted ${result.upsertedCount}.`);
+  log("+", ` Modified ${result.modifiedCount}.`);
+  log("+", ` Upserted ${result.upsertedCount}.`);
 }
 
 const session = axios.create();
 
 async function main() {
   // Reset stores prior to fetching new data.
-  await itemCollection.updateMany({ stores: { $exists: true } }, { $set: { stores: [] } });
+  await itemCollection.updateMany(
+    { stores: { $exists: true } },
+    { $set: { stores: [] } },
+  );
+
+  // Set the limit to `-2.0` if the month is may 2025.
+  // This is to reduce the number of items that needs fetching.
+  // I.e., because the number of discounted items of may 2025 is +2000.
+  const date = new Date();
+  const limit =
+    date.getFullYear() === 2025 && date.getMonth() === 4 ? -2.0 : 0.0;
 
   // Fetch products with discount.
   const itemIds = await itemCollection
-    .find({ discount: { $lt: 0.0 } })
+    .find({
+      discount: {
+        $lt: limit,
+      },
+    })
     .project({ index: 1, _id: 0 })
     .toArray();
   await updateStores(itemIds);
@@ -176,6 +212,15 @@ async function main() {
   );
 }
 
-await main();
+try {
+  await main();
+  log("?", "Script completed successfully.");
+} catch (error) {
+  log("!", `Script failed: ${error.message}`);
+  process.exit(1);
+} finally {
+  await client.close();
+  log("?", "Database connection closed.");
+}
 
-client.close();
+process.exit(1);

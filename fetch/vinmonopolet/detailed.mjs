@@ -4,10 +4,21 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+const log = (level, message) => {
+  console.log(`${level} [vmp-detailed] ${message}`);
+};
+
+log("?", "Connecting to database.");
 const client = new MongoClient(
   `mongodb+srv://${process.env.MONGO_USR}:${process.env.MONGO_PWD}@snublejuice.faktu.mongodb.net/?retryWrites=true&w=majority&appName=snublejuice`,
 );
-await client.connect();
+try {
+  await client.connect();
+  log("?", "Connected to database.");
+} catch (error) {
+  log("!", `Failed to connect to database: ${error.message}`);
+  process.exit(1);
+}
 
 const database = client.db("snublejuice");
 const itemCollection = database.collection("products");
@@ -26,7 +37,9 @@ const IMAGE = {
 
 async function getNewProducts(itemIds) {
   function processImages(images) {
-    return images ? images.reduce((acc, img) => ({ ...acc, [img.format]: img.url }), {}) : IMAGE;
+    return images
+      ? images.reduce((acc, img) => ({ ...acc, [img.format]: img.url }), {})
+      : IMAGE;
   }
 
   function processProducts(products) {
@@ -70,13 +83,19 @@ async function getNewProducts(itemIds) {
         expired: product.expired || true,
         status: product.status || null,
 
-        orderable: product.productAvailability?.deliveryAvailability?.availableForPurchase || false,
+        orderable:
+          product.productAvailability?.deliveryAvailability
+            ?.availableForPurchase || false,
         orderinfo:
-          product.productAvailability?.deliveryAvailability?.infos?.[0]?.readableValue || null,
+          product.productAvailability?.deliveryAvailability?.infos?.[0]
+            ?.readableValue || null,
 
-        instores: product.productAvailability?.storesAvailability?.availableForPurchase || false,
+        instores:
+          product.productAvailability?.storesAvailability
+            ?.availableForPurchase || false,
         storeinfo:
-          product.productAvailability?.storesAvailability?.infos?.[0]?.readableValue || null,
+          product.productAvailability?.storesAvailability?.infos?.[0]
+            ?.readableValue || null,
       });
     }
 
@@ -90,15 +109,27 @@ async function getNewProducts(itemIds) {
       });
 
       if (response.status === 200) {
-        return processProducts(response.data["productSearchResult"]["products"]);
+        return processProducts(
+          response.data["productSearchResult"]["products"],
+        );
+      } else {
+        log("!", `Received status ${response.status} for page ${page}.`);
       }
     } catch (err) {
-      console.log(`ERROR | NEW | Page: ${page} | ${err.message}`);
+      log("!", `Failed to fetch page ${page}: ${err.message}`);
     }
   }
 
   async function updateNewDatabase(data) {
-    return await itemCollection.insertMany(data);
+    try {
+      log("?", `Inserting ${data.length} new products into the database...`);
+      const result = await itemCollection.insertMany(data);
+      log("?", `Successfully inserted ${result.insertedCount} products.`);
+      return result;
+    } catch (error) {
+      log("!", `Failed to insert products into the database: ${error.message}`);
+      throw error;
+    }
   }
 
   let items = [];
@@ -107,7 +138,7 @@ async function getNewProducts(itemIds) {
     try {
       let products = await getPage(page);
       if (products.length === 0 || !products) {
-        console.log(`DONE | NEW | Final page: ${page}.`);
+        log("?", `No more products found. Final page: ${page}.`);
         break;
       }
 
@@ -115,19 +146,20 @@ async function getNewProducts(itemIds) {
 
       await new Promise((resolve) => setTimeout(resolve, 1100));
     } catch (err) {
-      console.log(`ERROR | NEW | Page: ${page} | ${err}`);
+      log("!", `Error processing page ${page}: ${err.message}`);
       break;
     }
 
     // Upsert to the database every 10 pages.
     if (page % 10 === 0) {
       if (items.length === 0) {
+        log("!", "No items to update in the last 10 pages.");
         return;
       }
 
-      console.log(`UPDATING | NEW | ${items.length} records.`);
+      log("+", ` Updating database with ${items.length} records.`);
       const result = await updateNewDatabase(items);
-      console.log(`         | Inserted ${result.insertedCount}.`);
+      log("+", ` Inserted ${result.insertedCount}.`);
 
       items = [];
     }
@@ -137,16 +169,19 @@ async function getNewProducts(itemIds) {
   if (items.length === 0) {
     return;
   }
-  console.log(`UPDATING | NEW | ${items.length} final records.`);
+  log("?", `Final batch: ${items.length} records.`);
   const result = await updateNewDatabase(items);
-  console.log(`         | Inserted ${result.insertedCount}.`);
+  log("+", `Inserted ${result.insertedCount} final records.`);
 }
 
 // DETAILED INFORMATION:
 
-const DETAIL = "https://www.vinmonopolet.no/vmpws/v3/vmp/products/{}?fields=FULL";
+const DETAIL =
+  "https://www.vinmonopolet.no/vmpws/v3/vmp/products/{}?fields=FULL";
 
 async function updateInformation(itemIds) {
+  log("?", `Updating the information of ${itemIds.length} products.`);
+
   function processInformation(product) {
     const processed = {
       index: parseInt(product.code, 10) || null,
@@ -159,12 +194,18 @@ async function updateInformation(itemIds) {
       colour: product.color || null,
 
       characteristics:
-        product.content?.characteristics?.map((characteristic) => characteristic.readableValue) ||
-        [],
+        product.content?.characteristics?.map(
+          (characteristic) => characteristic.readableValue,
+        ) || [],
       ingredients:
-        product.content?.ingredients?.map((ingredient) => ingredient.readableValue) || [],
+        product.content?.ingredients?.map(
+          (ingredient) => ingredient.readableValue,
+        ) || [],
       ...product.content?.traits?.reduce(
-        (acc, trait) => ({ ...acc, [trait.name.toLowerCase()]: trait.readableValue }),
+        (acc, trait) => ({
+          ...acc,
+          [trait.name.toLowerCase()]: trait.readableValue,
+        }),
         {},
       ),
       smell: product.smell || null,
@@ -175,9 +216,15 @@ async function updateInformation(itemIds) {
       storage: product.content?.storagePotential?.formattedValue || null,
       cork: product.cork || null,
 
-      alcohol: product.traits?.find((trait) => trait.name === "Alkohol")?.readableValue || null,
-      sugar: product.traits?.find((trait) => trait.name === "Sukker")?.readableValue || null,
-      acid: product.traits?.find((trait) => trait.name === "Syre")?.readableValue || null,
+      alcohol:
+        product.traits?.find((trait) => trait.name === "Alkohol")
+          ?.readableValue || null,
+      sugar:
+        product.traits?.find((trait) => trait.name === "Sukker")
+          ?.readableValue || null,
+      acid:
+        product.traits?.find((trait) => trait.name === "Syre")?.readableValue ||
+        null,
 
       description: {
         lang: product.content?.style?.description || null,
@@ -197,12 +244,16 @@ async function updateInformation(itemIds) {
     if (processed.alkohol || processed.alcohol) {
       // Split the string at the first space character, and convert to float.
       if (processed.alkohol) {
-        processed.alcohol = parseFloat(processed.alkohol.split(" ")[0].replace(",", "."));
+        processed.alcohol = parseFloat(
+          processed.alkohol.split(" ")[0].replace(",", "."),
+        );
 
         // Remove the "alkohol" key from the object.
         delete processed.alkohol;
       } else {
-        processed.alcohol = parseFloat(processed.alcohol.split(" ")[0].replace(",", "."));
+        processed.alcohol = parseFloat(
+          processed.alcohol.split(" ")[0].replace(",", "."),
+        );
       }
 
       // Calculate the alcohol price.
@@ -225,9 +276,12 @@ async function updateInformation(itemIds) {
         return processInformation(response.data);
       }
 
-      console.log(`STATUS | DETAILED | ${response.status}  | Item: ${id}.`);
+      log(
+        "!",
+        `Detailed fetch returned status ${response.status} for item ${id}.`,
+      );
     } catch (err) {
-      console.log(`ERROR | DETAILED | Item: ${id} | ${err.message}`);
+      log("!", `Detailed fetch for item: ${id}: ${err.message}`);
     }
   }
 
@@ -249,11 +303,15 @@ async function updateInformation(itemIds) {
 
   for (const element of itemIds) {
     const id = element["index"];
+    if (!id) {
+      // Products only available in taxfree stores, but not in vinmonopolets. We skip these.
+      continue;
+    }
 
     try {
       let product = await getInformation(id);
       if (!product) {
-        console.log(`NONEXISTING | DETAILED | Item: ${id} | Aborting.`);
+        log("!", `Detailed fetch for item ${id}. Aborting.`);
         break;
       }
 
@@ -261,20 +319,20 @@ async function updateInformation(itemIds) {
 
       await new Promise((resolve) => setTimeout(resolve, 1100));
     } catch (err) {
-      console.log(`ERROR | DETAILED | Item: ${id} | Aborting. | ${err}`);
+      log("!", `Fetching info for item ${id} failed. Aborting. | ${err}`);
       break;
     }
 
     // Upsert to the database every 10 items.
     if (items.length >= 10) {
-      console.log(`UPDATING | DETAILED | ${items.length} records.`);
+      log("+", ` Updating ${items.length} records.`);
       const result = await updateDetailedDatabase(items);
-      console.log(`         | Modified ${result.modifiedCount}.`);
-      console.log(`         | Upserted ${result.upsertedCount}.`);
+      log("+", ` Modified ${result.modifiedCount}.`);
+      log("+", ` Upserted ${result.upsertedCount}.`);
 
       items = [];
 
-      console.log(`UPDATING | DETAILED | Progress: ${Math.floor((current / total) * 100)} %`);
+      log("?", `Progress: ${Math.floor((current / total) * 100)} %`);
     }
 
     current++;
@@ -284,10 +342,10 @@ async function updateInformation(itemIds) {
   if (items.length === 0) {
     return;
   }
-  console.log(`UPDATING | DETAILED | ${items.length} final records.`);
+  log("+", ` Updating ${items.length} final records.`);
   const result = await updateDetailedDatabase(items);
-  console.log(`         | Modified ${result.modifiedCount}.`);
-  console.log(`         | Upserted ${result.upsertedCount}.`);
+  log("+", ` Modified ${result.modifiedCount}.`);
+  log("+", ` Upserted ${result.upsertedCount}.`);
 }
 
 const session = axios.create();
@@ -296,13 +354,22 @@ async function main() {
   const items = await itemCollection.distinct("index");
   await getNewProducts(items);
 
-  const itemIds = await itemCollection
+  let itemIds = await itemCollection
     .find({ index: { $exists: true }, description: null })
     .project({ index: 1, _id: 0 })
     .toArray();
+  itemIds = itemIds.filter((item) => !isNaN(item.index));
   await updateInformation(itemIds);
 }
 
-await main();
+try {
+  await main();
+  log("?", "Script completed successfully.");
+} catch (error) {
+  log("!", `Script terminated with error: ${error.message}`);
+} finally {
+  log("?", "Closing database connection.");
+  await client.close();
+}
 
-client.close();
+process.exit(1);

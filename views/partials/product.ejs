@@ -98,8 +98,11 @@
                 onclick="event.stopPropagation()">
           <% } %>
 
-          <% for(let i = 0; i < 5; i++) { %>
-            <span class="star <%= i < item.rating.value ? 'filled' : '' %>">★</span>
+          <% for (let i = 0; i < 5; i++) { %>
+            <span class="star" style="--fill: <%=
+              i < Math.floor(item.rating.value) ? 100 :
+              i === Math.floor(item.rating.value) ? (item.rating.value - Math.floor(item.rating.value)) * 100 : 0
+            %>%">★</span>
           <% } %>
 
           <span class="number"><%= item.rating.value %></span>

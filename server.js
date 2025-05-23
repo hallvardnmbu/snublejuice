@@ -5,6 +5,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
+import { Worker } from "worker_threads";
 
 import { apiAPP } from "./other/api/app.js";
 import { ordAPP } from "./other/ord/app.js";
@@ -13,7 +14,12 @@ import accountRouter, { authenticate } from "./routes/account.js";
 import dataRouter from "./routes/data.js";
 
 import { databaseConnection } from "./database/connect.js";
-import { incrementVisitor, getMetadata, categories, load } from "./database/operations.js";
+import {
+  incrementVisitor,
+  getMetadata,
+  categories,
+  load,
+} from "./database/operations.js";
 
 dotenv.config();
 
@@ -117,12 +123,26 @@ snublejuice.get("/", authenticate, async (req, res) => {
 
   const category = req.query.category || null;
   const country = req.query.country || null;
-  const volume = parseFloat(req.query.volume) || null;
-  const alcohol = parseFloat(req.query.alcohol) || null;
-  const year = parseInt(req.query.year) || null;
 
-  const search = req.query.search || null;
-  const storelike = req.query.storelike || null;
+  const price = {
+    value: parseFloat(req.query.price) || null,
+    exact: req.query.cprice === "on",
+  };
+  const volume = {
+    value: parseFloat(req.query.volume) || null,
+    exact: req.query.cvolume === "on",
+  };
+  const alcohol = {
+    value: parseFloat(req.query.alcohol) || null,
+    exact: req.query.calcohol === "on",
+  };
+  const year = {
+    value: parseInt(req.query.year) || null,
+    exact: req.query.cyear === "on",
+  };
+
+  const search = req.query.search?.trim() || null;
+  const storelike = req.query.storelike?.trim() || null;
 
   let store = {
     vinmonopolet:
@@ -138,7 +158,8 @@ snublejuice.get("/", authenticate, async (req, res) => {
           : req.query["store-taxfree"]
         : null) || null,
   };
-  let orderable = !store.vinmonopolet || store.vinmonopolet === "Spesifikk butikk";
+  let orderable =
+    !store.vinmonopolet || store.vinmonopolet === "Spesifikk butikk";
 
   try {
     let { data, total, updated } = await load({
@@ -153,7 +174,6 @@ snublejuice.get("/", authenticate, async (req, res) => {
       delta: delta,
       category: categories[category],
       country: country === "Alle land" ? null : country,
-      year: year,
 
       // Include non-alcoholic products:
       nonalcoholic: false,
@@ -164,9 +184,11 @@ snublejuice.get("/", authenticate, async (req, res) => {
       // Array parameters:
       store: store,
 
-      // If specified, only include values >=:
+      // Special parameters:
+      price: price,
       volume: volume,
       alcohol: alcohol,
+      year: year,
 
       // Sorting:
       sort: sortBy,
@@ -204,9 +226,16 @@ snublejuice.get("/", authenticate, async (req, res) => {
       ascending: ascending,
       category: category,
       country: country,
-      volume: volume,
-      alcohol: alcohol,
-      year: year,
+
+      price: price.value,
+      cprice: price.exact,
+      volume: volume.value,
+      cvolume: volume.exact,
+      alcohol: alcohol.value,
+      calcohol: alcohol.exact,
+      year: year.value,
+      cyear: year.exact,
+
       search: search,
       storelike: storelike,
       store: store.vinmonopolet,
@@ -217,6 +246,17 @@ snublejuice.get("/", authenticate, async (req, res) => {
     return res.redirect("/error?message=Noe gikk galt.");
   }
 });
+
+// BACKGROUND TASKS
+// ------------------------------------------------------------------------------------------------
+
+if (_PRODUCTION) {
+  const worker = new Worker("./fetch/vivino/rating.mjs");
+
+  worker.onmessage = (event) => {
+    console.log("Worker message:", event.data);
+  };
+}
 
 // FINAL APP
 // ------------------------------------------------------------------------------------------------

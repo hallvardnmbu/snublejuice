@@ -3,6 +3,10 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+const log = (level, message) => {
+  console.log(`${level} [tax-stock] ${message}`);
+};
+
 const client = new MongoClient(
   `mongodb+srv://${process.env.MONGO_USR}:${process.env.MONGO_PWD}@snublejuice.faktu.mongodb.net/?retryWrites=true&w=majority&appName=snublejuice`,
   {
@@ -19,7 +23,7 @@ const database = client.db("snublejuice");
 const itemCollection = database.collection("products");
 const metaCollection = database.collection("metadata");
 
-const URL = JSON.parse(process.env.TAXFREE);
+const URL = JSON.parse(String(process.env.TAXFREE));
 
 const STORES = {
   5135: "Stavanger, Avgang & Ankomst",
@@ -48,7 +52,10 @@ function processImages(images) {
   if (!images) return IMAGE;
 
   return Object.fromEntries(
-    Object.entries(images).map(([format, urlEnd]) => [format, `${LINKS.image}${urlEnd}`]),
+    Object.entries(images).map(([format, urlEnd]) => [
+      format,
+      `${LINKS.image}${urlEnd}`,
+    ]),
   );
 }
 
@@ -95,22 +102,25 @@ async function getPage(order, alreadyUpdated, retry = false) {
 
     if (response.status === 200) {
       const data = await response.json();
-      return processProducts(data.results[0].hits, alreadyUpdated);
+      return processProducts(
+        data.results.reduce((acc, curr) => acc.concat(curr.hits), []),
+        alreadyUpdated,
+      );
     }
 
-    console.log(`STATUS   | ${response.status} | Order: ${order}.`);
+    log("?", `Status code ${response.status} for order ${order}.`);
   } catch (err) {
     if (retry) {
       return [];
     }
 
-    console.log(`ERROR    | Order: ${order} | Retrying. ${err}`);
+    log("!", `Order: ${order} | Retrying. ${err}`);
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 5000));
       return getPage(order, alreadyUpdated, true);
     } catch (err) {
-      console.log(`ERROR    | Order: ${order} | Failed. ${err}`);
+      log("!", `Order: ${order} | Failed. ${err}`);
     }
   }
 }
@@ -136,7 +146,7 @@ async function getStock() {
     try {
       let products = await getPage(order, alreadyUpdated);
       if (products.length === 0) {
-        console.log(`DONE | Final order: ${order}.`);
+        log("?", `Done. Final order: ${order}.`);
         break;
       }
 
@@ -145,7 +155,7 @@ async function getStock() {
 
       await new Promise((resolve) => setTimeout(resolve, 900));
     } catch (err) {
-      console.log(`ERROR | Order: ${order} | ${err}`);
+      log("!", `Order ${order}. ${err}`);
       break;
     }
 
@@ -155,15 +165,15 @@ async function getStock() {
 
     count += items.length;
 
-    console.log(`UPDATING | ${items.length} records.`);
+    log("+", ` Updating ${items.length} records.`);
     const result = await updateDatabase(items);
-    console.log(`         | Modified ${result.modifiedCount}.`);
-    console.log(`         | Upserted ${result.upsertedCount}.`);
+    log("+", ` Modified ${result.modifiedCount}.`);
+    log("+", ` Upserted ${result.upsertedCount}.`);
 
     items = [];
   }
 
-  console.log(`DONE | Total items: ${count}.`);
+  log("?", `Done. Total items: ${count}.`);
   return;
 }
 
@@ -171,7 +181,10 @@ async function main() {
   await itemCollection.updateMany({}, { $set: { "taxfree.stores": null } });
   await getStock();
 
-  await metaCollection.updateOne({ id: "stock" }, { $set: { taxfree: new Date() } });
+  await metaCollection.updateOne(
+    { id: "stock" },
+    { $set: { taxfree: new Date() } },
+  );
 }
 
 await main();

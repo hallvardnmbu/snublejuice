@@ -144,6 +144,19 @@ menu {
     padding: var(--padding);
     background-color: var(--faint);
 }
+.landing-details #new {
+    color: var(--text);
+    background-color: var(--positive);
+}
+.landing-details span h1 {
+    display: inline-flex;
+    flex-direction: column;
+    margin: 0;
+    font-size: var(--fontsize-small);
+}
+.landing-details span p:last-of-type {
+    margin: 0;
+}
 .landing-details .corners {
     width: 100%;
 
@@ -230,6 +243,7 @@ header #userMessage {
     width: 100%;
     color: var(--text);
     padding: var(--padding);
+    border-top: var(--padding) solid var(--block);
     margin-bottom: calc(-1 * var(--padding));
 }
 header #infobox div {
@@ -315,12 +329,13 @@ a:hover {
 
     gap: var(--padding);
     align-items: center;
+    justify-content: space-between;
     width: 100%;
     max-width: 350px;
 
     white-space: nowrap;
 }
-#advanced div input {
+#advanced div input:first-of-type {
     width: 100%;
 }
 
@@ -374,6 +389,20 @@ input[type="search"]::-webkit-search-cancel-button,
 input[type="search"]::-webkit-search-results-button,
 input[type="search"]::-webkit-search-results-decoration {
     -webkit-appearance: none;
+}
+input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    flex-shrink: 0;
+    height: var(--fontsize-small);
+    width: var(--fontsize-small);
+    border: var(--underline) solid var(--dimtext);
+    cursor: pointer;
+    background-color: var(--faint);
+}
+input[type="checkbox"]:checked,
+input[type="checkbox"]:hover {
+    background-color: var(--block);
 }
 
 .message {
@@ -515,10 +544,12 @@ section .metadata .information .rating .number {
 }
 section .metadata .information .rating .star {
     font-size: var(--fontsize-largest);
-    color: var(--block);
-}
-section .metadata .information .rating .star.filled {
-    color: var(--green);
+
+    background: linear-gradient(90deg, var(--green) var(--fill), var(--block) var(--fill));
+
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 section .metadata .information .description {
     color: var(--dimtext);

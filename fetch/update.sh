@@ -1,17 +1,37 @@
 #!/bin/bash
 
-cd /home/snublejuice/Documents/snublejuice
+LOG_FILE="/home/snublejuice/Documents/logs/update-$(date +'%Y-%m-%d_%H-%M-%S').log"
 
-# 1. Git pull
-echo "Pulling latest changes..."
-git reset --hard HEAD
-git pull
+log() {
+    local message="$1"
+    local level="${2:-1}"
+
+    if [ "$level" = "0" ]; then
+        echo "$(date +'%Y-%m-%d %H:%M:%S')   $message" | tee -a "$LOG_FILE"
+    else
+        echo "$(date +'%Y-%m-%d %H:%M:%S') ? $message" | tee -a "$LOG_FILE"
+    fi
+}
+
+abort() {
+    log "$1"
+    exit 1
+}
+
+cd /home/snublejuice/Documents/snublejuice || abort "Failed to change directory to project root."
+
+# 1. Version control
+log "Updating codebase wrt. remote changes"
+git reset --hard HEAD 2>&1 | while IFS= read -r line; do log "$line" 0; done || abort "Failed to reset git repository."
+git pull 2>&1 | while IFS= read -r line; do log "$line" 0; done || abort "Failed to pull latest changes from git repository."
 
 # 2. Make the scripts executable
-echo "Making scripts executable..."
-chmod +x ./fetch/monthly.sh
-chmod +x ./fetch/stock.sh
-chmod +x ./fetch/ratings.sh
-chmod +x ./fetch/update.sh
+log "Making scripts executable"
+chmod +x ./fetch/monthly.sh || abort "Failed to make monthly.sh executable."
+chmod +x ./fetch/stock.sh || abort "Failed to make stock.sh executable."
+chmod +x ./fetch/ratings.sh || abort "Failed to make ratings.sh executable."
+chmod +x ./fetch/update.sh || abort "Failed to make update.sh executable."
+chmod +x ./fetch/backup.sh || abort "Failed to make backup.sh executable."
+chmod +x ./fetch/restore.sh || abort "Failed to make restore.sh executable."
 
-echo "Repository updated"
+log "Repository updated successfully."

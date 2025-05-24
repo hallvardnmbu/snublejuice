@@ -4,9 +4,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const log = (level, message) => {
-  console.log(
-    `${new Date().toISOString()} ${level} [vivino-ratings] ${message}`,
-  );
+  console.log(`${level} [ratings] ${message}`);
 };
 
 log("?", "Starting Vivino rating script.");
@@ -24,31 +22,39 @@ try {
 }
 
 const database = client.db("snublejuice");
-const itemCollection = database.collection("products");
+const collection = database.collection("products");
 
-const SEARCH = "https://www.vivino.com/search/wines?q={}";
-const HEADERS = {
+const VIVINO_SEARCH_URL = "https://www.vivino.com/search/wines?q={}";
+const REQUEST_HEADERS = {
   "User-Agent":
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
 };
-const PATTERNS = {
-  search: /<script type='application\/ld\+json'>([\s\S]*?)<\/script>/,
-  vintages:
-    /<div class="vivinoRating_averageValue.*?">([\d.]+)<\/div>.*?<div class="vivinoRating_caption.*?">(.+?)<\/div>/,
-};
-const TRIES = {
-  max: 3,
-  delay: 25, // seconds
-};
+const JSON_LD_PATTERN =
+  /<script type='application\/ld\+json'>([\s\S]*?)<\/script>/;
+
+const _SECOND = 1000;
 const CONFIG = {
   batchSize: 25,
-  requestDelay: 10000, // 10 seconds
+  requestDelay: 10 * _SECOND, // 10 seconds between requests
   maxRatingAge: 14, // days
-  sleepDuration: 3600000, // 1 hour in ms
-  noWorkSleepDuration: 86400000, // 24 hours in ms
+  maxRetries: 3,
+  retryDelay: 25, // seconds
+  noWorkDelay: 60 * 60 * _SECOND, // 60 minutes when no work found
+  errorDelay: 2 * 60 * _SECOND, // 2 minutes on error
+  minProcessingDelay: _SECOND / 10, // 100ms between operations
+  categories: [
+    "Rødvin",
+    "Hvitvin",
+    "Vin",
+    "Musserende vin",
+    "Perlende vin",
+    "Rosévin",
+    "Aromatisert vin",
+    "Fruktvin",
+    "Sterkvin",
+  ],
 };
 
-// Improved string matching utility functions
 function normalizeString(str) {
   return str
     .toLowerCase()
@@ -68,8 +74,6 @@ function normalizeString(str) {
 function extractWineKeywords(name) {
   const normalized = normalizeString(name);
   const words = normalized.split(" ");
-
-  // Common wine-related stop words to ignore
   const stopWords = new Set([
     "wine",
     "vin",
@@ -88,7 +92,6 @@ function extractWineKeywords(name) {
     "das",
     "den",
   ]);
-
   return words.filter((word) => word.length > 2 && !stopWords.has(word));
 }
 
@@ -103,7 +106,6 @@ function calculateMatchScore(target, candidate) {
   let score = 0;
   let maxScore = targetKeywords.length;
 
-  // Check exact matches in name
   for (const keyword of targetKeywords) {
     if (candidateName.includes(keyword)) {
       score += 1.0;
@@ -114,13 +116,11 @@ function calculateMatchScore(target, candidate) {
     }
   }
 
-  // Bonus for exact name match
   if (normalizeString(target.name) === candidateName) {
     score += 2;
     maxScore += 2;
   }
 
-  // Bonus for manufacturer match if we can extract it from target
   const targetWords = extractWineKeywords(target.name);
   if (
     targetWords.length > 0 &&
@@ -134,11 +134,11 @@ function calculateMatchScore(target, candidate) {
 }
 
 function findBestMatch(target, products) {
-  if (!products || products.length === 0) return null;
+  if (!products?.length) return null;
 
   let bestMatch = null;
   let bestScore = 0;
-  const threshold = 0.6; // Minimum match threshold
+  const threshold = 0.6;
 
   for (const product of products) {
     const score = calculateMatchScore(target, product);
@@ -151,298 +151,255 @@ function findBestMatch(target, products) {
   return bestMatch ? { product: bestMatch, score: bestScore } : null;
 }
 
-async function updateDatabase(data, upsert = false) {
-  if (data.length === 0) return;
+async function updateDatabase(records) {
+  if (!records.length) return;
 
-  const operations = data.map((record) => ({
+  const operations = records.map((record) => ({
     updateOne: {
       filter: { index: record.index },
-      update: { $set: { rating: record.rating } },
-      upsert: upsert,
+      update: {
+        $set: {
+          rating: {
+            ...record.rating,
+            updated: new Date(),
+          },
+        },
+      },
+      upsert: false,
     },
   }));
 
-  await itemCollection.bulkWrite(operations);
-  log("?", `Updated ${data.length} records in database.`);
+  await collection.bulkWrite(operations);
+  log("?", `Updated ${records.length} records in database.`);
 }
 
-async function processStoredResults() {
-  log("?", "Processing stored search results without matches.");
+async function fetchVivinoPage(url, retry = 0) {
+  const response = await fetch(url, {
+    method: "GET",
+    headers: REQUEST_HEADERS,
+    timeout: 15000,
+  });
 
-  const itemsWithStoredResults = await itemCollection
-    .find({
-      "rating.response": { $exists: true, $ne: null },
-      "rating.value": null,
-    })
-    .project({ index: 1, name: 1, rating: 1, _id: 0 })
-    .toArray();
-
-  if (itemsWithStoredResults.length === 0) {
-    log("?", "No stored results to process.");
-    return;
+  if (response.status === 429) {
+    if (retry < CONFIG.maxRetries) {
+      log(
+        "!",
+        `Rate limited. Retrying in ${CONFIG.retryDelay} seconds (attempt ${retry + 1}/${CONFIG.maxRetries}).`,
+      );
+      await new Promise((resolve) =>
+        setTimeout(resolve, CONFIG.retryDelay * 1000),
+      );
+      return fetchVivinoPage(url, retry + 1);
+    }
+    throw new Error(`Rate limited after ${CONFIG.maxRetries} retries.`);
   }
 
-  log(
-    "?",
-    `Processing ${itemsWithStoredResults.length} items with stored results.`,
-  );
+  if (response.status !== 200) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  }
 
-  const processed = [];
+  return response.text();
+}
 
-  for (const item of itemsWithStoredResults) {
+function parseVivinoData(html) {
+  const match = html.match(JSON_LD_PATTERN);
+  if (!match) return null;
+
+  try {
+    const data = JSON.parse(match[1]);
+    return Array.isArray(data) ? data : [data];
+  } catch (error) {
+    log("!", `Failed to parse JSON-LD data: ${error.message}`);
+    return null;
+  }
+}
+
+function createRatingRecord(index, product, matchScore = null) {
+  return {
+    index,
+    rating: {
+      name: product.name,
+      manufacturer: product.manufacturer?.name || "",
+      url: product["@id"],
+      value: parseFloat(product.aggregateRating?.ratingValue || 0),
+      count: parseInt(product.aggregateRating?.reviewCount || 0),
+      ...(matchScore && { matchScore }),
+    },
+  };
+}
+
+function createEmptyRatingRecord(index, error = null) {
+  return {
+    index,
+    rating: {
+      value: null,
+      response: null,
+      ...(error && { error }),
+    },
+  };
+}
+
+async function searchNewRatings(items) {
+  if (!items.length) return;
+  log("?", `Searching ratings for ${items.length} products.`);
+
+  const results = [];
+
+  for (const item of items) {
+    try {
+      const encodedName = encodeURIComponent(item.name);
+      const searchUrl = VIVINO_SEARCH_URL.replace("{}", encodedName);
+      const html = await fetchVivinoPage(searchUrl);
+      const products = parseVivinoData(html);
+
+      if (!products) {
+        results.push(createEmptyRatingRecord(item.index));
+        continue;
+      }
+
+      const match = findBestMatch(item, products);
+      if (match) {
+        results.push(
+          createRatingRecord(item.index, match.product, match.score),
+        );
+        log(
+          "?",
+          `Found rating for ${item.name}: ${match.product.aggregateRating?.ratingValue} (score: ${match.score.toFixed(2)})`,
+        );
+      } else {
+        // Store top 3 results for later processing
+        const storedResults = products.slice(0, Math.min(3, products.length));
+        results.push({
+          index: item.index,
+          rating: {
+            value: null,
+            response: JSON.stringify(storedResults),
+          },
+        });
+      }
+    } catch (error) {
+      log("!", `Error searching for ${item.name}: ${error.message}`);
+      results.push(createEmptyRatingRecord(item.index, error.message));
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, CONFIG.requestDelay));
+
+    if (results.length >= CONFIG.batchSize) {
+      await updateDatabase(results.splice(0, CONFIG.batchSize));
+    }
+  }
+
+  if (results.length > 0) {
+    await updateDatabase(results);
+  }
+}
+
+async function processStoredResults(items) {
+  if (!items.length) return;
+  log("?", `Processing ${items.length} stored results.`);
+
+  const results = [];
+
+  for (const item of items) {
     try {
       const storedProducts = JSON.parse(item.rating.response);
       const match = findBestMatch(item, storedProducts);
 
       if (match) {
-        const processed_item = {
-          index: item.index,
-          rating: {
-            name: match.product.name,
-            manufacturer: match.product.manufacturer?.name || "",
-            url: match.product["@id"],
-            value: parseFloat(match.product.aggregateRating?.ratingValue || 0),
-            count: parseInt(match.product.aggregateRating?.reviewCount || 0),
-            matchScore: match.score,
-            updated: new Date(),
-          },
-        };
-        processed.push(processed_item);
+        results.push(
+          createRatingRecord(item.index, match.product, match.score),
+        );
         log(
           "?",
           `Found delayed match for ${item.name} (score: ${match.score.toFixed(2)})`,
         );
+      } else {
+        // Mark as processed without match
+        results.push({
+          index: item.index,
+          rating: {
+            ...item.rating,
+            response: null,
+          },
+        });
       }
     } catch (error) {
       log(
         "!",
         `Error processing stored result for ${item.name}: ${error.message}`,
       );
-    }
-  }
-
-  if (processed.length > 0) {
-    await updateDatabase(processed, false);
-    log("?", `Successfully processed ${processed.length} stored results.`);
-  }
-}
-
-async function searchRatings(items) {
-  if (items.length === 0) return;
-
-  log("?", `Starting search for ${items.length} products on Vivino.`);
-
-  function processSearchResults(products, target) {
-    if (!target.index || !products) {
-      return {
-        index: target.index,
-        rating: {
-          value: null,
-          response: null,
-        },
-      };
-    }
-
-    // Try to find best match using improved algorithm
-    const match = findBestMatch(target, products);
-
-    if (match) {
-      return {
-        index: target.index,
-        rating: {
-          name: match.product.name,
-          manufacturer: match.product.manufacturer?.name || "",
-          url: match.product["@id"],
-          value: parseFloat(match.product.aggregateRating?.ratingValue || 0),
-          count: parseInt(match.product.aggregateRating?.reviewCount || 0),
-          matchScore: match.score,
-          updated: new Date(),
-        },
-      };
-    }
-
-    // Store top 3 results for later processing if not matched
-    return {
-      index: target.index,
-      rating: {
-        value: null,
-        response:
-          products.length > 0
-            ? JSON.stringify(products.slice(0, Math.min(3, products.length)))
-            : null,
-        lastSearched: new Date(),
-      },
-    };
-  }
-
-  async function search(target, retry = 0) {
-    const encodedName = encodeURIComponent(target.name);
-    const response = await fetch(SEARCH.replace("{}", encodedName), {
-      method: "GET",
-      headers: HEADERS,
-      timeout: 15000,
-    });
-
-    if (response.status === 429) {
-      if (retry < TRIES.max) {
-        log(
-          "!",
-          `Rate limited. Retrying in ${TRIES.delay} seconds (attempt ${retry + 1}/${TRIES.max}).`,
-        );
-        await new Promise((resolve) => setTimeout(resolve, TRIES.delay * 1000));
-        return search(target, retry + 1);
-      }
-      throw new Error(`Rate limited after ${TRIES.max} retries.`);
-    } else if (response.status !== 200) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-
-    const text = await response.text();
-    const match = text.match(PATTERNS.search);
-
-    if (!match) {
-      return {
-        index: target.index,
-        rating: {
-          value: null,
-          response: null,
-          lastSearched: new Date(),
-        },
-      };
-    }
-
-    const searchData = JSON.parse(match[1]);
-    return processSearchResults(
-      Array.isArray(searchData) ? searchData : [searchData],
-      target,
-    );
-  }
-
-  let products = [];
-
-  for (const item of items) {
-    try {
-      const product = await search(item);
-      products.push(product);
-
-      if (product.rating.value) {
-        log(
-          "?",
-          `Found rating for ${item.name}: ${product.rating.value} (${product.rating.count} reviews)`,
-        );
-      }
-    } catch (err) {
-      log(
-        "!",
-        `Error searching for ${item.name} (${item.index}): ${err.message}`,
-      );
-      products.push({
-        index: item.index,
-        rating: {
-          value: null,
-          response: null,
-          error: err.message,
-          lastSearched: new Date(),
-        },
-      });
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, CONFIG.requestDelay));
-
-    if (products.length >= CONFIG.batchSize) {
-      await updateDatabase(products, false);
-      products = [];
-    }
-  }
-
-  if (products.length > 0) {
-    await updateDatabase(products, false);
-  }
-
-  log("?", `Finished searching for ${items.length} products on Vivino.`);
-}
-
-async function updateRatings(items) {
-  if (items.length === 0) return;
-
-  log("?", `Updating ratings for ${items.length} products on Vivino.`);
-
-  async function search(item, retry = 0) {
-    const response = await fetch(item.rating.url, {
-      method: "GET",
-      headers: HEADERS,
-      timeout: 15000,
-    });
-
-    if (response.status === 429) {
-      if (retry < TRIES.max) {
-        log(
-          "!",
-          `Rate limited. Retrying in ${TRIES.delay} seconds (attempt ${retry + 1}/${TRIES.max}).`,
-        );
-        await new Promise((resolve) => setTimeout(resolve, TRIES.delay * 1000));
-        return search(item, retry + 1);
-      }
-      throw new Error(`Rate limited after ${TRIES.max} retries.`);
-    } else if (response.status !== 200) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-
-    const text = await response.text();
-    const match = text.match(PATTERNS.search);
-
-    if (!match) {
-      throw new Error(`No JSON-LD data found`);
-    }
-
-    const data = JSON.parse(match[1]);
-
-    return {
-      index: item.index,
-      rating: {
-        ...item.rating,
-        description: data.description,
-        value: parseFloat(data.aggregateRating?.ratingValue || 0),
-        count: parseInt(data.aggregateRating?.ratingCount || 0),
-        reviews: parseInt(data.aggregateRating?.reviewCount || 0),
-        updated: new Date(),
-      },
-    };
-  }
-
-  let products = [];
-
-  for (const item of items) {
-    try {
-      const product = await search(item);
-      products.push(product);
-      log("?", `Updated rating for ${item.name}: ${product.rating.value}`);
-    } catch (err) {
-      log("!", `Error updating ${item.name} (${item.index}): ${err.message}`);
-      // Keep the existing rating but update the timestamp to avoid immediate retry
-      products.push({
+      results.push({
         index: item.index,
         rating: {
           ...item.rating,
-          updated: new Date(),
-          lastError: err.message,
+          response: null,
+          error: error.message,
+        },
+      });
+    }
+  }
+
+  if (results.length > 0) {
+    await updateDatabase(results);
+  }
+}
+
+async function updateExistingRatings(items) {
+  if (!items.length) return;
+  log("?", `Updating ${items.length} existing ratings.`);
+
+  const results = [];
+
+  for (const item of items) {
+    try {
+      const html = await fetchVivinoPage(item.rating.url);
+      const products = parseVivinoData(html);
+
+      if (products?.[0]) {
+        const product = products[0];
+        results.push({
+          index: item.index,
+          rating: {
+            ...item.rating,
+            description: product.description,
+            value: parseFloat(product.aggregateRating?.ratingValue || 0),
+            count: parseInt(product.aggregateRating?.reviewCount || 0),
+          },
+        });
+        log(
+          "?",
+          `Updated rating for ${item.name}: ${product.aggregateRating?.ratingValue}`,
+        );
+      } else {
+        results.push({
+          index: item.index,
+          rating: {
+            ...item.rating,
+            error: "No data found in update",
+          },
+        });
+      }
+    } catch (error) {
+      log("!", `Error updating ${item.name}: ${error.message}`);
+      results.push({
+        index: item.index,
+        rating: {
+          ...item.rating,
+          error: error.message,
         },
       });
     }
 
     await new Promise((resolve) => setTimeout(resolve, CONFIG.requestDelay));
 
-    if (products.length >= CONFIG.batchSize) {
-      await updateDatabase(products, false);
-      products = [];
+    if (results.length >= CONFIG.batchSize) {
+      await updateDatabase(results.splice(0, CONFIG.batchSize));
     }
   }
 
-  if (products.length > 0) {
-    await updateDatabase(products, false);
+  if (results.length > 0) {
+    await updateDatabase(results);
   }
-
-  log("?", `Finished updating ratings for ${items.length} products on Vivino.`);
 }
 
 async function getWorkItems() {
@@ -450,53 +407,41 @@ async function getWorkItems() {
   cutoffDate.setDate(cutoffDate.getDate() - CONFIG.maxRatingAge);
 
   // Priority 1: Items without any rating
-  const newItems = await itemCollection
+  const newItems = await collection
     .find({
       index: { $exists: true, $ne: null },
       name: { $exists: true },
       $or: [
         { rating: null },
         { rating: { $exists: false } },
-        { $and: [{ rating: { $exists: true } }, { "rating.value": null }] },
+        { "rating.value": null },
       ],
-      category: {
-        $in: [
-          "Rødvin",
-          "Hvitvin",
-          "Vin",
-          "Musserende vin",
-          "Perlende vin",
-          "Rosévin",
-          "Aromatisert vin",
-          "Fruktvin",
-          "Sterkvin",
-        ],
-      },
+      category: { $in: CONFIG.categories },
     })
     .project({ index: 1, name: 1, _id: 0 })
-    .limit(100)
+    .limit(CONFIG.batchSize)
     .toArray();
 
   if (newItems.length > 0) {
-    log("?", `Found ${newItems.length} items without ratings.`);
     return { type: "search", items: newItems };
   }
 
   // Priority 2: Items with stored results to process
-  const storedResults = await itemCollection
+  const storedItems = await collection
     .find({
       "rating.response": { $exists: true, $ne: null },
       "rating.value": null,
     })
-    .countDocuments();
+    .project({ index: 1, name: 1, rating: 1, _id: 0 })
+    .limit(CONFIG.batchSize)
+    .toArray();
 
-  if (storedResults > 0) {
-    log("?", `Found ${storedResults} stored results to process.`);
-    return { type: "stored", items: [] };
+  if (storedItems.length > 0) {
+    return { type: "stored", items: storedItems };
   }
 
   // Priority 3: Items with old ratings
-  const oldRatings = await itemCollection
+  const oldItems = await collection
     .find({
       "rating.url": { $exists: true, $ne: null },
       $or: [
@@ -507,12 +452,11 @@ async function getWorkItems() {
     })
     .project({ index: 1, name: 1, rating: 1, _id: 0 })
     .sort({ "rating.updated": 1 })
-    .limit(50)
+    .limit(CONFIG.batchSize)
     .toArray();
 
-  if (oldRatings.length > 0) {
-    log("?", `Found ${oldRatings.length} items with old ratings.`);
-    return { type: "update", items: oldRatings };
+  if (oldItems.length > 0) {
+    return { type: "update", items: oldItems };
   }
 
   return { type: "none", items: [] };
@@ -527,52 +471,41 @@ async function continuousLoop() {
 
       switch (work.type) {
         case "search":
-          await searchRatings(work.items);
-          await new Promise((resolve) =>
-            setTimeout(resolve, CONFIG.sleepDuration),
-          );
+          log("?", `Processing ${work.items.length} items for search.`);
+          await searchNewRatings(work.items);
           break;
 
         case "stored":
-          await processStoredResults();
-          await new Promise((resolve) =>
-            setTimeout(resolve, CONFIG.sleepDuration),
-          );
+          log("?", `Processing ${work.items.length} stored results.`);
+          await processStoredResults(work.items);
           break;
 
         case "update":
-          await updateRatings(work.items);
-          await new Promise((resolve) =>
-            setTimeout(resolve, CONFIG.sleepDuration),
-          );
+          log("?", `Updating ${work.items.length} existing ratings.`);
+          await updateExistingRatings(work.items);
           break;
 
         case "none":
-          log(
-            "?",
-            `No work found. Sleeping for ${CONFIG.noWorkSleepDuration / 3600000} hours.`,
-          );
+          log("?", "No work found. Waiting before next check.");
           await new Promise((resolve) =>
-            setTimeout(resolve, CONFIG.noWorkSleepDuration),
+            setTimeout(resolve, CONFIG.noWorkDelay),
           );
           break;
       }
+
+      if (work.type !== "none") {
+        await new Promise((resolve) =>
+          setTimeout(resolve, CONFIG.minProcessingDelay),
+        );
+      }
     } catch (error) {
       log("!", `Error in continuous loop: ${error.message}`);
-      log(
-        "?",
-        `Sleeping for ${CONFIG.sleepDuration / 60000} minutes before retry.`,
-      );
-      await new Promise((resolve) => setTimeout(resolve, CONFIG.sleepDuration));
+      await new Promise((resolve) => setTimeout(resolve, CONFIG.errorDelay));
     }
   }
 }
 
 async function main() {
-  // First, process any existing stored results
-  await processStoredResults();
-
-  // Then start the continuous loop
   await continuousLoop();
 }
 

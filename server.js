@@ -254,7 +254,7 @@ if (_PRODUCTION) {
   const worker = new Worker("./fetch/vivino/rating.mjs");
 
   worker.onmessage = (event) => {
-    console.log("Worker message:", event.data);
+    console.log(event.data);
   };
 }
 

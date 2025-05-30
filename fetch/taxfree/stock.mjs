@@ -23,7 +23,11 @@ const database = client.db("snublejuice");
 const itemCollection = database.collection("products");
 const metaCollection = database.collection("metadata");
 
-const URL = JSON.parse(String(process.env.TAXFREE));
+const URL = {
+  "url": process.env.TAXFREE_URL,
+  "headers": process.env.TAXFREE_HEADERS,
+  "requests": [process.env.TAXFREE_REQUESTS_1, process.env.TAXFREE_REQUESTS_2],
+};
 
 const STORES = {
   5135: "Stavanger, Avgang & Ankomst",

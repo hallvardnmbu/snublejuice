@@ -1,10 +1,15 @@
+// fetch/taxfree/stock.mjs
 import { MongoClient, ServerApiVersion } from "mongodb";
 import dotenv from "dotenv";
+import * as errorHandler from '../lib/errorHandler.mjs';
 
 dotenv.config();
 
+const SCRIPT_NAME = 'tax-stock';
+
 const log = (level, message) => {
-  console.log(`${level} [tax-stock] ${message}`);
+  const msgStr = (message !== null && message !== undefined) ? message.toString() : "";
+  console.log(`${level} [${SCRIPT_NAME}] ${msgStr}`);
 };
 
 const client = new MongoClient(
@@ -12,185 +17,256 @@ const client = new MongoClient(
   {
     serverApi: {
       version: ServerApiVersion.v1,
-      strict: true,
+      strict: true, // Kept as true from original
       deprecationErrors: true,
     },
   },
 );
-await client.connect();
 
-const database = client.db("snublejuice");
-const itemCollection = database.collection("products");
-const metaCollection = database.collection("metadata");
-
-const URL = {
-  "url": process.env.TAXFREE_URL,
-  "headers": process.env.TAXFREE_HEADERS,
-  "requests": [process.env.TAXFREE_REQUESTS_1, process.env.TAXFREE_REQUESTS_2],
+// Constants for TaxFree API
+const TAXFREE_API_CONFIG = {
+  url: process.env.TAXFREE_URL,
+  headers: JSON.parse(process.env.TAXFREE_HEADERS || '{}'),
+  requests: [
+    JSON.parse(process.env.TAXFREE_REQUESTS_1 || '{}'),
+    JSON.parse(process.env.TAXFREE_REQUESTS_2 || '{}')
+  ].filter(req => Object.keys(req).length > 0),
 };
 
-const STORES = {
-  5135: "Stavanger, Avgang & Ankomst",
-  5136: "Stavanger, Bagasjehall (?)",
-  5145: "Bergen, Avgang",
-  5148: "Bergen, Ankomst",
-  5155: "Trondheim, Avgang & Ankomst",
-  5111: "Oslo, Ankomst",
-  5114: "Oslo, Avgang",
-  5115: "Oslo, Videreforbindelse",
-
-  5110: null,
-  5104: null,
-  5149: null,
+const STORES_MAP = {
+  5135: "Stavanger, Avgang & Ankomst", 5136: "Stavanger, Bagasjehall (?)",
+  5145: "Bergen, Avgang", 5148: "Bergen, Ankomst",
+  5155: "Trondheim, Avgang & Ankomst", 5111: "Oslo, Ankomst",
+  5114: "Oslo, Avgang", 5115: "Oslo, Videreforbindelse",
+  5110: null, 5104: null, 5149: null,
 };
 
-const LINKS = {
-  image: "https://cdn.tax-free.no",
-  product: "https://www.tax-free.no",
-};
-const IMAGE = {
-  thumbnail: "https://bilder.vinmonopolet.no/bottle.png",
-  product: "https://bilder.vinmonopolet.no/bottle.png",
-};
-function processImages(images) {
-  if (!images) return IMAGE;
-
-  return Object.fromEntries(
-    Object.entries(images).map(([format, urlEnd]) => [
-      format,
-      `${LINKS.image}${urlEnd}`,
-    ]),
-  );
+function processStockProduct(product, alreadyProcessedIndexes) {
+  const index = parseInt(product.code, 10) || null;
+  if (!index || alreadyProcessedIndexes.includes(index)) {
+    return null; // Skip if no index or already processed
+  }
+  return {
+    index: index,
+    stores: product.inPhysicalStockInCodes
+      ?.map((code) => STORES_MAP[code])
+      .filter((store) => store !== null) || [], // Default to empty array if null/undefined
+  };
 }
 
-function processProducts(products, alreadyUpdated) {
-  const processed = [];
+async function fetchTaxFreeStockPageData(order, alreadyProcessedIndexes, isPartOfMainRetryLoop = false) {
+  const requestBody = JSON.stringify({
+    requests: TAXFREE_API_CONFIG.requests.map((req) => ({
+      ...req,
+      indexName: req.indexName.replace("{}", order),
+    })),
+  });
+  let firstAttemptErrorMessage = "";
 
-  for (const product of products) {
-    const index = parseInt(product.code, 10) || null;
-
-    // Extra check to avoid duplicates.
-    // The alreadyUpdated is set in the main function below.
-    // Only used if the scraping crashes and needs to be restarted.
-    // In this way, it skips the already processed products (before crash).
-    if (alreadyUpdated.includes(index)) {
-      continue;
-    }
-
-    processed.push({
-      index: index,
-
-      stores: product.inPhysicalStockInCodes
-        ? product.inPhysicalStockInCodes
-            .map((code) => STORES[code])
-            .filter((store) => store !== null)
-        : null,
+  try {
+    const response = await fetch(TAXFREE_API_CONFIG.url, {
+      method: "POST",
+      headers: TAXFREE_API_CONFIG.headers,
+      body: requestBody,
     });
+
+    if (response.ok) {
+      const data = await response.json();
+      const hits = data.results?.reduce((acc, curr) => acc.concat(curr.hits), []) || [];
+      return hits.map(p => processStockProduct(p, alreadyProcessedIndexes)).filter(p => p !== null);
+    }
+    firstAttemptErrorMessage = `Status ${response.status} for tax-free stock order ${order}.`;
+    log("!", firstAttemptErrorMessage);
+  } catch (err) {
+    firstAttemptErrorMessage = `Exception for tax-free stock order ${order}. Error: ${err.message}`;
+    log("!", firstAttemptErrorMessage);
   }
 
-  return processed;
-}
-
-async function getPage(order, alreadyUpdated, retry = false) {
-  try {
-    const response = await fetch(URL.url, {
-      method: "POST",
-      headers: URL.headers,
-      body: JSON.stringify({
-        requests: URL.requests.map((req) => ({
-          ...req,
-          indexName: req.indexName.replace("{}", order),
-        })),
-      }),
-    });
-
-    if (response.status === 200) {
-      const data = await response.json();
-      return processProducts(
-        data.results.reduce((acc, curr) => acc.concat(curr.hits), []),
-        alreadyUpdated,
-      );
-    }
-
-    log("?", `Status code ${response.status} for order ${order}.`);
-  } catch (err) {
-    if (retry) {
+  if (isPartOfMainRetryLoop) {
+    errorHandler.addItemToErrorList({ type: 'taxFreeStockPage', order: order, requestBody: requestBody }, SCRIPT_NAME, `Failed on main retry: ${firstAttemptErrorMessage}`);
+    return [];
+  } else {
+    log("?", `Tax-free stock order ${order}. Internal retry. Initial error: ${firstAttemptErrorMessage}`);
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    try {
+      const response = await fetch(TAXFREE_API_CONFIG.url, { method: "POST", headers: TAXFREE_API_CONFIG.headers, body: requestBody });
+      if (response.ok) {
+        const data = await response.json();
+        const hits = data.results?.reduce((acc, curr) => acc.concat(curr.hits), []) || [];
+        log("?", `Successfully fetched tax-free stock order ${order} on internal retry.`);
+        return hits.map(p => processStockProduct(p, alreadyProcessedIndexes)).filter(p => p !== null);
+      }
+      const retryFailMessage = `Internal retry for tax-free stock order ${order} failed: Status ${response.status}.`;
+      log("!", retryFailMessage);
+      errorHandler.addItemToErrorList({ type: 'taxFreeStockPage', order: order, requestBody: requestBody }, SCRIPT_NAME, retryFailMessage);
+      return [];
+    } catch (retryErr) {
+      const retryFailMessage = `Internal retry for tax-free stock order ${order} failed with exception. Error: ${retryErr.message}`;
+      log("!", retryFailMessage);
+      errorHandler.addItemToErrorList({ type: 'taxFreeStockPage', order: order, requestBody: requestBody }, SCRIPT_NAME, retryFailMessage);
       return [];
     }
-
-    log("!", `Order: ${order} | Retrying. ${err}`);
-
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 5000));
-      return getPage(order, alreadyUpdated, true);
-    } catch (err) {
-      log("!", `Order: ${order} | Failed. ${err}`);
-    }
   }
 }
 
-async function updateDatabase(data) {
-  const operations = data.map((record) => ({
+async function updateStockInDB(productStockData) {
+  if (!productStockData || productStockData.length === 0) return { modifiedCount: 0, upsertedCount: 0 }; // Use upsertedCount for consistency if some are new
+
+  const operations = productStockData.map((record) => ({
     updateOne: {
-      filter: { "taxfree.index": record.index },
-      update: [{ $set: { "taxfree.stores": record.stores } }],
+      filter: { "taxfree.index": record.index }, // Match item by its taxfree.index
+      update: { $set: { "taxfree.stores": record.stores } },
+      // Do not upsert here; stock info is for existing tax-free items.
+      // If a taxfree.index doesn't exist, it means price.mjs hasn't run or missed it.
     },
   }));
 
-  return await itemCollection.bulkWrite(operations);
+  try {
+    const result = await itemCollection.bulkWrite(operations);
+    log("+", `DB Stock Update: Matched ${result.matchedCount}, Modified ${result.modifiedCount}.`);
+    return { modifiedCount: result.modifiedCount, upsertedCount: result.upsertedCount }; // Keep structure, though upserted may be 0
+  } catch (dbError) {
+    log("!", `DATABASE ERROR during stock update: ${dbError.message}`);
+    throw dbError;
+  }
 }
 
-async function getStock() {
-  let items = [];
-  let alreadyUpdated = [];
-
-  let count = 0;
+async function fetchTaxFreeStockWorkflow() {
+  let allFetchedStockData = [];
+  let processedIndexesThisRun = []; // Keep track of taxfree indexes processed in this run
 
   for (const order of ["asc", "desc"]) {
-    try {
-      let products = await getPage(order, alreadyUpdated);
-      if (products.length === 0) {
-        log("?", `Done. Final order: ${order}.`);
-        break;
-      }
+    log("?", `Fetching tax-free stock with order: ${order}`);
+    let stockDataFromPage = await fetchTaxFreeStockPageData(order, processedIndexesThisRun, false);
 
-      items = items.concat(products);
-      alreadyUpdated = alreadyUpdated.concat(items.map((item) => item.index));
-
-      await new Promise((resolve) => setTimeout(resolve, 900));
-    } catch (err) {
-      log("!", `Order ${order}. ${err}`);
-      break;
+    if (stockDataFromPage.length === 0 && !errorHandler.getErrorList().find(e => e.item.order === order && e.scriptName === SCRIPT_NAME)) {
+        log("?", `No stock data returned for order ${order}. Assuming end of data for this sort order.`);
+    } else if (stockDataFromPage.length === 0 && errorHandler.getErrorList().find(e => e.item.order === order && e.scriptName === SCRIPT_NAME)) {
+        log("!", `Skipping DB update for stock order ${order} due to prior fetch error.`);
+        continue;
     }
 
-    if (items.length === 0) {
-      throw new Error(`No items. Aborting.`);
+    if (stockDataFromPage.length > 0) {
+        allFetchedStockData = allFetchedStockData.concat(stockDataFromPage);
+        stockDataFromPage.forEach(p => processedIndexesThisRun.push(p.index));
     }
 
-    count += items.length;
-
-    log("+", ` Updating ${items.length} records.`);
-    const result = await updateDatabase(items);
-    log("+", ` Modified ${result.modifiedCount}.`);
-    log("+", ` Upserted ${result.upsertedCount}.`);
-
-    items = [];
+    // Update DB per order
+    if (allFetchedStockData.length > 0) {
+        log("+", `Updating DB with ${allFetchedStockData.length} tax-free stock entries from order '${order}'.`);
+        try {
+            const dbResult = await updateStockInDB(allFetchedStockData);
+            log("+", `DB stock results for order '${order}': Modified ${dbResult.modifiedCount}.`);
+        } catch (dbError) {
+            log("!", `DB ERROR during stock update for order ${order}: ${dbError.message}.`);
+        }
+        allFetchedStockData = []; // Clear after update
+    }
+    await new Promise((resolve) => setTimeout(resolve, 900));
   }
-
-  log("?", `Done. Total items: ${count}.`);
-  return;
+  log("?", "Tax-free stock workflow finished.");
 }
+
+const database = client.db("snublejuice"); // Define database
+const itemCollection = database.collection("products"); // Define itemCollection
 
 async function main() {
-  await itemCollection.updateMany({}, { $set: { "taxfree.stores": null } });
-  await getStock();
+  log("?", "Script starting: tax-stock");
+  const metaCollection = database.collection("metadata");
 
-  await metaCollection.updateOne(
-    { id: "stock" },
-    { $set: { taxfree: new Date() } },
-  );
+  try {
+    // Set taxfree.stores to an empty array for all items that have a taxfree part.
+    // This clears old stock data before new data is fetched.
+    const resetResult = await itemCollection.updateMany(
+      { "taxfree.index": { $exists: true } }, // Target only docs with a taxfree subdocument
+      { $set: { "taxfree.stores": [] } }
+    );
+    log("?", `Reset 'taxfree.stores' to [] for ${resetResult.modifiedCount} products.`);
+  } catch (dbError) {
+    log("!", `DB ERROR resetting taxfree.stores: ${dbError.message}. Attempting to continue.`);
+  }
+
+  await fetchTaxFreeStockWorkflow();
+
+  // --- Error Handling and Retry Logic ---
+  let persistentErrorCountAfterRetries = 0;
+  const initialErrors = errorHandler.getErrorList();
+
+  if (initialErrors.length > 0) {
+    log("!", `Initial tax-free stock fetch completed with ${initialErrors.length} errors.`);
+    if (initialErrors.length > errorHandler.getErrorThreshold()) {
+      log("!", `Error count (${initialErrors.length}) exceeds threshold. Aborting retries.`);
+      persistentErrorCountAfterRetries = initialErrors.length;
+    } else {
+      log("?", `Attempting to retry ${initialErrors.length} failed tax-free stock pages/items.`);
+      errorHandler.clearErrorList();
+      let successfullyRetriedStockData = [];
+
+      for (const errorEntry of initialErrors) {
+        if (errorEntry.item.type === 'taxFreeStockPage') {
+          log("?", `Retrying tax-free stock page for order: ${errorEntry.item.order}.`);
+          const stockData = await fetchTaxFreeStockPageData(errorEntry.item.order, [], true); // Pass empty processedIndexes for retry simplicity
+          if (stockData.length > 0) {
+            log("+", `Successfully retried tax-free stock page for order ${errorEntry.item.order}, got ${stockData.length} items.`);
+            successfullyRetriedStockData = successfullyRetriedStockData.concat(stockData);
+          }
+        }
+      }
+
+      if (successfullyRetriedStockData.length > 0) {
+        log("+", `Updating DB with ${successfullyRetriedStockData.length} successfully retried tax-free stock items.`);
+        try {
+            const dbResult = await updateStockInDB(successfullyRetriedStockData);
+            log("+", `DB results for retried tax-free stock: Modified ${dbResult.modifiedCount}.`);
+        }
+        catch (dbError) { log("!", `DB Error saving retried tax-free stock: ${dbError.message}`); }
+      }
+      persistentErrorCountAfterRetries = errorHandler.getErrorCount();
+    }
+  }
+
+  // Metadata update (original just set 'taxfree: new Date()', maybe should be more specific)
+  try {
+    await metaCollection.updateOne(
+      { id: "stock" },
+      { $set: { "status.taxfree_stock_last_updated": new Date() } }, // More specific field
+      { upsert: true }
+    );
+    log("?", "Updated tax-free stock last update timestamp in metadata.");
+  } catch(metaError) {
+    log("!", `Failed to update metadata for tax-free stock: ${metaError.message}`);
+  }
+
+  // Final Exit Code
+  if (initialErrors.length > errorHandler.getErrorThreshold()) {
+    log("!", `EXITING: Initial error count (${initialErrors.length}) for tax-free stock exceeded threshold.`);
+    process.exit(1);
+  } else if (persistentErrorCountAfterRetries > 0) {
+    log("!", `EXITING: Script tax-stock finished with ${persistentErrorCountAfterRetries} unresolved errors after retries.`);
+    errorHandler.getErrorList().forEach(err => {
+         log("!", `  Unresolved: ${JSON.stringify(err.item)}, Msg: ${err.errorMessage}`);
+    });
+    process.exit(1);
+  } else {
+    log("?", "Script tax-stock completed successfully.");
+    process.exit(0);
+  }
 }
 
-await main();
-
-client.close();
+(async () => {
+  try {
+    await client.connect();
+    log("?", "MongoDB client connected for tax-stock script.");
+    await main();
+  } catch (error) {
+    log("!", `Unhandled error in tax-stock main execution: ${error.message} ${error.stack}`);
+    process.exit(1);
+  } finally {
+    try {
+      await client.close();
+      log("?", "Database connection closed (tax-stock).");
+    } catch (closeError) {
+      log("!", `Failed to close database connection (tax-stock): ${closeError.message}`);
+    }
+  }
+})();

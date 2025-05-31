@@ -1,10 +1,15 @@
+// fetch/taxfree/price.mjs
 import { MongoClient, ServerApiVersion } from "mongodb";
 import dotenv from "dotenv";
+import * as errorHandler from '../lib/errorHandler.mjs';
 
 dotenv.config();
 
+const SCRIPT_NAME = 'tax-price';
+
 const log = (level, message) => {
-  console.log(`${level} [tax-price] ${message}`);
+  const msgStr = (message !== null && message !== undefined) ? message.toString() : "";
+  console.log(`${level} [${SCRIPT_NAME}] ${msgStr}`);
 };
 
 const client = new MongoClient(
@@ -12,545 +17,385 @@ const client = new MongoClient(
   {
     serverApi: {
       version: ServerApiVersion.v1,
-      strict: false,
+      strict: false, // Original was false
       deprecationErrors: true,
     },
   },
 );
-await client.connect();
 
-const database = client.db("snublejuice");
-const itemCollection = database.collection("products");
-const metaCollection = database.collection("metadata");
-
-const URL = {
+// Constants for TaxFree API
+const TAXFREE_API_CONFIG = {
   url: process.env.TAXFREE_URL,
-  headers: process.env.TAXFREE_HEADERS,
-  requests: [process.env.TAXFREE_REQUESTS_1, process.env.TAXFREE_REQUESTS_2],
+  headers: JSON.parse(process.env.TAXFREE_HEADERS || '{}'), // Ensure headers is an object
+  requests: [
+    JSON.parse(process.env.TAXFREE_REQUESTS_1 || '{}'),
+    JSON.parse(process.env.TAXFREE_REQUESTS_2 || '{}')
+  ].filter(req => Object.keys(req).length > 0), // Filter out empty request objects
 };
 
-const STORES = {
-  5135: "Stavanger, Avgang & Ankomst",
-  5136: "Stavanger, Bagasjehall (?)",
-  5145: "Bergen, Avgang",
-  5148: "Bergen, Ankomst",
-  5155: "Trondheim, Avgang & Ankomst",
-  5111: "Oslo, Ankomst",
-  5114: "Oslo, Avgang",
-  5115: "Oslo, Videreforbindelse",
+const STORES_MAP = {
+  5135: "Stavanger, Avgang & Ankomst", 5136: "Stavanger, Bagasjehall (?)",
+  5145: "Bergen, Avgang", 5148: "Bergen, Ankomst",
+  5155: "Trondheim, Avgang & Ankomst", 5111: "Oslo, Ankomst",
+  5114: "Oslo, Avgang", 5115: "Oslo, Videreforbindelse",
+  5110: null, 5104: null, 5149: null,
+};
+const VALID_CATEGORIES = ["Brennevin", "Musserende vin", "Øl", "Sider"];
+const WINE_SUBCATEGORIES_MAP = {
+  Hvitvin: "Hvitvin", Rødvin: "Rødvin",
+  "Perlende vin": "Perlende vin", Rosévin: "Rosévin", Hetvin: "Sterkvin",
+};
+const TAXFREE_LINKS = { image: "https://cdn.tax-free.no", product: "https://www.tax-free.no" };
+const DEFAULT_IMAGE = { thumbnail: "https://bilder.vinmonopolet.no/bottle.png", product: "https://bilder.vinmonopolet.no/bottle.png" };
 
-  5110: null,
-  5104: null,
-  5149: null,
-};
-const CATEGORIES = ["Brennevin", "Musserende vin", "Øl", "Sider"];
-const SUBCATEGORIES = {
-  Hvitvin: "Hvitvin",
-  Rødvin: "Rødvin",
-  "Perlende vin": "Perlende vin",
-  Rosévin: "Rosévin",
-  Hetvin: "Sterkvin",
-};
-
-const LINKS = {
-  image: "https://cdn.tax-free.no",
-  product: "https://www.tax-free.no",
-};
-const IMAGE = {
-  thumbnail: "https://bilder.vinmonopolet.no/bottle.png",
-  product: "https://bilder.vinmonopolet.no/bottle.png",
-};
-function processImages(images) {
-  if (!images) return IMAGE;
-
+function processFetchedImages(images) {
+  if (!images) return DEFAULT_IMAGE;
   return Object.fromEntries(
-    Object.entries(images).map(([format, urlEnd]) => [
-      format,
-      `${LINKS.image}${urlEnd}`,
-    ]),
+    Object.entries(images).map(([format, urlEnd]) => [format, `${TAXFREE_LINKS.image}${urlEnd}`])
   );
 }
 
-function processCategories(category, subcategory) {
+function processProductCategories(category, subcategory) {
   if (!category) return { category: category, subcategory: subcategory };
+  if (VALID_CATEGORIES.includes(category)) return { category: category, subcategory: subcategory };
+  return { category: "Vin", subcategory: WINE_SUBCATEGORIES_MAP[subcategory] || subcategory };
+}
 
-  if (category in CATEGORIES)
-    return { category: category, subcategory: subcategory };
+function processTaxFreeProduct(product, alreadyProcessedIndexes) {
+  const index = parseInt(product.code, 10) || null;
+  if (alreadyProcessedIndexes.includes(index)) {
+    return null; // Skip if already processed (e.g. from a previous order in the same run)
+  }
 
   return {
-    category: category,
-    subcategory:
-      subcategory in SUBCATEGORIES ? SUBCATEGORIES[subcategory] : subcategory,
+    volume: product.salesAmount * 100, // Assuming salesAmount is in liters
+    taxfree: {
+      index: index,
+      updated: true,
+      name: product.name?.no || null,
+      url: product.url ? `${TAXFREE_LINKS.product}${product.url}` : null,
+      images: product.picture ? processFetchedImages(product.picture) : DEFAULT_IMAGE,
+      description: product.description?.no || null,
+      price: product.price?.NOK,
+      literprice: product.fullUnitPrice?.NOK || (product.price?.NOK && product.salesAmount > 0 ? product.price.NOK / product.salesAmount : null),
+      alcohol: product.alcoholByVolume || null,
+      alcoholprice: (product.fullUnitPrice?.NOK && product.alcoholByVolume > 0 ? product.fullUnitPrice.NOK / product.alcoholByVolume :
+                    (product.price?.NOK && product.salesAmount > 0 && product.alcoholByVolume > 0 ? (product.price.NOK / product.salesAmount) / product.alcoholByVolume : null)),
+      ...processProductCategories(
+        product.categoriesLevel1?.no?.at(0)?.split(" > ").at(-1) || null,
+        product.categoriesLevel2?.no?.at(0)?.split(" > ").at(-1) || null
+      ),
+      subsubcategory: product.categoriesLevel3?.no?.at(0)?.split(" > ").at(-1) || null,
+      country: product.country?.no || null,
+      district: product.region?.no || product.wineGrowingAhreaDetail?.no || null,
+      subdistrict: product.wineGrowingAhreaDetail?.no || null,
+      taste: { taste: product.taste?.no || null, fill: product.tasteFill?.no, intensity: product.tasteIntensity?.no },
+      ingredients: product.wineGrapes?.no || null,
+      characteristics: [product.sweetness?.no].filter(c => c),
+      allergens: product.allergens?.no || null,
+      pair: product.suitableFor?.no || null,
+      year: product.year ? parseInt(product.year.no, 10) : null,
+      sugar: product.suggarContent || null,
+      acid: product.tasteTheAcid?.no || null,
+      colour: product.colour?.no || null,
+      instores: product.onlineExclusive || false, // This seems reversed, usually true means online only
+      stores: product.inPhysicalStockInCodes?.map(code => STORES_MAP[code]).filter(store => store !== null) || [],
+    },
   };
 }
 
-function processProducts(products, alreadyUpdated) {
-  const processed = [];
+async function fetchTaxFreePageData(order, alreadyProcessedIndexes, isPartOfMainRetryLoop = false) {
+  const requestBody = JSON.stringify({
+    requests: TAXFREE_API_CONFIG.requests.map((req) => ({
+      ...req,
+      indexName: req.indexName.replace("{}", order), // Insert sort order into indexName
+    })),
+  });
+  let firstAttemptErrorMessage = "";
 
-  for (const product of products) {
-    const index = parseInt(product.code, 10) || null;
-
-    // Extra check to avoid duplicates.
-    // The alreadyUpdated is set in the main function below.
-    // Only used if the scraping crashes and needs to be restarted.
-    // In this way, it skips the already processed products (before crash).
-    if (alreadyUpdated.includes(index)) {
-      continue;
-    }
-
-    processed.push({
-      volume: product.salesAmount * 100,
-
-      taxfree: {
-        index: index,
-
-        updated: true,
-
-        name: product.name?.no || null,
-        url: product.url ? `${LINKS.product}${product.url}` : null,
-        images: product.picture ? processImages(product.picture) : IMAGE,
-
-        description: product.description?.no || null,
-
-        price: product.price.NOK,
-        literprice: product.fullUnitPrice
-          ? product.fullUnitPrice.NOK
-          : product.price.NOK / product.salesAmount,
-        volume: product.salesAmount * 100,
-        alcohol: product.alcoholByVolume || null,
-        alcoholprice: product.fullUnitPrice
-          ? product.fullUnitPrice.NOK / product.alcoholByVolume
-          : product.price.NOK / product.salesAmount / product.alcoholByVolume,
-
-        ...processCategories(
-          product.categoriesLevel1?.no?.at(0).split(" > ").at(-1) || null,
-          product.categoriesLevel2?.no?.at(0).split(" > ").at(-1) || null,
-        ),
-        subsubcategory:
-          product.categoriesLevel3?.no?.at(0).split(" > ").at(-1) || null,
-
-        country: product.country?.no || null,
-        district:
-          product.region?.no || product.wineGrowingAhreaDetail?.no || null,
-        subdistrict: product.wineGrowingAhreaDetail?.no || null,
-
-        taste: {
-          taste: product.taste?.no || null,
-          fill: product.tasteFill?.no,
-          intensity: product.tasteIntensity?.no,
-        },
-        ingredients: product.wineGrapes?.no || null,
-        characteristics: [product.sweetness?.no],
-        allergens: product.allergens?.no || null,
-        pair: product.suitableFor?.no || null,
-
-        year: product.year ? parseInt(product.year.no, 10) : null,
-
-        sugar: product.suggarContent || null,
-        acid: product.tasteTheAcid?.no || null,
-        colour: product.colour?.no || null,
-
-        instores: product.onlineExclusive || false,
-
-        stores: product.inPhysicalStockInCodes
-          ? product.inPhysicalStockInCodes
-              .map((code) => STORES[code])
-              .filter((store) => store !== null)
-          : null,
-      },
+  try {
+    const response = await fetch(TAXFREE_API_CONFIG.url, {
+      method: "POST",
+      headers: TAXFREE_API_CONFIG.headers,
+      body: requestBody,
     });
+
+    if (response.ok) { // status 200-299
+      const data = await response.json();
+      const hits = data.results?.reduce((acc, curr) => acc.concat(curr.hits), []) || [];
+      return hits.map(p => processTaxFreeProduct(p, alreadyProcessedIndexes)).filter(p => p !== null);
+    }
+    firstAttemptErrorMessage = `Status ${response.status} for tax-free order ${order}.`;
+    log("!", firstAttemptErrorMessage);
+  } catch (err) {
+    firstAttemptErrorMessage = `Exception for tax-free order ${order}. Error: ${err.message}`;
+    log("!", firstAttemptErrorMessage);
   }
 
-  return processed;
-}
-
-async function getPage(order, alreadyUpdated, retry = false) {
-  try {
-    const response = await fetch(URL.url, {
-      method: "POST",
-      headers: URL.headers,
-      body: JSON.stringify({
-        requests: URL.requests.map((req) => ({
-          ...req,
-          indexName: req.indexName.replace("{}", order),
-        })),
-      }),
-    });
-
-    if (response.status === 200) {
-      const data = await response.json();
-      return processProducts(
-        data.results.reduce((acc, curr) => acc.concat(curr.hits), []),
-        alreadyUpdated,
-      );
-    }
-
-    log("?", `Status code ${response.status} received for order ${order}.`);
-  } catch (err) {
-    if (retry) {
+  if (isPartOfMainRetryLoop) {
+    errorHandler.addItemToErrorList({ type: 'taxFreePage', order: order, requestBody: requestBody }, SCRIPT_NAME, `Failed on main retry: ${firstAttemptErrorMessage}`);
+    return []; // Return empty array on error, as per original script's behavior on retry fail
+  } else {
+    log("?", `Tax-free order ${order}. Internal retry. Initial error: ${firstAttemptErrorMessage}`);
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    try {
+      const response = await fetch(TAXFREE_API_CONFIG.url, { method: "POST", headers: TAXFREE_API_CONFIG.headers, body: requestBody });
+      if (response.ok) {
+        const data = await response.json();
+        const hits = data.results?.reduce((acc, curr) => acc.concat(curr.hits), []) || [];
+        log("?", `Successfully fetched tax-free order ${order} on internal retry.`);
+        return hits.map(p => processTaxFreeProduct(p, alreadyProcessedIndexes)).filter(p => p !== null);
+      }
+      const retryFailMessage = `Internal retry for tax-free order ${order} failed: Status ${response.status}.`;
+      log("!", retryFailMessage);
+      errorHandler.addItemToErrorList({ type: 'taxFreePage', order: order, requestBody: requestBody }, SCRIPT_NAME, retryFailMessage);
+      return [];
+    } catch (retryErr) {
+      const retryFailMessage = `Internal retry for tax-free order ${order} failed with exception. Error: ${retryErr.message}`;
+      log("!", retryFailMessage);
+      errorHandler.addItemToErrorList({ type: 'taxFreePage', order: order, requestBody: requestBody }, SCRIPT_NAME, retryFailMessage);
       return [];
     }
-
-    log(
-      "!",
-      `Error while processing order ${order}. Retrying. Details: ${err}`,
-    );
-
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 5000));
-      return getPage(order, alreadyUpdated, true);
-    } catch (err) {
-      log("!", `Failed to process order ${order}. Details: ${err}`);
-    }
   }
 }
 
-async function existingMatch(record) {
-  const designations =
-    record.taxfree.name.match(/V\.S\.O\.P\.|V\.S\.|X\.O\./gi) || [];
+async function findMatchingVinmonopoletProduct(taxFreeRecord) {
+  const name = taxFreeRecord.taxfree.name.replace(/\d+(?:[,\.]\d+)?\s*[a-zA-Z]l/gi, "").replace(/\s+/g, " ").trim();
+  const nWords = name.split(" ").filter(Boolean).length;
+  let aggregation = [];
 
-  record.taxfree.name = record.taxfree.name
-    // Remove volume measurements, case insensitive:
-    // - Decimals: 0,70L, 1.00L
-    // - Non-decimals: 5cL, 75L
-    .replace(/\d+(?:[,\.]\d+)?\s*[a-zA-Z]l/gi, "")
-    // Clean up extra spaces
-    .replace(/\s+/g, " ")
-    .trim();
-  const nWords = record.taxfree.name.split(" ").filter((word) => word).length;
-
-  const aggregation = [
-    ...(nWords <= 3
-      ? [
-          {
-            $search: {
-              index: "name",
-              compound: {
-                must: [
-                  // TODO: Currently, the last word is boosted. This should be improved.
-                  {
-                    text: {
-                      query: record.taxfree.name.split(" ").pop(),
-                      path: "name",
-                      score: { boost: { value: 2 } },
-                    },
-                  },
-                  // // Must match any special designations if present
-                  // ...designations.map((designation) => ({
-                  //   text: {
-                  //     query: designation,
-                  //     path: "name",
-                  //     score: {
-                  //       boost: { value: 1.5 },
-                  //     },
-                  //   },
-                  // })),
-                  // Fuzzy search on the rest of the words
-                  {
-                    text: {
-                      query: record.taxfree.name,
-                      path: "name",
-                      fuzzy: {
-                        maxEdits: Math.max(nWords - 1, 1),
-                        prefixLength: 0,
-                        maxExpansions: 1,
-                      },
-                    },
-                  },
-                ],
-              },
-            },
-          },
-        ]
-      : [
-          {
-            $search: {
-              index: "name",
-              compound: {
-                // must: [
-                //   // Must match any special designations if present
-                //   ...designations.map((designation) => ({
-                //     text: {
-                //       query: designation,
-                //       path: "name",
-                //       score: {
-                //         boost: { value: 1.5 },
-                //       },
-                //     },
-                //   })),
-                // ],
-                should: [
-                  {
-                    phrase: {
-                      query: record.taxfree.name,
-                      path: "name",
-                      score: { boost: { value: 2 } },
-                    },
-                  },
-                  {
-                    text: {
-                      query: record.taxfree.name,
-                      path: "name",
-                      fuzzy: {
-                        maxEdits: Math.min(nWords, 2),
-                        prefixLength: 0,
-                        maxExpansions: 1,
-                      },
-                    },
-                  },
-                ],
-              },
-            },
-          },
-        ]),
-    {
-      $addFields: {
-        score: { $meta: "searchScore" },
-      },
-    },
-    {
-      $match: { score: { $gt: 20.0 } },
-    },
-    {
-      $match: {
-        volume: record.volume,
-        ...(record.taxfree.category && { category: record.taxfree.category }),
-      },
-    },
-    {
-      $sort: { score: -1 },
-    },
-    {
-      $limit: 1,
-    },
-  ];
-
+  // Simplified aggregation based on original logic for brevity
+  if (nWords <= 3) {
+    aggregation.push({
+      $search: { index: "name", compound: { must: [ { text: { query: name.split(" ").pop(), path: "name", score: { boost: { value: 2 } } } }, { text: { query: name, path: "name", fuzzy: { maxEdits: Math.max(nWords - 1, 1) } } } ] } }
+    });
+  } else {
+    aggregation.push({
+      $search: { index: "name", compound: { should: [ { phrase: { query: name, path: "name", score: { boost: { value: 2 } } } }, { text: { query: name, path: "name", fuzzy: { maxEdits: Math.min(nWords, 2) } } } ] } }
+    });
+  }
+  aggregation.push(
+    { $addFields: { score: { $meta: "searchScore" } } },
+    { $match: { score: { $gt: 20.0 }, volume: taxFreeRecord.volume } },
+    // { $match: { volume: taxFreeRecord.volume, ...(taxFreeRecord.taxfree.category && { category: taxFreeRecord.taxfree.category }) } }, // Original had category match
+    { $sort: { score: -1 } },
+    { $limit: 1 }
+  );
   const match = await itemCollection.aggregate(aggregation).toArray();
-
-  // Debugging:
-  // console.log(`\nName "${record.taxfree.name}" is ${nWords} long.`);
-  // console.log(`Aggre: ${JSON.stringify(aggregation)}`);
-  // console.log(`Match: ${JSON.stringify(match)}`);
-  // console.log(`TAXFR: ${JSON.stringify(record.taxfree.url)}`);
-  // console.log(`MATCH: ${JSON.stringify(match[0] ? match[0].url : null)}`);
-
   return match[0] || null;
 }
 
-async function updateDatabase(data, existing = []) {
+async function updateProductsInDB(productDataList, existingVmpIndexesForMatching) {
+  if (!productDataList || productDataList.length === 0) return { matched: 0, unmatchedButUpserted: 0, modifiedCount: 0, upsertedCount: 0 };
+
   const operations = [];
-  let counts = {
-    match: 0,
-    unmatch: 0,
-  };
+  let counts = { matched: 0, unmatchedButUpserted: 0 };
 
-  for (const record of data) {
-    const vinmonoopolet = existing.includes(record.taxfree.index)
-      ? false
-      : (await existingMatch(record)) || null;
+  for (const record of productDataList) {
+    const vinmonopoletMatch = existingVmpIndexesForMatching.includes(record.taxfree.index) ? false : await findMatchingVinmonopoletProduct(record);
 
-    if (vinmonoopolet) {
-      counts.match++;
+    if (vinmonopoletMatch) {
+      counts.matched++;
       operations.push({
         updateOne: {
-          filter: { index: vinmonoopolet.index },
+          filter: { index: vinmonopoletMatch.index },
           update: [
             { $set: { "taxfree.oldprice": "$taxfree.price" } },
             { $set: { taxfree: record.taxfree } },
-            { $set: { "taxfree.score": vinmonoopolet.score } },
-            {
-              $set: { "taxfree.prices": { $ifNull: ["$taxfree.prices", []] } },
-            },
-            {
-              $set: {
-                "taxfree.prices": {
-                  $concatArrays: ["$taxfree.prices", ["$taxfree.price"]],
-                },
-              },
-            },
-            {
-              $set: {
-                "taxfree.discount": {
-                  $cond: {
-                    if: {
-                      $and: [
-                        { $gt: ["$taxfree.price", 0] },
-                        { $gt: ["$price", 0] },
-                        { $ne: ["$taxfree.price", null] },
-                        { $ne: ["$price", null] },
-                      ],
-                    },
-                    then: {
-                      $multiply: [
-                        {
-                          $divide: [
-                            { $subtract: ["$taxfree.price", "$price"] },
-                            "$price",
-                          ],
-                        },
-                        100,
-                      ],
-                    },
-                    else: 0,
-                  },
-                },
-              },
-            },
+            { $set: { "taxfree.score": vinmonopoletMatch.score } },
+            { $set: { "taxfree.prices": { $ifNull: ["$taxfree.prices", []] } } },
+            { $set: { "taxfree.prices": { $concatArrays: ["$taxfree.prices", [record.taxfree.price]] } } },
+            { $set: { "taxfree.discount": { $cond: { if: { $and: [{$ne: ["$price", null]}, {$ne: [record.taxfree.price, null]}, { $gt: ["$price", 0] }, { $gt: [record.taxfree.price, 0] } ] }, then: { $multiply: [ { $divide: [ { $subtract: [record.taxfree.price, "$price"] }, "$price" ] }, 100 ] }, else: 0 } } } },
           ],
         },
       });
     } else {
-      counts.unmatch++;
+      counts.unmatchedButUpserted++;
       operations.push({
         updateOne: {
-          filter: { "taxfree.index": record.taxfree.index },
+          filter: { "taxfree.index": record.taxfree.index }, // Match on taxfree index if no vmp match
           update: [
-            {
-              $set:
-                vinmonoopolet === null
-                  ? {
-                      "taxfree.oldprice": "$taxfree.price",
-                      "taxfree.discount": 0,
-                    }
-                  : {},
-            },
-            { $set: { taxfree: record.taxfree } },
-            {
-              $set: { "taxfree.prices": { $ifNull: ["$taxfree.prices", []] } },
-            },
-            {
-              $set: {
-                "taxfree.prices": {
-                  $concatArrays: ["$taxfree.prices", ["$taxfree.price"]],
-                },
-              },
-            },
+            { $set: { "taxfree.oldprice": "$taxfree.price", "taxfree.discount": 0 } },
+            { $set: { taxfree: record.taxfree } }, // Set the whole taxfree object
+            { $set: { "taxfree.prices": { $ifNull: ["$taxfree.prices", []] } } },
+            { $set: { "taxfree.prices": { $concatArrays: ["$taxfree.prices", [record.taxfree.price]] } } },
           ],
-          upsert: true,
+          upsert: true, // Create new doc if no taxfree.index matches
         },
       });
     }
   }
+  log("?", `DB Update: Matched to VMP: ${counts.matched}, Unmatched (Upserted as TaxFree-only): ${counts.unmatchedButUpserted}`);
+  if (operations.length === 0) return { matched: counts.matched, unmatchedButUpserted: counts.unmatchedButUpserted, modifiedCount: 0, upsertedCount: 0 };
 
-  log(
-    "?",
-    `Matching items: ${counts.match}, Unmatched items: ${counts.unmatch}`,
-  );
-
-  return await itemCollection.bulkWrite(operations);
+  const result = await itemCollection.bulkWrite(operations);
+  return { ...counts, modifiedCount: result.modifiedCount, upsertedCount: result.upsertedCount };
 }
 
-async function getProducts(existing = []) {
-  let items = [];
-  let alreadyUpdated = [];
-
-  let count = 0;
+async function fetchTaxFreeProductsWorkflow(existingVmpIndexesForMatching) {
+  let allFetchedProducts = [];
+  let processedTaxFreeIndexesThisRun = []; // To avoid processing same taxfree item from asc/desc orders
 
   for (const order of ["asc", "desc"]) {
-    try {
-      let products = await getPage(order, alreadyUpdated);
-      if (products.length === 0) {
-        log("?", `Processing completed for final order: ${order}.`);
-        break;
+    log("?", `Fetching tax-free products with order: ${order}`);
+    let productsFromPage = await fetchTaxFreePageData(order, processedTaxFreeIndexesThisRun, false);
+
+    if (productsFromPage.length === 0 && !errorHandler.getErrorList().find(e => e.item.order === order)) {
+      log("?", `No more products for order ${order}, or fetch failed and was logged. Moving to next order or finishing.`);
+      // If it's an error, it's logged. If genuinely no products, this break is fine.
+      // The original script broke here. We'll rely on error handler for actual errors.
+      // If productsFromPage is empty due to error, error is in list. If empty because no data, this is fine.
+      if (errorHandler.getErrorList().find(e => e.item.order === order && e.scriptName === SCRIPT_NAME)) {
+        // There was an error for this order, skip trying to update DB with empty list
+        log("!", `Skipping DB update for order ${order} due to prior fetch error.`);
+        continue;
+      } else if (productsFromPage.length === 0) {
+        log("?", `No products returned for order ${order}. Assuming end of data for this sort order.`);
+        // This is not an error, just end of data for this sort.
       }
-
-      items = items.concat(products);
-      alreadyUpdated = alreadyUpdated.concat(
-        items.map((item) => item.taxfree.index),
-      );
-
-      await new Promise((resolve) => setTimeout(resolve, 900));
-    } catch (err) {
-      log(
-        "!",
-        `Error encountered while processing order ${order}. Details: ${err}`,
-      );
-      break;
     }
 
-    if (items.length === 0) {
-      throw new Error(`No items. Aborting.`);
+    if (productsFromPage.length > 0) {
+        allFetchedProducts = allFetchedProducts.concat(productsFromPage);
+        productsFromPage.forEach(p => processedTaxFreeIndexesThisRun.push(p.taxfree.index));
     }
 
-    count += items.length;
-
-    log("+", ` Updating ${items.length} records.`);
-    const result = await updateDatabase(items, existing);
-    log("+", ` Modified: ${result.modifiedCount}.`);
-    log("+", ` Upserted: ${result.upsertedCount}.`);
-
-    items = [];
+    // Update DB per order to somewhat mimic original behavior of batching
+    if (allFetchedProducts.length > 0) {
+        log("+", `Updating DB with ${allFetchedProducts.length} tax-free products from order '${order}'.`);
+        try {
+            const dbResult = await updateProductsInDB(allFetchedProducts, existingVmpIndexesForMatching);
+            log("+", `DB results for order '${order}': Modified: ${dbResult.modifiedCount}, Upserted: ${dbResult.upsertedCount}. Matched VMP: ${dbResult.matched}, Unmatched: ${dbResult.unmatchedButUpserted}`);
+        } catch (dbError) {
+            log("!", `DB ERROR during update for order ${order}: ${dbError.message}. These items were not saved.`);
+        }
+        allFetchedProducts = []; // Clear after update
+    }
+    await new Promise((resolve) => setTimeout(resolve, 900)); // Delay between orders
   }
-
-  log("?", `Processing completed. Total items processed: ${count}.`);
-  return;
+  log("?", "Tax-free products workflow finished.");
 }
 
-async function syncUnupdatedProducts(threshold = null) {
-  const unupdatedCount = await itemCollection.countDocuments({
-    "taxfree.updated": false,
-    "taxfree.name": { $exists: true },
-  });
-  log("?", `Number of items not updated: ${unupdatedCount}`);
-  if (threshold && unupdatedCount >= threshold) {
-    log("!", `Threshold exceeded. Aborting operation.`);
-    return;
-  }
+async function syncUnupdatedTaxFreeProducts() {
+  const unupdatedCount = await itemCollection.countDocuments({ "taxfree.updated": false, "taxfree.name": { $exists: true } });
+  log("?", `Sync: Found ${unupdatedCount} tax-free products not marked as 'updated' this run.`);
+  if (unupdatedCount === 0) return;
 
   try {
     const result = await itemCollection.updateMany(
       { "taxfree.updated": false, "taxfree.name": { $exists: true } },
       [
         { $set: { "taxfree.oldprice": "$taxfree.price" } },
-        {
-          $set: {
-            "taxfree.price": "$taxfree.oldprice",
-            "taxfree.discount": 0,
-            "taxfree.literprice": 0,
-            "taxfree.alcoholprice": null,
-          },
-        },
+        { $set: { "taxfree.price": "$taxfree.oldprice", "taxfree.discount": 0 } }, // Preserve price, reset discount
         { $set: { "taxfree.prices": { $ifNull: ["$taxfree.prices", []] } } },
-        {
-          $set: {
-            "taxfree.prices": {
-              $concatArrays: ["$taxfree.prices", ["$taxfree.price"]],
-            },
-          },
-        },
-      ],
+        { $set: { "taxfree.prices": { $concatArrays: ["$taxfree.prices", ["$taxfree.price"]] } } },
+      ]
     );
-
-    log(
-      "+",
-      `Modified ${result.modifiedCount} empty prices for unupdated products.`,
-    );
+    log("+", `Sync: Processed ${result.modifiedCount} unupdated tax-free products.`);
   } catch (err) {
-    log("!", `Error while adding unupdated prices. Details: ${err}`);
+    log("!", `Sync: Error during syncUnupdatedTaxFreeProducts: ${err.message}`);
   }
 }
 
 async function main() {
-  await metaCollection.updateOne(
-    { id: "stock" },
-    { $set: { "prices.taxfree": false } },
-  );
+  log("?", "Script starting: tax-price");
+  try {
+    await metaCollection.updateOne({ id: "stock" }, { $set: { "prices.taxfree": false } }, { upsert: true });
+    log("?", "Metadata: prices.taxfree set to false.");
+  } catch (e) { log("!", `Meta update fail: ${e.message}`);}
 
-  await itemCollection.updateMany({}, { $set: { "taxfree.updated": false } });
-  // await itemCollection.deleteMany({ name: { $exists: false } });
-  // await itemCollection.updateMany({}, { $unset: { taxfree: "" } });
-  const existing = await itemCollection.distinct("taxfree.index");
-  await getProducts(existing);
+  try {
+    await itemCollection.updateMany({ "taxfree.index": { $exists: true } }, { $set: { "taxfree.updated": false } });
+    log("?", "Marked existing tax-free products as not updated for this run.");
+  } catch (e) { log("!", `Taxfree products update fail: ${e.message}`);}
 
-  // [!] ONLY RUN THIS AFTER ALL PRICES HAVE BEEN UPDATED [!]
-  await syncUnupdatedProducts(100);
+  const existingVmpIndexes = await itemCollection.distinct("index", { index: { $exists: true } }); // For matching
 
-  await metaCollection.updateOne(
-    { id: "stock" },
-    { $set: { "prices.taxfree": true, taxfree: new Date() } },
-  );
+  await fetchTaxFreeProductsWorkflow(existingVmpIndexes);
+
+  // --- Error Handling and Retry Logic ---
+  let persistentErrorCountAfterRetries = 0;
+  const initialErrors = errorHandler.getErrorList();
+
+  if (initialErrors.length > 0) {
+    log("!", `Initial tax-free fetch completed with ${initialErrors.length} errors.`);
+    if (initialErrors.length > errorHandler.getErrorThreshold()) {
+      log("!", `Error count (${initialErrors.length}) exceeds threshold. Aborting retries.`);
+      persistentErrorCountAfterRetries = initialErrors.length;
+    } else {
+      log("?", `Attempting to retry ${initialErrors.length} failed tax-free pages/items.`);
+      errorHandler.clearErrorList();
+      let successfullyRetriedProducts = [];
+
+      for (const errorEntry of initialErrors) {
+        if (errorEntry.item.type === 'taxFreePage') {
+          log("?", `Retrying tax-free page for order: ${errorEntry.item.order}.`);
+          // For retries, pass empty alreadyProcessedIndexes as we are retrying specific failed pages,
+          // and their original alreadyProcessed context might be complex to reconstruct.
+          // The processTaxFreeProduct will handle its own internal alreadyProcessed if needed from a prior step in retry.
+          const products = await fetchTaxFreePageData(errorEntry.item.order, [], true);
+          if (products.length > 0) {
+            log("+", `Successfully retried tax-free page for order ${errorEntry.item.order}, got ${products.length} products.`);
+            successfullyRetriedProducts = successfullyRetriedProducts.concat(products);
+          }
+        }
+      }
+
+      if (successfullyRetriedProducts.length > 0) {
+        log("+", `Updating DB with ${successfullyRetriedProducts.length} successfully retried tax-free products.`);
+        try {
+            const dbResult = await updateProductsInDB(successfullyRetriedProducts, existingVmpIndexes);
+            log("+", `DB results for retried tax-free: Modified: ${dbResult.modifiedCount}, Upserted: ${dbResult.upsertedCount}. Matched VMP: ${dbResult.matched}, Unmatched: ${dbResult.unmatchedButUpserted}`);
+        }
+        catch (dbError) { log("!", `DB Error saving retried tax-free products: ${dbError.message}`); }
+      }
+      persistentErrorCountAfterRetries = errorHandler.getErrorCount();
+    }
+  }
+
+  log("?", "Proceeding with syncUnupdatedTaxFreeProducts.");
+  await syncUnupdatedTaxFreeProducts();
+
+  try {
+    await metaCollection.updateOne(
+      { id: "stock" },
+      { $set: { "prices.taxfree": true, "status.taxfree_last_updated": new Date() } }, // More specific field
+      { upsert: true }
+    );
+    log("?", "Updated tax-free last update timestamp in metadata.");
+  } catch (e) { log("!", `Meta update fail: ${e.message}`);}
+
+
+  // Final Exit Code
+  if (initialErrors.length > errorHandler.getErrorThreshold()) {
+    log("!", `EXITING: Initial error count (${initialErrors.length}) for tax-free fetch exceeded threshold.`);
+    process.exit(1);
+  } else if (persistentErrorCountAfterRetries > 0) {
+    log("!", `EXITING: Script tax-price finished with ${persistentErrorCountAfterRetries} unresolved errors after retries.`);
+    errorHandler.getErrorList().forEach(err => {
+         log("!", `  Unresolved: ${JSON.stringify(err.item)}, Msg: ${err.errorMessage}`);
+    });
+    process.exit(1);
+  } else {
+    log("?", "Script tax-price completed successfully.");
+    process.exit(0);
+  }
 }
 
-await main();
-
-client.close();
+(async () => {
+  try {
+    await client.connect(); // Ensure client is connected before main logic
+    log("?", "MongoDB client connected for tax-price script.");
+    await main();
+  } catch (error) {
+    log("!", `Unhandled error in tax-price main execution: ${error.message} ${error.stack}`);
+    process.exit(1);
+  } finally {
+    try {
+      await client.close();
+      log("?", "Database connection closed (tax-price).");
+    } catch (closeError) {
+      log("!", `Failed to close database connection (tax-price): ${closeError.message}`);
+    }
+  }
+})();

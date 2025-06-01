@@ -7,16 +7,15 @@ Icon?
 **/__pycache__/
 **/*.pattern
 
-backups/backup/
-
 **/node_modules/
 **/package-lock.json
-
-.venv
-uv.lock
-.ruff_cache
-.python-version
 
 bun.lock
 bun.lockb
 jsconfig.json
+
+backups/backup/
+backups/.venv
+backups/uv.lock
+backups/.ruff_cache
+backups/.python-version

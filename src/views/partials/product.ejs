@@ -32,7 +32,7 @@
 
         <% if (user) { %>
           <img
-              src="./images/favourite<%= user.favourites.includes(item.index) ? '-filled' : '' %>.png"
+              src="images/favourite<%= user.favourites.includes(item.index) ? '-filled' : '' %>.png"
               alt="Favoritt"
               data-index="<%= item.index %>"
               class="favourite-toggle"

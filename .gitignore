@@ -12,8 +12,11 @@ backups/backup/
 **/node_modules/
 **/package-lock.json
 
+.venv
 uv.lock
+.ruff_cache
 .python-version
 
+bun.lock
 bun.lockb
 jsconfig.json

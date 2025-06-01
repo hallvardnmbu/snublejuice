@@ -4,7 +4,7 @@ import requests
 
 URL = "https://www.vivino.com/search/wines?q={}"
 HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
 }
 
 
@@ -15,17 +15,14 @@ def processProduct(products, target):
     for product in products:
         processed = {
             "index": target["index"],
-
             "rating": {
                 "name": product["name"],
                 "manufacturer": product["manufacturer"]["name"],
-
                 "value": product["aggregateRating"]["ratingValue"],
                 "count": product["aggregateRating"]["reviewCount"],
                 "url": product["@id"],
-
                 "updated": True,
-            }
+            },
         }
 
         # Exact match.
@@ -36,7 +33,7 @@ def processProduct(products, target):
         description = product["description"].lower().split(" ")
         truth = target["name"].lower().split(" ")
         if sum(word in description for word in truth) / len(truth) > 0.75:
-           return processed
+            return processed
 
     return None
 

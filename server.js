@@ -7,19 +7,19 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import { Worker } from "worker_threads";
 
-import { apiAPP } from "./other/api/app.js";
-import { ordAPP } from "./other/ord/app.js";
+import { apiAPP } from "./src/other/api/app.js";
+import { ordAPP } from "./src/other/ord/app.js";
 
-import accountRouter, { authenticate } from "./routes/account.js";
-import dataRouter from "./routes/data.js";
+import accountRouter, { authenticate } from "./src/routes/account.js";
+import dataRouter from "./src/routes/data.js";
 
-import { databaseConnection } from "./database/connect.js";
+import { databaseConnection } from "./src/database/connect.js";
 import {
   incrementVisitor,
   getMetadata,
   categories,
   load,
-} from "./database/operations.js";
+} from "./src/database/operations.js";
 
 dotenv.config();
 
@@ -42,8 +42,8 @@ app.use(limiter);
 const snublejuice = express();
 
 snublejuice.set("view engine", "ejs");
-snublejuice.set("views", path.join(__dirname, "views"));
-snublejuice.use(express.static(path.join(__dirname, "public")));
+snublejuice.set("views", path.join(__dirname, "src/views"));
+snublejuice.use(express.static(path.join(__dirname, "src/public")));
 
 snublejuice.use(express.json());
 snublejuice.use(cookieParser());
@@ -53,8 +53,8 @@ snublejuice.locals.users = collections.users;
 snublejuice.locals.products = collections.products;
 snublejuice.locals.metadata = collections.metadata;
 
-snublejuice.use("/account", accountRouter);
-snublejuice.use("/data", dataRouter);
+snublejuice.use("src/routes/account", accountRouter);
+snublejuice.use("src/routes/data", dataRouter);
 
 snublejuice.get("/error", async (req, res) => {
   res.render("error", { message: req.query.message || "Noe gikk galt." });

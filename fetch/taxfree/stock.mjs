@@ -26,7 +26,10 @@ const metaCollection = database.collection("metadata");
 const URL = {
   "url": process.env.TAXFREE_URL,
   "headers": process.env.TAXFREE_HEADERS,
-  "requests": [process.env.TAXFREE_REQUESTS_1, process.env.TAXFREE_REQUESTS_2],
+  "requests": [
+    {indexName:"prod_products_price_{}", params: process.env.TAXFREE_REQUESTS_1}, 
+    {indexName:"prod_products_price_{}", params: process.env.TAXFREE_REQUESTS_2}
+  ],
 };
 
 const STORES = {

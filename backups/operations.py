@@ -309,8 +309,8 @@ def backup():
         else x
     )
 
-    os.makedirs("./backups/backup/", exist_ok=True)
-    path = f"./backups/backup/{pd.Timestamp.now().strftime('%Y-%m-%d')}.parquet"
+    os.makedirs("./backup/", exist_ok=True)
+    path = f"./backup/{pd.Timestamp.now().strftime('%Y-%m-%d')}.parquet"
 
     df.to_parquet(path)
     print("Saved backup to ", path)

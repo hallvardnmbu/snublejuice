@@ -6,7 +6,6 @@ import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 
-import { apiAPP } from "./src/other/api/app.js";
 import { ordAPP } from "./src/other/ord/app.js";
 
 import accountRouter, { authenticate } from "./src/routes/account.js";
@@ -250,9 +249,6 @@ snublejuice.get("/", authenticate, async (req, res) => {
 // ------------------------------------------------------------------------------------------------
 
 if (_PRODUCTION) {
-  // API APPLICATION (api.ind320.no)
-  const api = await apiAPP();
-
   // ORD APPLICATION (dagsord.no)
   const ord = await ordAPP();
 
@@ -261,8 +257,6 @@ if (_PRODUCTION) {
   app.use(vhost("www.snublejuice.no", snublejuice));
   app.use(vhost("vinmonopolet.snublejuice.no", snublejuice));
   app.use(vhost("taxfree.snublejuice.no", snublejuice));
-  app.use(vhost("api.ind320.no", api));
-  app.use(vhost("ord.dilettant.no", ord));
   app.use(vhost("dagsord.no", ord));
   app.use(vhost("www.dagsord.no", ord));
 

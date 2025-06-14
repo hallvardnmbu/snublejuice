@@ -166,7 +166,7 @@ snublejuice.get("/", authenticate, async (req, res) => {
       subdomain,
 
       // Return favourites only:
-      favourites: favourites ? user.favourites || [] : null,
+      favourites: (favourites && user) ? user.favourites || [] : null,
 
       // Single parameters:
       delta: delta,

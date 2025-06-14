@@ -51,8 +51,8 @@ snublejuice.locals.users = collections.users;
 snublejuice.locals.products = collections.products;
 snublejuice.locals.metadata = collections.metadata;
 
-snublejuice.use("src/routes/account", accountRouter);
-snublejuice.use("src/routes/data", dataRouter);
+snublejuice.use("/account", accountRouter);
+snublejuice.use("/data", dataRouter);
 
 snublejuice.get("/error", async (req, res) => {
   res.render("error", { message: req.query.message || "Noe gikk galt." });

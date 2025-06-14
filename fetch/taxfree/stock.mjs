@@ -174,7 +174,7 @@ async function getStock() {
 
     count += items.length;
 
-    log("+", ` Updating ${items.length} records.`);
+    log("+", `Updating ${items.length} records.`);
     const result = await updateDatabase(items);
     log("+", ` Modified ${result.modifiedCount}.`);
     log("+", ` Upserted ${result.upsertedCount}.`);

@@ -31,6 +31,21 @@ export const authenticate = async (req, res, next) => {
   }
 };
 
+// Helper for cookie options
+function getCookieOptions() {
+  const options = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
+    path: "/",
+  };
+  if (process.env.NODE_ENV === "production") {
+    options.domain = ".snublejuice.no";
+  }
+  return options;
+}
+
 router.post("/register", async (req, res) => {
   try {
     const { username, email, notify, password } = req.body;
@@ -67,13 +82,7 @@ router.post("/register", async (req, res) => {
     });
 
     const token = jwt.sign({ username: username }, process.env.JWT_KEY, { expiresIn: "365d" });
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
-      path: "/",
-    });
+    res.cookie("token", token, getCookieOptions());
 
     res.status(201).json({
       message: "Grattis, nå er du registrert!",
@@ -108,17 +117,10 @@ router.post("/login", async (req, res) => {
         message: "Hallo du, feil passord!",
       });
     }
-
+    
     const token = jwt.sign({ username: user.username }, process.env.JWT_KEY, { expiresIn: "365d" });
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
-      path: "/",
-      domain: process.env.NODE_ENV === "production" ? ".snublejuice.no" : ".localhost",
-    });
+    res.cookie("token", token, getCookieOptions());
 
     res.status(201).json({
       message: "Logget inn!",
@@ -133,13 +135,7 @@ router.post("/login", async (req, res) => {
 });
 
 router.post("/logout", async (req, res) => {
-  res.clearCookie("token", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    path: "/",
-    domain: process.env.NODE_ENV === "production" ? ".snublejuice.no" : ".localhost",
-  });
+  res.clearCookie("token", getCookieOptions());
   res.status(200).json({ ok: true });
 });
 
@@ -166,12 +162,7 @@ router.post("/delete", async (req, res) => {
     }
 
     await users.deleteOne({ username: username });
-    res.clearCookie("token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      path: "/",
-    });
+    res.clearCookie("token", getCookieOptions());
     res.status(201).json({
       message: "Brukeren er slettet!",
     });

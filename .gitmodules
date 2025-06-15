@@ -1,0 +1,3 @@
+[submodule "src/other/ord"]
+	path = src/other/ord
+	url = https://github.com/hallvardnmbu/ord.git

@@ -3,12 +3,15 @@
 ```bash
 cd /var/www/snublejuice
 git pull
+# To fetch the ord app, run:
+# git submodule update --init --recursive
+git submodule update --remote --merge
 sudo systemctl daemon-reload
 sudo systemctl restart snublejuice
 ```
 
 ```bash
-sudo systemctl status snublejuic
+sudo systemctl status snublejuice
 ```
 
 # Set up the app
@@ -28,6 +31,7 @@ curl -fsSL https://bun.sh/install | bash
 sudo mkdir -p /var/www/snublejuice
 cd /var/www/snublejuice
 sudo git clone https://github.com/hallvardnmbu/snublejuice.git .
+sudo git submodule update --init --recursive
 sudo chown -R $USER:$USER /var/www/snublejuice
 ```
 

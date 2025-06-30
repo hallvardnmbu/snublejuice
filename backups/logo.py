@@ -1,11 +1,21 @@
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#     "json",
+#     "matplotlib",
+#     "numpy",
+#     "pillow",
+# ]
+# ///
 import os
 import re
+
 import json
 import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
 
-_DIR = "./public/images/"
+_DIR = "../public/images/"
 _PATTERN = r"(\[\[.*?\]\])"
 _SIZES = [44, 64, 150, 320, 512, 640, 800, 1024, 1280]
 

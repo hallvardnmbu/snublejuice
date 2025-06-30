@@ -1,7 +1,19 @@
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#     "argparse",
+#     "numpy",
+#     "pandas",
+#     "pyarrow",
+#     "pymongo",
+#     "python-dotenv",
+# ]
+# ///
 """Code used to refactor the MongoDB database."""
 
 import os
 
+import dotenv
 import argparse
 import numpy as np
 import pandas as pd
@@ -10,6 +22,8 @@ import pymongo
 from pymongo.mongo_client import MongoClient
 from pymongo.results import BulkWriteResult
 
+
+dotenv.load_dotenv()
 
 _DATABASE = MongoClient(
     f"mongodb+srv://{os.environ.get('MONGO_USR')}:{os.environ.get('MONGO_PWD')}"
@@ -317,6 +331,9 @@ def backup():
 
 
 if __name__ == "__main__":
+    
+    # E.g.: `uv run ./operations.py backup`
+
     parser = argparse.ArgumentParser(description="Run operations on the database.")
     parser.add_argument(
         "function", type=str, help="The function to run (backup or restore)."

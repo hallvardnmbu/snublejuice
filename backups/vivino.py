@@ -1,3 +1,10 @@
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#     "json",
+#     "requests",
+# ]
+# ///
 import re
 import json
 import requests

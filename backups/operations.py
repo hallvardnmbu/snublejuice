@@ -193,7 +193,7 @@ def delete_fields(records, fields) -> BulkWriteResult:
 
 def restore(date: str | None = None):
     # Check that a backed up version actually exists.
-    backup_dir = "./backups/backup/"
+    backup_dir = "./backup/"
     if not os.path.exists(backup_dir):
         print("NO BACKUP DIRECTORY EXISTS")
         return

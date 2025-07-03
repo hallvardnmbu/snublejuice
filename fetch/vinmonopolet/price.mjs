@@ -31,7 +31,7 @@ const itemCollection = database.collection("products");
 const metaCollection = database.collection("metadata");
 
 const URL =
-  "https://www.vinmonopolet.no/vmpws/v2/vmp/search?fields=FULL&searchType=product&currentPage={}&q=%3Arelevance";
+  "https://www.vinmonopolet.no/vmpws/v2/vmp/products/search?fields=FULL&pageSize=24&currentPage={}&q=%3Arelevance";
 const LINK = "https://www.vinmonopolet.no{}";
 
 const IMAGE = {
@@ -117,7 +117,7 @@ async function getPage(page, alreadyUpdated, retry = false) {
 
     if (response.status === 200) {
       return processProducts(
-        response.data["productSearchResult"]["products"],
+        response.data["products"],
         alreadyUpdated,
       );
     }
@@ -359,4 +359,4 @@ try {
   log("!", `Failed to close database connection: ${error.message}`);
 }
 
-process.exit(1);
+process.exit(0);

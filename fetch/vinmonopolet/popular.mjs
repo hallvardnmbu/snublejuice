@@ -186,19 +186,10 @@ async function main() {
     { $set: { stores: [] } },
   );
 
-  // Set the limit to `-2.0` if the month is may 2025.
-  // This is to reduce the number of items that needs fetching.
-  // I.e., because the number of discounted items of may 2025 is +2000.
-  const date = new Date();
-  const limit =
-    date.getFullYear() === 2025 && date.getMonth() === 4 ? -2.0 : 0.0;
-
   // Fetch products with discount.
   const itemIds = await itemCollection
     .find({
-      discount: {
-        $lt: limit,
-      },
+      discount: { $lt: 0.0 },
     })
     .project({ index: 1, _id: 0 })
     .toArray();
@@ -223,4 +214,4 @@ try {
   log("?", "Database connection closed.");
 }
 
-process.exit(1);
+process.exit(0);

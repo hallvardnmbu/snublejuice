@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-import { databaseConnection } from "../database/connect.js";
+import { databaseConnection } from "../src/database/connect.js";
 
 const collections = await databaseConnection();
 const users = await collections.users

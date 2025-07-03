@@ -578,3 +578,5 @@ async function main() {
 await main();
 
 client.close();
+
+process.exit(0);

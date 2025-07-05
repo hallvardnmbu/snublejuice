@@ -174,6 +174,13 @@ server {
 ## 4.
 
 ```bash
+sudo mkdir -p /var/www/html/.well-known/acme-challenge
+sudo chown -R www-data:www-data /var/www/html
+```
+
+## 5.
+
+```bash
 sudo ln -s /etc/nginx/sites-available/snublejuice /etc/nginx/sites-enabled/
 sudo nginx -t  # Test config
 sudo systemctl reload nginx
@@ -212,4 +219,18 @@ sudo systemctl daemon-reload
 sudo systemctl enable snublejuice
 sudo systemctl start snublejuice
 sudo systemctl status snublejuice
+```
+
+## 6.
+
+```bash
+sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d snublejuice.no
+sudo certbot --nginx -d www.snublejuice.no
+sudo certbot --nginx -d vinmonopolet.snublejuice.no
+sudo certbot --nginx -d taxfree.snublejuice.no
+sudo certbot --nginx -d dagsord.no
+sudo certbot --nginx -d www.dagsord.no
+sudo certbot --nginx -d elektron.dagsord.no
+sudo systemctl reload nginx
 ```

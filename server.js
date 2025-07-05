@@ -254,7 +254,7 @@ if (_PRODUCTION) {
   const ord = await ordAPP();
 
   // ELEKTRON APPLICATION (elektron.dagsord.no)
-  const elektron = await elektronApp();
+  elektron = await elektronApp();
 
   // FINAL APP WITH ALL VHOSTS
   app.use(vhost("snublejuice.no", snublejuice));

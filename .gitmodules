@@ -1,3 +1,6 @@
 [submodule "src/other/ord"]
 	path = src/other/ord
 	url = https://github.com/hallvardnmbu/ord.git
+[submodule "src/other/elektron"]
+	path = src/other/elektron
+	url = https://github.com/hallvardnmbu/elektron.git

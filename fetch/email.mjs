@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-import { databaseConnection } from "../database/connect.js";
+import { databaseConnection } from "../src/database/connect.js";
 
 const collections = await databaseConnection();
 const users = await collections.users
@@ -21,28 +21,28 @@ async function sendEmails() {
       html: `
       <!doctype html>
       <html>
-        <head>
+      <head>
           <meta charset="utf-8" />
           <title>Ny måned - Snublejuice</title>
           <style>
-            @font-face {
+          @font-face {
               font-family: "fixedsys";
               font-style: normal;
               font-weight: normal;
-              src: url("https://raw.githubusercontent.com/hallvardnmbu/snublejuice/main/public/fonts/fixedsys.woff")
-                format("woff");
+              src: url("https://raw.githubusercontent.com/hallvardnmbu/snublejuice/main/src/public/fonts/fixedsys.woff")
+              format("woff");
               -webkit-font-smoothing: none;
               font-smooth: never;
-            }
+          }
 
-            html,
-            body {
+          html,
+          body {
               height: 100%;
               margin: 0;
               padding: 0;
-            }
+          }
 
-            body {
+          body {
               font-family: "fixedsys", monospace;
               color: #000000;
               line-height: 1.2rem;
@@ -55,17 +55,17 @@ async function sendEmails() {
               text-align: center;
               min-height: 100vh;
               box-sizing: border-box;
-            }
-            body h1 {
+          }
+          body h1 {
               font-size: 1.2rem;
-            }
-            body hr {
+          }
+          body hr {
               border: none;
               border-top: 10px solid #cccccc;
               width: 100%;
-            }
-            body menu,
-            body footer {
+          }
+          body menu,
+          body footer {
               display: flex;
               justify-content: center;
               align-items: center;
@@ -78,96 +78,96 @@ async function sendEmails() {
               margin: 0;
 
               color: #666666;
-            }
-            body div {
+          }
+          body div {
               flex: 1;
               display: flex;
               flex-direction: column;
               align-items: center;
               width: 100%;
-            }
-            footer {
+          }
+          footer {
               margin-top: auto;
               width: 100%;
-            }
-            body menu img {
+          }
+          body menu img {
               width: 75px;
               height: auto;
-            }
-            body p {
+          }
+          body p {
               margin: 5px;
               max-width: 60%;
-            }
-            a,
-            a:visited {
+          }
+          a,
+          a:visited {
               color: #666666;
               text-decoration-thickness: 2px;
-            }
-            a:hover {
+          }
+          a:hover {
               color: #000000;
-            }
+          }
 
-            @media (max-width: 500px) {
+          @media (max-width: 500px) {
               body menu {
-                flex-direction: column;
+              flex-direction: column;
               }
-            }
+          }
           </style>
-        </head>
-        <body>
+      </head>
+      <body>
           <div>
-            <p>
-            <h1>Nå er det endelig ny måned med nye tilbud!</h1>
-            </p>
+          <p>
+          <h1>Nå er det endelig ny måned med nye tilbud!</h1>
+          </p>
 
-            <hr />
+          <hr />
 
-            <menu class="landing-menu">
+          <menu class="landing-menu">
               <li>
-                <a href="https://vinmonopolet.snublejuice.no"
+              <a href="https://vinmonopolet.snublejuice.no"
                   >vinmonopolet.snublejuice.no</a
-                >
+              >
               </li>
               <li>
-                <img
-                  src="https://raw.githubusercontent.com/hallvardnmbu/snublejuice/main/public/images/snublejuice.png"
+              <img
+                  src="https://raw.githubusercontent.com/hallvardnmbu/snublejuice/main/src/public/images/snublejuice.png"
                   alt="SNUBLEJUICE.no"
-                />
+              />
               </li>
               <li>
-                <a href="https://taxfree.snublejuice.no">taxfree.snublejuice.no</a>
+              <a href="https://taxfree.snublejuice.no">taxfree.snublejuice.no</a>
               </li>
-            </menu>
+          </menu>
 
-            <hr />
+          <hr />
 
-            <p>
+          <p>
               Nå er nettsiden akkurat oppdatert med denne måneds priser, med
               oppdaterte lagerbeholdninger av de rabatterte produktene.
-            </p>
+          </p>
 
-            <p>
+          <p>
               Spaser bort til
               <a href="https://vinmonopolet.snublejuice.no"
-                >vinmonopolet.snublejuice.no</a
+              >vinmonopolet.snublejuice.no</a
               >
               for å se de nyeste tilbudene.
-            </p>
-            <p>
+          </p>
+          <p>
               Om du skal ut å fly så kan det også være verdt å ta en titt på
               <a href="https://taxfree.snublejuice.no">taxfree.snublejuice.no</a>.
-            </p>
+          </p>
           </div>
 
           <footer>
-            <p>
+          <p>
               Dersom du ikke ønsker disse varslingene, så kan du melde deg av i
               profilen din på
               <a href="https://snublejuice.no">nettsiden</a> ved å trykke på
               brukernavnet ditt øverst.
-            </p>
+          </p>
           </footer>
-        </body>
+      </body>
       </html>
     `,
     })),
@@ -180,4 +180,5 @@ async function sendEmails() {
 }
 
 await sendEmails();
-process.exit(1);
+
+process.exit(0);

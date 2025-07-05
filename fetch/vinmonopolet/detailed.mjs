@@ -26,7 +26,7 @@ const itemCollection = database.collection("products");
 // NEW PRODUCTS:
 
 const NEW =
-  "https://www.vinmonopolet.no/vmpws/v2/vmp/search?fields=FULL&searchType=product&currentPage={}&q=%3Arelevance%3AnewProducts%3Atrue";
+  "https://www.vinmonopolet.no/vmpws/v2/vmp/products/search?fields=FULL&pageSize=24&currentPage={}&q=%3Arelevance%3AnewProducts%3Atrue";
 
 const LINK = "https://www.vinmonopolet.no{}";
 
@@ -110,7 +110,7 @@ async function getNewProducts(itemIds) {
 
       if (response.status === 200) {
         return processProducts(
-          response.data["productSearchResult"]["products"],
+          response.data["products"],
         );
       } else {
         log("!", `Received status ${response.status} for page ${page}.`);
@@ -372,4 +372,4 @@ try {
   await client.close();
 }
 
-process.exit(1);
+process.exit(0);

@@ -12,7 +12,7 @@
     <link rel="apple-touch-icon" href="./images/64x64.png" />
     <meta property="og:image" content="./images/web.png" />
 
-    <meta property="og:title" content="SNUBLEJUICE.no" />
+    <meta property="og:title" content="Snublejuice.no" />
     <meta property="og:description" content="Vinmonopolets prisendring, prishistorikk og sammenlikning med tax-free." />
     <meta name="description" content="Vinmonopolets prisendring, prishistorikk og sammenlikning med tax-free." />
 
@@ -32,9 +32,9 @@
 
   <menu class="landing-menu">
     <li><a href="https://vinmonopolet.snublejuice.no">vinmonopolet.snublejuice.no</a></li>
-    <li class="wide"><img src="images/snublejuice.jpg" alt="SNUBLEJUICE.no"></li>
+    <li class="wide"><img src="images/snublejuice.jpg" alt="Snublejuice.no"></li>
     <li><a href="https://taxfree.snublejuice.no">taxfree.snublejuice.no</a></li>
-    <li class="slim"><img src="images/snublejuice.jpg" alt="SNUBLEJUICE.no"></li>
+    <li class="slim"><img src="images/snublejuice.jpg" alt="Snublejuice.no"></li>
   </menu>
 
   <hr class="landing-hr">
@@ -42,7 +42,7 @@
   <div class="landing-details">
     <span class="corners"></span>
 
-    <span><b>Hva er SNUBLEJUICE.no?</b></span>
+    <span><b>Hva er Snublejuice.no?</b></span>
 
     <span class="corners"></span>
 
@@ -127,9 +127,9 @@
   <hr class="landing-hr">
 
   <menu class="landing-menu">
-    <li class="slim"><img src="images/snublejuice.jpg" alt="SNUBLEJUICE.no"></li>
+    <li class="slim"><img src="images/snublejuice.jpg" alt="Snublejuice.no"></li>
     <li><a href="https://vinmonopolet.snublejuice.no">vinmonopolet.snublejuice.no</a></li>
-    <li class="wide"><img src="images/snublejuice.jpg" alt="SNUBLEJUICE.no"></li>
+    <li class="wide"><img src="images/snublejuice.jpg" alt="Snublejuice.no"></li>
     <li><a href="https://taxfree.snublejuice.no">taxfree.snublejuice.no</a></li>
   </menu>
 

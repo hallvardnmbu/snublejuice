@@ -131,7 +131,7 @@ async function sendEmails() {
               <li>
               <img
                   src="https://raw.githubusercontent.com/hallvardnmbu/snublejuice/main/src/public/images/snublejuice.png"
-                  alt="SNUBLEJUICE.no"
+                  alt="Snublejuice.no"
               />
               </li>
               <li>

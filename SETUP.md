@@ -13,16 +13,7 @@ sudo systemctl restart snublejuice
 ```
 
 ```bash
-cd /var/www/snublejuice/src/other/elektron
-git pull
-cargo build --release
-sudo systemctl daemon-reload
-sudo systemctl restart elektron
-```
-
-```bash
 sudo systemctl status snublejuice
-sudo systemctl status elektron
 ```
 
 # Set up the app
@@ -221,48 +212,4 @@ sudo systemctl daemon-reload
 sudo systemctl enable snublejuice
 sudo systemctl start snublejuice
 sudo systemctl status snublejuice
-```
-
-## 6. Elektron Setup
-
-For the elektron submodule (Rust app):
-
-```bash
-# Navigate to the elektron submodule
-cd /var/www/snublejuice/src/other/elektron
-
-# Install Rust if not already installed
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source ~/.cargo/env
-
-# Build the Rust app
-cargo build --release
-
-# Create a systemd service for the Rust app
-sudo vim /etc/systemd/system/elektron.service
-```
-
-```raw
-[Unit]
-Description=Elektron Rust App
-After=network.target
-
-[Service]
-Type=simple
-User=root
-WorkingDirectory=/var/www/snublejuice/src/other/elektron
-Environment=RUST_LOG=info
-ExecStart=/var/www/snublejuice/src/other/elektron/target/release/elektron
-Restart=always
-RestartSec=3
-
-[Install]
-WantedBy=multi-user.target
-```
-
-```bash
-sudo systemctl daemon-reload
-sudo systemctl enable elektron
-sudo systemctl start elektron
-sudo systemctl status elektron
 ```

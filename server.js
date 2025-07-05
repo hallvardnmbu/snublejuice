@@ -252,6 +252,34 @@ if (_PRODUCTION) {
   // ORD APPLICATION (dagsord.no)
   const ord = await ordAPP();
 
+  // ELEKTRON APPLICATION (elektron.dagsord.no)
+  const elektron = express();
+  elektron.use(async (req, res) => {
+    try {
+      // Simple proxy to the Rust backend running on port 8081
+      const url = `http://localhost:8081${req.url}`;
+      const response = await fetch(url, {
+        method: req.method,
+        headers: {
+          ...req.headers,
+          host: 'localhost:8081' // Override host header for internal routing
+        },
+        body: req.method !== 'GET' && req.method !== 'HEAD' ? req : undefined
+      });
+      
+      // Forward response headers
+      Object.entries(response.headers).forEach(([key, value]) => {
+        res.setHeader(key, value);
+      });
+      
+      res.status(response.status);
+      response.body.pipe(res);
+    } catch (error) {
+      console.error('Elektron proxy error:', error);
+      res.status(502).send('Elektron service unavailable');
+    }
+  });
+
   // FINAL APP WITH ALL VHOSTS
   app.use(vhost("snublejuice.no", snublejuice));
   app.use(vhost("www.snublejuice.no", snublejuice));
@@ -259,18 +287,52 @@ if (_PRODUCTION) {
   app.use(vhost("taxfree.snublejuice.no", snublejuice));
   app.use(vhost("dagsord.no", ord));
   app.use(vhost("www.dagsord.no", ord));
+  app.use(vhost("elektron.dagsord.no", elektron));
 
   app.listen(port, () => {
     console.log(`http://localhost:${port}`);
   });
 } else {
+  // ELEKTRON APPLICATION (elektron.localhost)
+  const elektron = express();
+  elektron.use(async (req, res) => {
+    try {
+      // Simple proxy to the Rust backend running on port 8081
+      const url = `http://localhost:8081${req.url}`;
+      const response = await fetch(url, {
+        method: req.method,
+        headers: {
+          ...req.headers,
+          host: 'localhost:8081' // Override host header for internal routing
+        },
+        body: req.method !== 'GET' && req.method !== 'HEAD' ? req : undefined
+      });
+      
+      // Forward response headers
+      Object.entries(response.headers).forEach(([key, value]) => {
+        res.setHeader(key, value);
+      });
+      
+      res.status(response.status);
+      
+      // Handle response body properly for Bun
+      const text = await response.text();
+      res.send(text);
+    } catch (error) {
+      console.error('Elektron proxy error:', error);
+      res.status(502).send('Elektron service unavailable');
+    }
+  });
+
   app.use(vhost("localhost", snublejuice));
   app.use(vhost("vinmonopolet.localhost", snublejuice));
   app.use(vhost("taxfree.localhost", snublejuice));
+  app.use(vhost("elektron.localhost", elektron));
 
   app.listen(port, () => {
     console.log(`http://localhost:${port}`);
     console.log(`http://vinmonopolet.localhost:${port}`);
     console.log(`http://taxfree.localhost:${port}`);
+    console.log(`http://elektron.localhost:${port}`);
   });
 }

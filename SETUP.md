@@ -3,15 +3,26 @@
 ```bash
 cd /var/www/snublejuice
 git pull
-# To fetch the ord app, run:
+
+# To fetch the ord and elektron apps, run:
 # git submodule update --init --recursive
 git submodule update --remote --merge
+
 sudo systemctl daemon-reload
 sudo systemctl restart snublejuice
 ```
 
 ```bash
+cd /var/www/snublejuice/src/other/elektron
+git pull
+cargo build --release
+sudo systemctl daemon-reload
+sudo systemctl restart elektron
+```
+
+```bash
 sudo systemctl status snublejuice
+sudo systemctl status elektron
 ```
 
 # Set up the app
@@ -47,11 +58,6 @@ server {
 	listen 80;
 	server_name snublejuice.no;
 	
-	location /.well-known/acme-challenge/ {
-		root /var/www/html;
-		try_files $uri =404;
-	}
-	
 	location / {
 		proxy_pass http://localhost:8080;
 		proxy_http_version 1.1;
@@ -69,11 +75,6 @@ server {
 server {
 	listen 80;
 	server_name www.snublejuice.no;
-	
-	location /.well-known/acme-challenge/ {
-		root /var/www/html;
-		try_files $uri =404;
-	}
 	
 	location / {
 		proxy_pass http://localhost:8080;
@@ -93,11 +94,6 @@ server {
 	listen 80;
 	server_name vinmonopolet.snublejuice.no;
 	
-	location /.well-known/acme-challenge/ {
-		root /var/www/html;
-		try_files $uri =404;
-	}
-	
 	location / {
 		proxy_pass http://localhost:8080;
 		proxy_http_version 1.1;
@@ -115,11 +111,6 @@ server {
 server {
 	listen 80;
 	server_name taxfree.snublejuice.no;
-	
-	location /.well-known/acme-challenge/ {
-		root /var/www/html;
-		try_files $uri =404;
-	}
 	
 	location / {
 		proxy_pass http://localhost:8080;
@@ -139,11 +130,6 @@ server {
 	listen 80;
 	server_name dagsord.no;
 	
-	location /.well-known/acme-challenge/ {
-		root /var/www/html;
-		try_files $uri =404;
-	}
-	
 	location / {
 		proxy_pass http://localhost:8080;
 		proxy_http_version 1.1;
@@ -157,53 +143,44 @@ server {
 	}
 }
 
-# www.dagsord.no (keep the existing SSL config)
+# www.dagsord.no
 server {
-	server_name www.dagsord.no;
-	
-	location /.well-known/acme-challenge/ {
-		root /var/www/html;
-		try_files $uri =404;
-	}
-	
-	location / {
-		proxy_pass http://localhost:8080;
-		proxy_http_version 1.1;
-		proxy_set_header Upgrade $http_upgrade;
-		proxy_set_header Connection 'upgrade';
-		proxy_set_header Host $host;
-		proxy_set_header X-Real-IP $remote_addr;
-		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-		proxy_set_header X-Forwarded-Proto $scheme;
-		proxy_cache_bypass $http_upgrade;
-	}
-	
-	listen 443 ssl; # managed by Certbot
-	ssl_certificate /etc/letsencrypt/live/www.dagsord.no/fullchain.pem; # managed by Certbot
-	ssl_certificate_key /etc/letsencrypt/live/www.dagsord.no/privkey.pem; # managed by Certbot
-	include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
-	ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
-}
-
-server {
-	if ($host = www.dagsord.no) {
-		return 301 https://$host$request_uri;
-	} # managed by Certbot
-
 	listen 80;
 	server_name www.dagsord.no;
-	return 404; # managed by Certbot
+	
+	location / {
+		proxy_pass http://localhost:8080;
+		proxy_http_version 1.1;
+		proxy_set_header Upgrade $http_upgrade;
+		proxy_set_header Connection 'upgrade';
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header X-Forwarded-Proto $scheme;
+		proxy_cache_bypass $http_upgrade;
+	}
+}
+
+# elektron.dagsord.no
+server {
+	listen 80;
+	server_name elektron.dagsord.no;
+	
+	location / {
+		proxy_pass http://localhost:8080;
+		proxy_http_version 1.1;
+		proxy_set_header Upgrade $http_upgrade;
+		proxy_set_header Connection 'upgrade';
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header X-Forwarded-Proto $scheme;
+		proxy_cache_bypass $http_upgrade;
+	}
 }
 ```
 
 ## 4.
-
-```bash
-sudo mkdir -p /var/www/html/.well-known/acme-challenge
-sudo chown -R www-data:www-data /var/www/html
-```
-
-## 5.
 
 ```bash
 sudo ln -s /etc/nginx/sites-available/snublejuice /etc/nginx/sites-enabled/
@@ -211,7 +188,7 @@ sudo nginx -t  # Test config
 sudo systemctl reload nginx
 ```
 
-## 6.
+## 5.
 
 ```bash
 sudo vim /etc/systemd/system/snublejuice.service
@@ -246,15 +223,46 @@ sudo systemctl start snublejuice
 sudo systemctl status snublejuice
 ```
 
-## 7.
+## 6. Elektron Setup
+
+For the elektron submodule (Rust app):
 
 ```bash
-sudo apt install certbot python3-certbot-nginx
-sudo certbot --nginx -d snublejuice.no
-sudo certbot --nginx -d www.snublejuice.no
-sudo certbot --nginx -d vinmonopolet.snublejuice.no
-sudo certbot --nginx -d taxfree.snublejuice.no
-sudo certbot --nginx -d dagsord.no
-sudo certbot --nginx -d www.dagsord.no
-sudo systemctl reload nginx
+# Navigate to the elektron submodule
+cd /var/www/snublejuice/src/other/elektron
+
+# Install Rust if not already installed
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source ~/.cargo/env
+
+# Build the Rust app
+cargo build --release
+
+# Create a systemd service for the Rust app
+sudo vim /etc/systemd/system/elektron.service
+```
+
+```raw
+[Unit]
+Description=Elektron Rust App
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/var/www/snublejuice/src/other/elektron
+Environment=RUST_LOG=info
+ExecStart=/var/www/snublejuice/src/other/elektron/target/release/elektron
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable elektron
+sudo systemctl start elektron
+sudo systemctl status elektron
 ```

@@ -254,7 +254,18 @@ if (_PRODUCTION) {
   const ord = await ordAPP();
 
   // ELEKTRON APPLICATION (elektron.dagsord.no)
-  elektron = await elektronApp();
+  let elektron;
+  try {
+    elektron = await elektronApp();
+    console.log("✓ Elektron app initialized successfully");
+  } catch (err) {
+    console.error("✗ Elektron app initialization failed:", err.message);
+    // Create a fallback app that shows an error
+    elektron = express();
+    elektron.get('*', (req, res) => {
+      res.status(503).send('Service temporarily unavailable');
+    });
+  }
 
   // FINAL APP WITH ALL VHOSTS
   app.use(vhost("snublejuice.no", snublejuice));

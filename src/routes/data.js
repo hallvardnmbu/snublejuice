@@ -1,28 +1,40 @@
-import express from "express";
+import { Elysia } from "elysia";
 
-const router = express.Router();
+const dataRouter = new Elysia({ prefix: "/data" })
+  .get("/stores", async ({ collections, set }) => {
+    try {
+      const products = collections.products;
+      if (!products) {
+        set.status = 500;
+        return { message: "Database products collection not available." };
+      }
 
-router.get("/stores", async (req, res) => {
-  try {
-    const products = req.app.locals.products;
+      const vinmonopolet = await products.distinct("stores");
+      const taxfree = await products.distinct("taxfree.stores");
+      set.status = 200;
+      return { vinmonopolet, taxfree };
+    } catch (err) {
+      console.error("Error fetching stores:", err);
+      set.status = 500;
+      return { message: "Failed to fetch stores.", error: err.message };
+    }
+  })
+  .get("/countries", async ({ collections, set }) => {
+    try {
+      const products = collections.products;
+      if (!products) {
+        set.status = 500;
+        return { message: "Database products collection not available." };
+      }
 
-    const vinmonopolet = await products.distinct("stores");
-    const taxfree = await products.distinct("taxfree.stores");
-    res.status(200).json({ vinmonopolet: vinmonopolet, taxfree: taxfree });
-  } catch (err) {
-    res.status(500).send(err);
-  }
-});
+      const countries = await products.distinct("country");
+      set.status = 200;
+      return countries;
+    } catch (err) {
+      console.error("Error fetching countries:", err);
+      set.status = 500;
+      return { message: "Failed to fetch countries.", error: err.message };
+    }
+  });
 
-router.get("/countries", async (req, res) => {
-  try {
-    const products = req.app.locals.products;
-
-    const countries = await products.distinct("country");
-    res.status(200).json(countries);
-  } catch (err) {
-    res.status(500).send(err);
-  }
-});
-
-export default router;
+export default dataRouter;

@@ -2,8 +2,8 @@ import { renderFile } from "ejs";
 import { Elysia } from "elysia";
 import { staticPlugin } from "@elysiajs/static";
 
-// import { ordAPP } from "./src/other/ord/app.js"; // Commented out as requested
-// import { elektronApp } from "./src/other/elektron/app.js"; // Commented out as requested
+import ordApp from "./src/other/ord/app.js";
+import elektronApp from "./src/other/elektron/app.js";
 
 import accountRouter, { authenticate } from "./src/routes/account.js";
 import dataRouter from "./src/routes/data.js";
@@ -35,33 +35,24 @@ const app = new Elysia()
   }))
   .decorate("collections", collections)
   .decorate("render", render)
+  .derive(authenticate)
   .group("/account", (app) => app.use(accountRouter))
   .group("/data", (app) => app.use(dataRouter))
-  .get("/error", async ({ query, decorate }) => {
-    return decorate.render("src/views/error.ejs", {
+  .get("/error", async ({ query, render }) => {
+    return render("src/views/error.ejs", {
       message: query.message || "Noe gikk galt.",
     });
   })
   .get("/", async (context) => {
-    // Authenticate middleware needs to be adapted or re-implemented for Elysia
-    // For now, we'll simulate a basic authentication check
-    // The 'authenticate' function in account.js now populates context.user or leaves it null.
-    // It's applied via .derive in accountRouter or beforeHandle for specific routes.
-    // For the main '/' route, we need to explicitly call it if auth is mandatory,
-    // or check context.user if it's optional and authentication runs globally.
-
-    // Assuming authenticate is run globally or we call it here if needed.
-    // For this route, let's make it so user can be null if not logged in.
-    await authenticate(context); // Ensure context.user is populated if a valid token exists
-
-    const { request, query, decorate, collections: appCollections, user: authenticatedUser } = context;
+    const { request, query, render, collections: appCollections, user: authenticatedUser } = context;
     const hostname = request.headers.get("host") || "";
+    
     let subdomain = hostname.startsWith("taxfree")
       ? "taxfree"
       : hostname.startsWith("vinmonopolet")
         ? "vinmonopolet"
         : "landing";
-
+    
     const month = new Date().toISOString().slice(0, 7);
     if (_PRODUCTION) {
       await incrementVisitor(
@@ -72,14 +63,14 @@ const app = new Elysia()
       );
     }
 
-    const user = context.user // Assuming authenticate middleware adds user to context
+    const user = authenticatedUser // Use the authenticated user from context
       ? {
-          username: context.user.username,
-          email: context.user.email,
+          username: authenticatedUser.username,
+          email: authenticatedUser.email,
           favourites:
             (
               await appCollections.users.findOne(
-                { username: context.user?.username },
+                { username: authenticatedUser?.username },
                 { projection: { _id: 0, favourites: 1 } },
               )
             ).favourites || [],
@@ -89,7 +80,7 @@ const app = new Elysia()
     let meta = await getMetadata(appCollections.metadata);
 
     if (subdomain === "landing") {
-      return decorate.render("src/views/landing.ejs", {
+      return render("src/views/landing.ejs", {
         user: user,
         visitors: {
           vinmonopolet: meta.visitors.fresh.month[month]?.vinmonopolet || 0,
@@ -183,7 +174,7 @@ const app = new Elysia()
         fresh: true,
       });
 
-      return decorate.render("src/views/products.ejs", {
+      return render("src/views/products.ejs", {
         visitors: meta.visitors.fresh.month[month]?.[subdomain] || 0,
         subdomain: subdomain,
         user: user,
@@ -223,54 +214,51 @@ const app = new Elysia()
         302,
       );
     }
+  });
+
+const hostApps = {};
+if (_PRODUCTION) {
+  // ORD APPLICATION (dagsord.no)
+  hostApps["dagsord.no"] = ordApp;
+  hostApps["www.dagsord.no"] = ordApp;
+
+  // ELEKTRON APPLICATION (elektron.dagsord.no)
+  hostApps["elektron.dagsord.no"] = elektronApp;
+
+  // SNUBLEJUICE APPLICATION (snublejuice.no)
+  hostApps["snublejuice.no"] = app;
+  hostApps["www.snublejuice.no"] = app;
+  hostApps["vinmonopolet.snublejuice.no"] = app;
+  hostApps["taxfree.snublejuice.no"] = app;
+} else {
+  hostApps["dagsord.localhost"] = ordApp;
+  hostApps["elektron.localhost"] = elektronApp;
+
+  hostApps["localhost"] = app;
+  hostApps["vinmonopolet.localhost"] = app;
+  hostApps["taxfree.localhost"] = app;
+}
+
+const mainServer = new Elysia()
+  .all("*", async ({ request }) => {
+    let hostname = request.headers.get("host") || "";
+    hostname = hostname.split(':')[0];
+    
+    const targetApp = hostApps[hostname];
+    
+    if (targetApp) {
+      return await targetApp.handle(request);
+    }
+    
+    return new Response("No vhost match", { status: 404 });
   })
   .listen(port);
 
 console.log(`Server running at http://localhost:${port}`);
-
-// Vhost functionality will need to be handled differently in Bun,
-// possibly by running multiple Bun server instances or using a reverse proxy.
-// The original vhost logic is commented out below for reference.
-
-/*
-if (_PRODUCTION) {
-  // ORD APPLICATION (dagsord.no)
-  // const ord = await ordAPP(); // Commented out
-
-  // ELEKTRON APPLICATION (elektron.dagsord.no)
-  let elektron;
-  try {
-    // elektron = await elektronApp(); // Commented out
-    console.log("✓ Elektron app initialized successfully");
-  } catch (err) {
-    console.error("✗ Elektron app initialization failed:", err.message);
-    // Create a fallback app that shows an error
-    // This needs to be adapted for Bun's HTTP server
-    // elektron = new Elysia().get('*', () => new Response('Service temporarily unavailable', { status: 503 }));
-  }
-
-  // FINAL APP WITH ALL VHOSTS
-  // Vhost functionality needs rethinking with Bun.
-  // app.use(vhost("snublejuice.no", snublejuice));
-  // app.use(vhost("www.snublejuice.no", snublejuice));
-  // app.use(vhost("vinmonopolet.snublejuice.no", snublejuice));
-  // app.use(vhost("taxfree.snublejuice.no", snublejuice));
-  // app.use(vhost("dagsord.no", ord));
-  // app.use(vhost("www.dagsord.no", ord));
-  // app.use(vhost("elektron.dagsord.no", elektron));
-
-} else {
-  // ELEKTRON APPLICATION (elektron.localhost)
-  // const elektron = await elektronApp(); // Commented out
-
-  // app.use(vhost("localhost", snublejuice));
-  // app.use(vhost("vinmonopolet.localhost", snublejuice));
-  // app.use(vhost("taxfree.localhost", snublejuice));
-  // app.use(vhost("elektron.localhost", elektron));
-
+if (!_PRODUCTION) {
   console.log(`http://localhost:${port}`);
   console.log(`http://vinmonopolet.localhost:${port}`);
   console.log(`http://taxfree.localhost:${port}`);
-  // console.log(`http://elektron.localhost:${port}`); // Commented out
+  console.log(`http://dagsord.localhost:${port}`);
+  console.log(`http://elektron.localhost:${port}`);
 }
-*/

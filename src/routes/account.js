@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 // Helper for cookie options
-function getCookieOptions(cookie) {
+function getCookieOptions() {
   const options = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -14,25 +14,22 @@ function getCookieOptions(cookie) {
   if (process.env.NODE_ENV === "production") {
     options.domain = ".snublejuice.no";
   }
-  // For Elysia, the cookie object itself is passed, and then its properties
-  if (cookie) {
-    Object.assign(cookie, options);
-  }
-  return options; // Return options for direct use if needed elsewhere
+  return options;
 }
 
 export const authenticate = async (context) => {
   try {
-    const token = context.cookie.token?.value; // Elysia accesses cookie value via .value
+    const token = context.cookie.token?.value;
 
     if (!token) {
       context.user = null;
-      return; // Continue to next handler or route
+      return;
     }
+
     const decoded = jwt.verify(token, process.env.JWT_KEY);
     if (!decoded || typeof decoded === 'string' || !decoded.username) {
-        context.user = null;
-        return;
+      context.user = null;
+      return;
     }
 
     const user = await context.collections.users.findOne({ username: decoded.username });
@@ -40,7 +37,8 @@ export const authenticate = async (context) => {
       context.user = null;
       return;
     }
-    context.user = { // Attach user to context
+    
+    context.user = {
       username: user.username,
       email: user.email,
     };
@@ -49,14 +47,10 @@ export const authenticate = async (context) => {
   }
 };
 
-
-const accountRouter = new Elysia({ prefix: "/account" })
+const accountRouter = new Elysia()
   .decorate("getCookieOptions", getCookieOptions)
-  .derive(async (context) => { // Use derive to run authenticate for all routes in this group if needed, or apply selectively
-    await authenticate(context);
-    return {};
-  })
-  .post("/register", async ({ body, collections, cookie, set, getCookieOptions: gco }) => {
+  .derive(authenticate)
+  .post("/register", async ({ body, collections, cookie, set }) => {
     try {
       const { username, email, notify, password } = body;
       const users = collections.users;
@@ -83,7 +77,7 @@ const accountRouter = new Elysia({ prefix: "/account" })
       });
 
       const token = jwt.sign({ username }, process.env.JWT_KEY, { expiresIn: "365d" });
-      cookie.token.set({ ...gco(), value: token });
+      cookie.token.set({ ...getCookieOptions(), value: token });
 
       set.status = 201;
       return { message: "Grattis, nå er du registrert!", username };
@@ -99,7 +93,7 @@ const accountRouter = new Elysia({ prefix: "/account" })
       password: t.String()
     })
   })
-  .post("/login", async ({ body, collections, cookie, set, getCookieOptions: gco }) => {
+  .post("/login", async ({ body, collections, cookie, set }) => {
     try {
       const { username, password } = body;
       const users = collections.users;
@@ -117,9 +111,9 @@ const accountRouter = new Elysia({ prefix: "/account" })
       }
 
       const token = jwt.sign({ username: user.username }, process.env.JWT_KEY, { expiresIn: "365d" });
-      cookie.token.set({ ...gco(), value: token });
+      cookie.token.set({ ...getCookieOptions(), value: token });
 
-      set.status = 201; // Changed from 200 to 201 for resource creation (session)
+      set.status = 201;
       return { message: "Logget inn!", username };
     } catch (error) {
       set.status = 500;
@@ -131,12 +125,12 @@ const accountRouter = new Elysia({ prefix: "/account" })
       password: t.String()
     })
   })
-  .post("/logout", ({ cookie, set, getCookieOptions: gco }) => {
-    cookie.token.remove(gco());
+  .post("/logout", ({ cookie, set }) => {
+    cookie.token.remove(getCookieOptions());
     set.status = 200;
     return { ok: true };
   })
-  .post("/delete", async ({ body, collections, cookie, set, getCookieOptions: gco }) => {
+  .post("/delete", async ({ body, collections, cookie, set }) => {
     try {
       const { username, password } = body;
       const users = collections.users;
@@ -154,8 +148,8 @@ const accountRouter = new Elysia({ prefix: "/account" })
       }
 
       await users.deleteOne({ username });
-      cookie.token.remove(gco());
-      set.status = 200; // Changed from 201 as it's a deletion confirmation
+      cookie.token.remove(getCookieOptions());
+      set.status = 201;
       return { message: "Brukeren er slettet!" };
     } catch (error) {
       set.status = 500;
@@ -163,18 +157,18 @@ const accountRouter = new Elysia({ prefix: "/account" })
     }
   }, {
     body: t.Object({
-      username: t.String(), // Assuming username is passed to identify which user to delete, if not the logged-in one
+      username: t.String(),
       password: t.String()
     })
   })
-  .post("/favourite", async ({ body, collections, user, set }) => { // Ensure 'user' is correctly populated by authenticate
+  .post("/favourite", async ({ body, collections, user, set }) => {
     if (!user) {
       set.status = 401;
       return { message: "Du må være logget inn for å legge til favoritter." };
     }
     try {
       let { index } = body;
-      index = parseInt(index); // Ensure index is an integer
+      index = parseInt(index);
       const users = collections.users;
 
       await users.updateOne({ username: user.username }, [
@@ -195,7 +189,7 @@ const accountRouter = new Elysia({ prefix: "/account" })
           },
         },
       ]);
-      set.status = 200; // Changed from 201
+      set.status = 201;
       return { message: "Favoritt er oppdatert!" };
     } catch (error) {
       set.status = 500;
@@ -203,30 +197,22 @@ const accountRouter = new Elysia({ prefix: "/account" })
     }
   }, {
     body: t.Object({
-      index: t.Numeric() // Or t.Number() depending on how it's sent
-    }),
-    // BeforeHandle to ensure user is authenticated for this specific route
-    beforeHandle: async (context) => {
-      await authenticate(context);
-      if (!context.user) {
-        context.set.status = 401;
-        return { message: "Authentication required" };
-      }
-    }
+      index: t.Numeric()
+    })
   })
-  .post("/notification", async ({ body, collections, user, set }) => { // Ensure 'user' is correctly populated
+  .post("/notification", async ({ body, collections, user, set }) => {
     if (!user) {
       set.status = 401;
       return { message: "Du må være logget inn for å endre varslinger." };
     }
     try {
-      const { notify } = body; // username from authenticated user
+      const { notify } = body;
       const users = collections.users;
 
       await users.updateOne({ username: user.username }, [
         { $set: { notify } },
       ]);
-      set.status = 200; // Changed from 201
+      set.status = 201;
       return { message: `Du har ${notify ? "aktivert" : "deaktiveret"} varsling når nye tilbud er tilgjengelig!` };
     } catch (error) {
       set.status = 500;
@@ -235,14 +221,7 @@ const accountRouter = new Elysia({ prefix: "/account" })
   }, {
     body: t.Object({
       notify: t.Boolean()
-    }),
-    beforeHandle: async (context) => {
-      await authenticate(context);
-      if (!context.user) {
-        context.set.status = 401;
-        return { message: "Authentication required" };
-      }
-    }
+    })
   });
 
 export default accountRouter;

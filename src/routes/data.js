@@ -1,6 +1,6 @@
 import { Elysia } from "elysia";
 
-const dataRouter = new Elysia({ prefix: "/data" })
+const dataRouter = new Elysia()
   .get("/stores", async ({ collections, set }) => {
     try {
       const products = collections.products;

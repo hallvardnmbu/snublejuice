@@ -1,8 +1,5 @@
 import axios from "axios";
 import { MongoClient } from "mongodb";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 const log = (level, message) => {
   console.log(`${level} [vmp-detailed] ${message}`);

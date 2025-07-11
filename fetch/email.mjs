@@ -1,7 +1,4 @@
 import { Resend } from "resend";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 import { databaseConnection } from "../src/database/connect.js";
 

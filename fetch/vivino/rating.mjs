@@ -29,16 +29,16 @@ const REQUEST_HEADERS = {
 const JSON_LD_PATTERN =
   /<script type='application\/ld\+json'>([\s\S]*?)<\/script>/;
 
-const _SECOND = 1000;
+const _SECOND = 1000;  // seconds in milliseconds
 const CONFIG = {
-  batchSize: 25,
   requestDelay: 10 * _SECOND, // 10 seconds between requests
-  maxRatingAge: 14, // days
-  maxRetries: 3,
   retryDelay: 25, // seconds
-  noWorkDelay: 60 * 60 * _SECOND, // 60 minutes when no work found
+  noWorkDelay: 4 * 24 * 60 * 60 * _SECOND, // 4 days when no work found
   errorDelay: 2 * 60 * _SECOND, // 2 minutes on error
   minProcessingDelay: _SECOND / 10, // 100ms between operations
+  batchSize: 25,
+  maxRatingAge: 60, // ~2 months
+  maxRetries: 3,
   categories: [
     "Rødvin",
     "Hvitvin",
@@ -211,7 +211,7 @@ function parseVivinoData(html) {
   }
 }
 
-function createRatingRecord(index, product, matchScore = null) {
+function createRatingRecord(index, product, match) {
   return {
     index,
     rating: {
@@ -220,12 +220,13 @@ function createRatingRecord(index, product, matchScore = null) {
       url: product["@id"],
       value: parseFloat(product.aggregateRating?.ratingValue || 0),
       count: parseInt(product.aggregateRating?.reviewCount || 0),
-      ...(matchScore && { matchScore }),
+      matchScore: match,
     },
   };
 }
 
 function createEmptyRatingRecord(index, error = null) {
+  // Used in the database to mark items that have been processed but not matched.
   return {
     index,
     rating: {
@@ -258,10 +259,6 @@ async function searchNewRatings(items) {
       if (match) {
         results.push(
           createRatingRecord(item.index, match.product, match.score),
-        );
-        log(
-          "?",
-          `Found rating for ${item.name}: ${match.product.aggregateRating?.ratingValue} (score: ${match.score.toFixed(2)})`,
         );
       } else {
         // Store top 3 results for later processing
@@ -416,26 +413,25 @@ async function getWorkItems() {
       category: { $in: CONFIG.categories },
     })
     .project({ index: 1, name: 1, _id: 0 })
-    .limit(CONFIG.batchSize)
     .toArray();
 
   if (newItems.length > 0) {
     return { type: "search", items: newItems };
   }
 
-  // Priority 2: Items with stored results to process
-  const storedItems = await collection
-    .find({
-      "rating.response": { $exists: true, $ne: null },
-      "rating.value": null,
-    })
-    .project({ index: 1, name: 1, rating: 1, _id: 0 })
-    .limit(CONFIG.batchSize)
-    .toArray();
+  // // Priority 2: Items with stored results to process
+  // const storedItems = await collection
+  //   .find({
+  //     "rating.response": { $exists: true, $ne: null },
+  //     "rating.value": null,
+  //   })
+  //   .project({ index: 1, name: 1, rating: 1, _id: 0 })
+  //   .limit(CONFIG.batchSize)
+  //   .toArray();
 
-  if (storedItems.length > 0) {
-    return { type: "stored", items: storedItems };
-  }
+  // if (storedItems.length > 0) {
+  //   return { type: "stored", items: storedItems };
+  // }
 
   // Priority 3: Items with old ratings
   const oldItems = await collection
@@ -449,7 +445,6 @@ async function getWorkItems() {
     })
     .project({ index: 1, name: 1, rating: 1, _id: 0 })
     .sort({ "rating.updated": 1 })
-    .limit(CONFIG.batchSize)
     .toArray();
 
   if (oldItems.length > 0) {
@@ -457,6 +452,17 @@ async function getWorkItems() {
   }
 
   return { type: "none", items: [] };
+}
+
+async function convertUpdatedToDate() {
+  // Convert all `rating.updated` from string to date.
+  // This is done every loop iteration, in case a restore has been done.
+  await collection.updateMany(
+    { "rating.updated": { $type: "string", $ne: null } },
+    [
+      { $set: { "rating.updated": { $toDate: "$rating.updated" } } }
+    ]
+  );
 }
 
 async function continuousLoop() {
@@ -503,6 +509,12 @@ async function continuousLoop() {
 }
 
 async function main() {
+  try {
+    await convertUpdatedToDate();
+  } catch (error) {
+    log("!", `Failed to convert updated 'rating.updated' to date: ${error.message}`);
+  }
+
   await continuousLoop();
 }
 

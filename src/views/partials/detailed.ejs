@@ -183,7 +183,7 @@
                         vivino.
                       <% } %>
                       <% if (item.rating.updated) { %>
-                        Oppdatert <%= item.rating.updated.toLocaleString('nb-NO', { dateStyle: 'long' }) %>.
+                        Oppdatert <%= (typeof item.rating.updated === 'string' ? new Date(item.rating.updated) : item.rating.updated).toLocaleString('nb-NO', { dateStyle: 'long' }) %>.
                       <% } %>
                     </td>
                   </tr>

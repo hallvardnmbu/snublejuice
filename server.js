@@ -1,6 +1,8 @@
 import { renderFile } from "ejs";
 import { Elysia } from "elysia";
 import { staticPlugin } from "@elysiajs/static";
+import { spawn } from "bun";
+import path from "path";
 
 import ordApp from "./src/other/ord/app.js";
 import elektronApp from "./src/other/elektron/app.js";
@@ -218,6 +220,14 @@ const app = new Elysia()
 
 const hostApps = {};
 if (_PRODUCTION) {
+  // Start the Vivino rating script as a detached background process
+  const ratingScript = path.resolve("fetch/vivino/rating.mjs");
+  const ratingProcess = spawn({
+    cmd: ["bun", ratingScript],
+    stdio: ["ignore", "inherit", "inherit"],
+  });
+  ratingProcess.unref && ratingProcess.unref();
+
   // ORD APPLICATION (dagsord.no)
   hostApps["dagsord.no"] = ordApp;
   hostApps["www.dagsord.no"] = ordApp;

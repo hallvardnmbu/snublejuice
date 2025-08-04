@@ -6,6 +6,7 @@ import path from "path";
 
 import ordApp from "./src/other/ord/app.js";
 import elektronApp from "./src/other/elektron/app.js";
+import dilettantApp from "./src/other/dilettant/app.js";
 
 import accountRouter, { authenticate } from "./src/routes/account.js";
 import dataRouter from "./src/routes/data.js";
@@ -235,6 +236,10 @@ if (_PRODUCTION) {
   // ELEKTRON APPLICATION (elektron.dagsord.no)
   hostApps["elektron.dagsord.no"] = elektronApp;
 
+  // DILETTANT APPLICATION (dilettant.no)
+  hostApps["dilettant.no"] = dilettantApp;
+  hostApps["www.dilettant.no"] = dilettantApp;
+
   // SNUBLEJUICE APPLICATION (snublejuice.no)
   hostApps["snublejuice.no"] = app;
   hostApps["www.snublejuice.no"] = app;
@@ -243,6 +248,7 @@ if (_PRODUCTION) {
 } else {
   hostApps["dagsord.localhost"] = ordApp;
   hostApps["elektron.localhost"] = elektronApp;
+  hostApps["dilettant.localhost"] = dilettantApp;
 
   hostApps["localhost"] = app;
   hostApps["vinmonopolet.localhost"] = app;
@@ -271,4 +277,5 @@ if (!_PRODUCTION) {
   console.log(`http://taxfree.localhost:${port}`);
   console.log(`http://dagsord.localhost:${port}`);
   console.log(`http://elektron.localhost:${port}`);
+  console.log(`http://dilettant.localhost:${port}`);
 }

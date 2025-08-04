@@ -169,6 +169,42 @@ server {
 		proxy_cache_bypass $http_upgrade;
 	}
 }
+
+# dilettant.no
+server {
+	listen 80;
+	server_name dilettant.no;
+	
+	location / {
+		proxy_pass http://localhost:8080;
+		proxy_http_version 1.1;
+		proxy_set_header Upgrade $http_upgrade;
+		proxy_set_header Connection 'upgrade';
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header X-Forwarded-Proto $scheme;
+		proxy_cache_bypass $http_upgrade;
+	}
+}
+
+# www.dilettant.no
+server {
+	listen 80;
+	server_name www.dilettant.no;
+	
+	location / {
+		proxy_pass http://localhost:8080;
+		proxy_http_version 1.1;
+		proxy_set_header Upgrade $http_upgrade;
+		proxy_set_header Connection 'upgrade';
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header X-Forwarded-Proto $scheme;
+		proxy_cache_bypass $http_upgrade;
+	}
+}
 ```
 
 ## 4.
@@ -232,5 +268,7 @@ sudo certbot --nginx -d taxfree.snublejuice.no
 sudo certbot --nginx -d dagsord.no
 sudo certbot --nginx -d www.dagsord.no
 sudo certbot --nginx -d elektron.dagsord.no
+sudo certbot --nginx -d dilettant.no
+sudo certbot --nginx -d www.dilettant.no
 sudo systemctl reload nginx
 ```

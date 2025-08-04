@@ -4,3 +4,6 @@
 [submodule "src/other/elektron"]
 	path = src/other/elektron
 	url = https://github.com/hallvardnmbu/elektron.git
+[submodule "src/other/dilettant"]
+	path = src/other/dilettant
+	url = https://github.com/hallvardnmbu/dilettant

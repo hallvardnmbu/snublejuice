@@ -317,7 +317,71 @@ async function findMatchInMongo(record) {
   return match[0] || null;
 }
 
-async function updateDatabase(data) {
+async function updateExistingDatabase(data) {
+  const operations = [];
+
+  for (const record of data) {
+    const updateFields = {};
+    Object.keys(record).forEach(key => {
+        updateFields[`taxfree.${key}`] = record[key];
+    });
+
+    operations.push({
+      updateOne: {
+        filter: { "taxfree.index": record.index },
+        update: [
+          { $set: { "taxfree.oldprice": "$taxfree.price" } },
+          { $set: updateFields },
+          {
+            $set: { "taxfree.prices": { $ifNull: ["$taxfree.prices", []] } },
+          },
+          {
+            $set: {
+              "taxfree.prices": {
+                $concatArrays: ["$taxfree.prices", [record.price]],
+              },
+            },
+          },
+          {
+            $set: {
+              "taxfree.discount": {
+                $cond: {
+                  if: {
+                    $and: [
+                      { $gt: [record.price, 0] },
+                      { $gt: ["$price", 0] },
+                      { $ne: [record.price, null] },
+                      { $ne: ["$price", null] },
+                    ],
+                  },
+                  then: {
+                    $multiply: [
+                      {
+                        $divide: [
+                          { $subtract: [record.price, "$price"] },
+                          "$price",
+                        ],
+                      },
+                      100,
+                    ],
+                  },
+                  else: 0,
+                },
+              },
+            },
+          },
+        ],
+      },
+    });
+  }
+
+  if (operations.length === 0) {
+    return { modifiedCount: 0 };
+  }
+  return await itemCollection.bulkWrite(operations);
+}
+
+async function updateNewDatabase(data) {
   const operations = [];
   let counts = {
     match: 0,
@@ -387,14 +451,21 @@ async function updateDatabase(data) {
     `Matching items: ${counts.match}, Unmatched items: ${counts.unmatch}`,
   );
 
-  return await itemCollection.bulkWrite(operations);
+  if (operations.length === 0) {
+    return { matchedCount: counts.match, unmatchedCount: counts.unmatch, modifiedCount: 0 };
+  }
+  const result = await itemCollection.bulkWrite(operations);
+  return { matchedCount: counts.match, unmatchedCount: counts.unmatch, modifiedCount: result.modifiedCount };
 }
 
 async function getProducts() {
-  let items = [];
   let alreadyUpdated = [];
-
   let count = 0;
+
+  await itemCollection.updateMany(
+    { "taxfree.index": { $exists: true, $ne: null } },
+    { $set: { "taxfree.updated": false } },
+  );
 
   for (const order of ["asc", "desc"]) {
     try {
@@ -404,10 +475,31 @@ async function getProducts() {
         break;
       }
 
-      items = items.concat(products);
-      alreadyUpdated = alreadyUpdated.concat(
-        items.map((item) => item.index),
-      );
+      const taxFreeProductIndexes = products.map((p) => p.index).filter((i) => i !== null);
+      const existingDbItemsCursor = itemCollection.find({ "taxfree.index": { $in: taxFreeProductIndexes } });
+      const existingDbItems = await existingDbItemsCursor.toArray();
+      const existingTaxFreeIndexes = existingDbItems.map((item) => item.taxfree.index);
+
+      const existingProducts = products.filter((p) => existingTaxFreeIndexes.includes(p.index));
+      const newProducts = products.filter((p) => !existingTaxFreeIndexes.includes(p.index));
+
+      log("?", `Found ${existingProducts.length} existing and ${newProducts.length} new products to process.`);
+
+      if (existingProducts.length > 0) {
+        log("+", `Updating ${existingProducts.length} existing records.`);
+        const result = await updateExistingDatabase(existingProducts);
+        log("+", ` Modified: ${result.modifiedCount}.`);
+      }
+
+      if (newProducts.length > 0) {
+        log("+", `Updating ${newProducts.length} new records.`);
+        const result = await updateNewDatabase(newProducts);
+        log("+", ` Matched: ${result.matchedCount}, Unmatched: ${result.unmatchedCount}.`);
+        log("+", ` Modified: ${result.modifiedCount}.`);
+      }
+
+      alreadyUpdated = alreadyUpdated.concat(products.map((item) => item.index));
+      count += products.length;
 
       await new Promise((resolve) => setTimeout(resolve, 900));
     } catch (err) {
@@ -417,19 +509,6 @@ async function getProducts() {
       );
       break;
     }
-
-    if (items.length === 0) {
-      throw new Error(`No items. Aborting.`);
-    }
-
-    count += items.length;
-
-    log("+", `Updating ${items.length} records.`);
-    const result = await updateDatabase(items);
-    log("+", ` Modified: ${result.modifiedCount}.`);
-    log("+", ` Upserted: ${result.upsertedCount}.`);
-
-    items = [];
   }
 
   log("?", `Processing completed. Total items processed: ${count}.`);
@@ -486,7 +565,7 @@ async function main() {
   );
 
   // await itemCollection.updateMany({}, { $set: { "taxfree.updated": false } });
-  await itemCollection.updateMany({}, { $unset: { taxfree: "" } });
+  // await itemCollection.updateMany({}, { $unset: { taxfree: "" } });
   await getProducts();
 
   // [!] ONLY RUN THIS AFTER ALL PRICES HAVE BEEN UPDATED [!]

@@ -120,65 +120,61 @@ function processProducts(products, alreadyUpdated) {
     }
 
     processed.push({
+      index: index,
+
+      updated: true,
+
+      name: product.name?.no || null,
+      url: product.url ? `${LINKS.product}${product.url}` : null,
+      images: product.picture ? processImages(product.picture) : IMAGE,
+
+      description: product.description?.no || null,
+
+      price: product.price.NOK,
+      literprice: product.fullUnitPrice
+        ? product.fullUnitPrice.NOK
+        : product.price.NOK / product.salesAmount,
       volume: product.salesAmount * 100,
+      alcohol: product.alcoholByVolume || null,
+      alcoholprice: product.fullUnitPrice
+        ? product.fullUnitPrice.NOK / product.alcoholByVolume
+        : product.price.NOK / product.salesAmount / product.alcoholByVolume,
 
-      taxfree: {
-        index: index,
+      ...processCategories(
+        product.categoriesLevel1?.no?.at(0).split(" > ").at(-1) || null,
+        product.categoriesLevel2?.no?.at(0).split(" > ").at(-1) || null,
+      ),
+      subsubcategory:
+        product.categoriesLevel3?.no?.at(0).split(" > ").at(-1) || null,
 
-        updated: true,
+      country: product.country?.no || null,
+      district:
+        product.region?.no || product.wineGrowingAhreaDetail?.no || null,
+      subdistrict: product.wineGrowingAhreaDetail?.no || null,
 
-        name: product.name?.no || null,
-        url: product.url ? `${LINKS.product}${product.url}` : null,
-        images: product.picture ? processImages(product.picture) : IMAGE,
-
-        description: product.description?.no || null,
-
-        price: product.price.NOK,
-        literprice: product.fullUnitPrice
-          ? product.fullUnitPrice.NOK
-          : product.price.NOK / product.salesAmount,
-        volume: product.salesAmount * 100,
-        alcohol: product.alcoholByVolume || null,
-        alcoholprice: product.fullUnitPrice
-          ? product.fullUnitPrice.NOK / product.alcoholByVolume
-          : product.price.NOK / product.salesAmount / product.alcoholByVolume,
-
-        ...processCategories(
-          product.categoriesLevel1?.no?.at(0).split(" > ").at(-1) || null,
-          product.categoriesLevel2?.no?.at(0).split(" > ").at(-1) || null,
-        ),
-        subsubcategory:
-          product.categoriesLevel3?.no?.at(0).split(" > ").at(-1) || null,
-
-        country: product.country?.no || null,
-        district:
-          product.region?.no || product.wineGrowingAhreaDetail?.no || null,
-        subdistrict: product.wineGrowingAhreaDetail?.no || null,
-
-        taste: {
-          taste: product.taste?.no || null,
-          fill: product.tasteFill?.no,
-          intensity: product.tasteIntensity?.no,
-        },
-        ingredients: product.wineGrapes?.no || null,
-        characteristics: [product.sweetness?.no],
-        allergens: product.allergens?.no || null,
-        pair: product.suitableFor?.no || null,
-
-        year: product.year ? parseInt(product.year.no, 10) : null,
-
-        sugar: product.suggarContent || null,
-        acid: product.tasteTheAcid?.no || null,
-        colour: product.colour?.no || null,
-
-        instores: product.onlineExclusive || false,
-
-        stores: product.inPhysicalStockInCodes
-          ? product.inPhysicalStockInCodes
-              .map((code) => STORES[code])
-              .filter((store) => store !== null)
-          : null,
+      taste: {
+        taste: product.taste?.no || null,
+        fill: product.tasteFill?.no,
+        intensity: product.tasteIntensity?.no,
       },
+      ingredients: product.wineGrapes?.no || null,
+      characteristics: [product.sweetness?.no],
+      allergens: product.allergens?.no || null,
+      pair: product.suitableFor?.no || null,
+
+      year: product.year ? parseInt(product.year.no, 10) : null,
+
+      sugar: product.suggarContent || null,
+      acid: product.tasteTheAcid?.no || null,
+      colour: product.colour?.no || null,
+
+      instores: product.onlineExclusive || false,
+
+      stores: product.inPhysicalStockInCodes
+        ? product.inPhysicalStockInCodes
+            .map((code) => STORES[code])
+            .filter((store) => store !== null)
+        : null,
     });
   }
 
@@ -226,119 +222,89 @@ async function getPage(order, alreadyUpdated, retry = false) {
   }
 }
 
-async function existingMatch(record) {
-  const designations =
-    record.taxfree.name.match(/V\.S\.O\.P\.|V\.S\.|X\.O\./gi) || [];
-
-  record.taxfree.name = record.taxfree.name
+async function findMatchInMongo(record) {
+  record.name = record.name
     // Remove volume measurements, case insensitive:
     // - Decimals: 0,70L, 1.00L
     // - Non-decimals: 5cL, 75L
     .replace(/\d+(?:[,\.]\d+)?\s*[a-zA-Z]l/gi, "")
+    // Remove percentage values, e.g., "40%", "12.5 %"
+    .replace(/\d+(?:[,\.]\d+)?\s*%/g, "")
     // Clean up extra spaces
     .replace(/\s+/g, " ")
     .trim();
-  const nWords = record.taxfree.name.split(" ").filter((word) => word).length;
 
   const aggregation = [
-    ...(nWords <= 3
-      ? [
-          {
-            $search: {
-              index: "name",
-              compound: {
-                must: [
-                  // TODO: Currently, the last word is boosted. This should be improved.
-                  {
-                    text: {
-                      query: record.taxfree.name.split(" ").pop(),
-                      path: "name",
-                      score: { boost: { value: 2 } },
-                    },
-                  },
-                  // // Must match any special designations if present
-                  // ...designations.map((designation) => ({
-                  //   text: {
-                  //     query: designation,
-                  //     path: "name",
-                  //     score: {
-                  //       boost: { value: 1.5 },
-                  //     },
-                  //   },
-                  // })),
-                  // Fuzzy search on the rest of the words
-                  {
-                    text: {
-                      query: record.taxfree.name,
-                      path: "name",
-                      fuzzy: {
-                        maxEdits: Math.max(nWords - 1, 1),
-                        prefixLength: 0,
-                        maxExpansions: 1,
-                      },
-                    },
-                  },
-                ],
-              },
-            },
-          },
-        ]
-      : [
-          {
-            $search: {
-              index: "name",
-              compound: {
-                // must: [
-                //   // Must match any special designations if present
-                //   ...designations.map((designation) => ({
-                //     text: {
-                //       query: designation,
-                //       path: "name",
-                //       score: {
-                //         boost: { value: 1.5 },
-                //       },
-                //     },
-                //   })),
-                // ],
-                should: [
-                  {
-                    phrase: {
-                      query: record.taxfree.name,
-                      path: "name",
-                      score: { boost: { value: 2 } },
-                    },
-                  },
-                  {
-                    text: {
-                      query: record.taxfree.name,
-                      path: "name",
-                      fuzzy: {
-                        maxEdits: Math.min(nWords, 2),
-                        prefixLength: 0,
-                        maxExpansions: 1,
-                      },
-                    },
-                  },
-                ],
-              },
-            },
-          },
-        ]),
     {
+      $search: {
+        index: "name",
+        compound: {
+          // Use "should" to combine clauses. Documents matching more clauses get higher scores.
+          should: [
+            {
+              // 1. Exact Phrase Match (Highest Boost): Rewards perfect name matches.
+              phrase: {
+                query: record.name,
+                path: "name",
+                score: { boost: { value: 4 } },
+              },
+            },
+            {
+              // 2. Fuzzy Text Match (Standard Weight): Catches minor misspellings and variations.
+              text: {
+                query: record.name,
+                path: "name",
+                fuzzy: {
+                  maxEdits: 1, // Allow only one character difference for higher precision.
+                  prefixLength: 2,
+                },
+                score: { boost: { value: 2 } },
+              },
+            },
+            {
+              // 3. Autocomplete Match (Moderate Boost): Good for matching brands or initial words.
+              autocomplete: {
+                query: record.name,
+                path: "name",
+                score: { boost: { value: 1 } },
+              },
+            },
+          ],
+          // The final score is the sum of scores from matching "should" clauses.
+          minimumShouldMatch: 1,
+        },
+      },
+    },
+    {
+      // Add the search score to the document for filtering and sorting
       $addFields: {
         score: { $meta: "searchScore" },
       },
     },
     {
-      $match: { score: { $gt: 20.0 } },
-    },
-    {
+      // Filter out low-confidence matches
       $match: {
-        volume: record.volume,
-        ...(record.taxfree.category && { category: record.taxfree.category }),
+        score: { $gt: 40.0 },
       },
     },
     {
+      // Apply strict filters AFTER the text search for accuracy
+      $match: {
+        volume: record.volume,
+        alcohol: record.alcohol,
+        ...(record.category && { category: record.category }),
+
+        // Exclude specific products that are known to cause issues
+        name: { $nin: [
+          "Bache-Gabrielsen 5 VSOP Organic", 
+          "Dogarina Valdobbiadene Prosecco Superiore", 
+          "Père Magloire Calvados X.O.",
+          "André Delorme Crémant de Bourgogne Les Cachettes Blanc de Blancs Extra-Brut"
+        ] },
+      },
+    },
+    {
+      // Sort by the highest score to get the best match first
       $sort: { score: -1 },
     },
     {
@@ -348,17 +314,10 @@ async function existingMatch(record) {
 
   const match = await itemCollection.aggregate(aggregation).toArray();
 
-  // Debugging:
-  // console.log(`\nName "${record.taxfree.name}" is ${nWords} long.`);
-  // console.log(`Aggre: ${JSON.stringify(aggregation)}`);
-  // console.log(`Match: ${JSON.stringify(match)}`);
-  // console.log(`TAXFR: ${JSON.stringify(record.taxfree.url)}`);
-  // console.log(`MATCH: ${JSON.stringify(match[0] ? match[0].url : null)}`);
-
   return match[0] || null;
 }
 
-async function updateDatabase(data, existing = []) {
+async function updateDatabase(data) {
   const operations = [];
   let counts = {
     match: 0,
@@ -366,19 +325,17 @@ async function updateDatabase(data, existing = []) {
   };
 
   for (const record of data) {
-    const vinmonoopolet = existing.includes(record.taxfree.index)
-      ? false
-      : (await existingMatch(record)) || null;
+    const matched = await findMatchInMongo(record);
 
-    if (vinmonoopolet) {
+    if (matched) {
       counts.match++;
       operations.push({
         updateOne: {
-          filter: { index: vinmonoopolet.index },
+          filter: { index: matched.index },
           update: [
             { $set: { "taxfree.oldprice": "$taxfree.price" } },
-            { $set: { taxfree: record.taxfree } },
-            { $set: { "taxfree.score": vinmonoopolet.score } },
+            { $set: { taxfree: record } },
+            { $set: { "taxfree.score": matched.score } },
             {
               $set: { "taxfree.prices": { $ifNull: ["$taxfree.prices", []] } },
             },
@@ -422,34 +379,6 @@ async function updateDatabase(data, existing = []) {
       });
     } else {
       counts.unmatch++;
-      operations.push({
-        updateOne: {
-          filter: { "taxfree.index": record.taxfree.index },
-          update: [
-            {
-              $set:
-                vinmonoopolet === null
-                  ? {
-                      "taxfree.oldprice": "$taxfree.price",
-                      "taxfree.discount": 0,
-                    }
-                  : {},
-            },
-            { $set: { taxfree: record.taxfree } },
-            {
-              $set: { "taxfree.prices": { $ifNull: ["$taxfree.prices", []] } },
-            },
-            {
-              $set: {
-                "taxfree.prices": {
-                  $concatArrays: ["$taxfree.prices", ["$taxfree.price"]],
-                },
-              },
-            },
-          ],
-          upsert: true,
-        },
-      });
     }
   }
 
@@ -461,7 +390,7 @@ async function updateDatabase(data, existing = []) {
   return await itemCollection.bulkWrite(operations);
 }
 
-async function getProducts(existing = []) {
+async function getProducts() {
   let items = [];
   let alreadyUpdated = [];
 
@@ -477,7 +406,7 @@ async function getProducts(existing = []) {
 
       items = items.concat(products);
       alreadyUpdated = alreadyUpdated.concat(
-        items.map((item) => item.taxfree.index),
+        items.map((item) => item.index),
       );
 
       await new Promise((resolve) => setTimeout(resolve, 900));
@@ -496,7 +425,7 @@ async function getProducts(existing = []) {
     count += items.length;
 
     log("+", `Updating ${items.length} records.`);
-    const result = await updateDatabase(items, existing);
+    const result = await updateDatabase(items);
     log("+", ` Modified: ${result.modifiedCount}.`);
     log("+", ` Upserted: ${result.upsertedCount}.`);
 
@@ -525,7 +454,6 @@ async function syncUnupdatedProducts(threshold = null) {
         { $set: { "taxfree.oldprice": "$taxfree.price" } },
         {
           $set: {
-            "taxfree.price": "$taxfree.oldprice",
             "taxfree.discount": 0,
             "taxfree.literprice": 0,
             "taxfree.alcoholprice": null,
@@ -557,14 +485,12 @@ async function main() {
     { $set: { "prices.taxfree": false } },
   );
 
-  await itemCollection.updateMany({}, { $set: { "taxfree.updated": false } });
-  // await itemCollection.deleteMany({ name: { $exists: false } });
-  // await itemCollection.updateMany({}, { $unset: { taxfree: "" } });
-  const existing = await itemCollection.distinct("taxfree.index");
-  await getProducts(existing);
+  // await itemCollection.updateMany({}, { $set: { "taxfree.updated": false } });
+  await itemCollection.updateMany({}, { $unset: { taxfree: "" } });
+  await getProducts();
 
   // [!] ONLY RUN THIS AFTER ALL PRICES HAVE BEEN UPDATED [!]
-  await syncUnupdatedProducts(100);
+  await syncUnupdatedProducts();
 
   await metaCollection.updateOne(
     { id: "stock" },

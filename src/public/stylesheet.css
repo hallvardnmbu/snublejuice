@@ -52,6 +52,10 @@
     --marker: var(--green);
 }
 
+html {
+    background-color: var(--dimmed);
+}
+
 body {
     min-height: 100vh;
     display: flex;
@@ -73,6 +77,7 @@ footer {
     padding: var(--padding);
 
     color: var(--dimtext);
+    background-color: var(--dimmed);
 }
 header {
     flex-direction: column;
@@ -80,7 +85,6 @@ header {
 
     font-size: var(--fontsize-small);
 
-    background-color: var(--dimmed);
     border-bottom: var(--padding) solid var(--block);
 }
 footer {
@@ -91,8 +95,7 @@ footer {
 
     font-size: var(--fontsize-smallest);
 
-    background-color: var(--faint);
-    border-top: var(--padding) solid var(--dimmed);
+    border-top: var(--padding) solid var(--block);
 }
 header div {
     display: flex;

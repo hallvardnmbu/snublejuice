@@ -181,7 +181,7 @@ function processProducts(products, alreadyUpdated) {
   return processed;
 }
 
-async function getPage(order, alreadyUpdated, retry = false) {
+async function getResults(order, alreadyUpdated, retry = false, existingItemIndices = []) {
   try {
     const response = await fetch(URL.url, {
       method: "POST",
@@ -215,7 +215,7 @@ async function getPage(order, alreadyUpdated, retry = false) {
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 5000));
-      return getPage(order, alreadyUpdated, true);
+      return getResults(order, alreadyUpdated, true, existingItemIndices);
     } catch (err) {
       log("!", `Failed to process order ${order}. Details: ${err}`);
     }
@@ -317,7 +317,7 @@ async function findMatchInMongo(record) {
   return match[0] || null;
 }
 
-async function updateDatabase(data) {
+async function updateDatabase(data, existingItemIndices) {
   const operations = [];
   let counts = {
     match: 0,
@@ -325,7 +325,14 @@ async function updateDatabase(data) {
   };
 
   for (const record of data) {
-    const matched = await findMatchInMongo(record);
+    let matched;
+    if (existingItemIndices.includes(record.index)) {
+      matched = await itemCollection.findOne(
+        { "taxfree.index": record.index },
+      )
+    } else {
+      matched = await findMatchInMongo(record);
+    }
 
     if (matched) {
       counts.match++;
@@ -390,7 +397,7 @@ async function updateDatabase(data) {
   return await itemCollection.bulkWrite(operations);
 }
 
-async function getProducts() {
+async function getProducts(existingItemIndices = []) {
   let items = [];
   let alreadyUpdated = [];
 
@@ -398,7 +405,7 @@ async function getProducts() {
 
   for (const order of ["asc", "desc"]) {
     try {
-      let products = await getPage(order, alreadyUpdated);
+      let products = await getResults(order, alreadyUpdated, existingItemIndices);
       if (products.length === 0) {
         log("?", `Processing completed for final order: ${order}.`);
         break;
@@ -425,7 +432,7 @@ async function getProducts() {
     count += items.length;
 
     log("+", `Updating ${items.length} records.`);
-    const result = await updateDatabase(items);
+    const result = await updateDatabase(items, existingItemIndices);
     log("+", ` Modified: ${result.modifiedCount}.`);
     log("+", ` Upserted: ${result.upsertedCount}.`);
 
@@ -485,9 +492,12 @@ async function main() {
     { $set: { "prices.taxfree": false } },
   );
 
+  const existingItemIndices = (await itemCollection.distinct("taxfree.index")).filter(
+    (index) => index !== null && !isNaN(index),
+  );
   // await itemCollection.updateMany({}, { $set: { "taxfree.updated": false } });
   // await itemCollection.updateMany({}, { $unset: { taxfree: "" } });
-  await getProducts();
+  await getProducts(existingItemIndices);
 
   // [!] ONLY RUN THIS AFTER ALL PRICES HAVE BEEN UPDATED [!]
   await syncUnupdatedProducts();

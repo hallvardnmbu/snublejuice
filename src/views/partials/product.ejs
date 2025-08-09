@@ -1,5 +1,5 @@
 <section
-  class="product"
+  class="product-simplified"
   index="<%= index %>"
   style="
     --highlight: <%=
@@ -18,51 +18,31 @@
     %>;"
 >
 
-  <div class="image">
-    <img src="<%= item.images.product %>" alt="flaske">
-    <span class="text">
-      <b class="number"><%= (item.volume % 1 === 0) ? item.volume.toFixed(0) : item.volume.toFixed(1) %></b> cL
-    </span>
-  </div>
+  <img src="<%= item.images.product %>" alt="flaske" class="product-image">
+  <div class="product-info">
+    <header class="product-header">
+      <h3><%= item.name %></h3>
+      <% if (user) { %>
+        <img
+            src="images/favourite<%= user.favourites.includes(item.index) ? '-filled' : '' %>.png"
+            alt="Favoritt"
+            data-index="<%= item.index %>"
+            class="favourite-toggle"
+        >
+      <% } %>
+    </header>
 
-  <div class="metadata">
-    <div class="information">
-      <div class="name">
-        <span><%= item.name %></span>
-
-        <% if (user) { %>
-          <img
-              src="images/favourite<%= user.favourites.includes(item.index) ? '-filled' : '' %>.png"
-              alt="Favoritt"
-              data-index="<%= item.index %>"
-              class="favourite-toggle"
-          >
-        <% } %>
-      </div>
-
-      <div class="category">
-        <span>
-          <b><%= item.category %></b>
-          <span style="font-size: 14px;"> <%= item.subcategory %></span>
-        </span>
-
-        <span>
-          <b class="alcohol"><%= item.alcohol %></b>
-          <b class="percent">%</b> alk.
-        </span>
-      </div>
-
-      <div class="country">
-        <span style="font-size: var(--fontsize-normal);"><%= item.country %></span>
-        <% if (item.district) { %>
-          <span id="dot" style="font-size: 10px;">●</span>
-          <span style="font-size: var(--fontsize-small);"><%= item.district %></span>
-        <% } %>
-        <% if (item.subdistrict) { %>
-          <span id="dot" style="font-size: 10px;">●</span>
-          <span style="font-size: var(--fontsize-smallest);"><%= item.subdistrict %></span>
-        <% } %>
-      </div>
+    <div class="product-details">
+      <span><b><%= item.category %></b> <%= item.subcategory %></span>
+      <span><b><%= item.alcohol %>%</b> alk.</span>
+      <span><%= item.country %></span>
+      <% if (item.district) { %>
+        <span><%= item.district %></span>
+      <% } %>
+      <% if (item.subdistrict) { %>
+        <span><%= item.subdistrict %></span>
+      <% } %>
+    </div>
 
       <% if (storelike) { %>
         <div class="country">
@@ -89,65 +69,37 @@
         </div>
       <% } %>
 
-      <% if (item.rating && (item.rating.value !== undefined && item.rating.value !== null)) { %>
-        <div class="rating">
-          <% if (item.rating.url) { %>
-            <a href="<%= item.rating.url %>"
-                target="_blank"
-                rel="noopener noreferrer"
-                onclick="event.stopPropagation()">
-          <% } %>
-
-          <% for (let i = 0; i < 5; i++) { %>
-            <span class="star" style="--fill: <%=
-              i < Math.floor(item.rating.value) ? 100 :
-              i === Math.floor(item.rating.value) ? (item.rating.value - Math.floor(item.rating.value)) * 100 : 0
-            %>%">★</span>
-          <% } %>
-
-          <span class="number"><%= item.rating.value %></span>
-          <span>av</span>
-          <span class="number">5</span>
-
-          <% if (item.rating.url) { %>
-            </a>
-          <% } %>
-        </div>
-      <% } %>
-
-      <% if (item.description) { %>
-        <span class="description"><%= item.description.lang %></span>
-      <% } %>
-    </div>
-
-    <div class="price">
-        <div class="prices">
-          <% if (!taxfree) { %>
-            <span class="text">KR <b class="number"><%= Math.ceil(item.price) %></b></span>
-            <% if (item.oldprice) { %>
-              <span class="text">FØR <b class="number"><%= Math.ceil(item.oldprice) %></b></span>
-            <% } %>
-        </div>
-
-          <% if (item.oldprice) { %>
-            <span class="text">
-              ENDRING
-              <b class="number"><%= Math.floor(item.discount) %></b>
-              <b class="percent">%</b>
-            </span>
-          <% } %>
-
-        <% } else { %>
-          <span class="text">VINMONOPOLET <b class="number"><%= Math.ceil(item.price) %></b></span>
-          <span class="text">TAX-FREE <b class="number"><%= Math.ceil(item.taxfree.price) %></b></span>
-        </div>
-
-        <span class="text">
-            DIFFERANSE
-            <b class="number"><%= Math.floor(item.taxfree.discount) %></b>
-            <b class="percent">%</b>
-          </span>
+    <% if (item.rating && (item.rating.value !== undefined && item.rating.value !== null)) { %>
+      <div class="product-rating">
+        <% if (item.rating.url) { %>
+          <a href="<%= item.rating.url %>" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">
         <% } %>
+        <% for (let i = 0; i < 5; i++) { %>
+          <span class="star" style="--fill: <%= i < Math.floor(item.rating.value) ? 100 : i === Math.floor(item.rating.value) ? (item.rating.value - Math.floor(item.rating.value)) * 100 : 0 %>%">★</span>
+        <% } %>
+        <span><%= item.rating.value %> av 5</span>
+        <% if (item.rating.url) { %>
+          </a>
+        <% } %>
+      </div>
+    <% } %>
+
+    <% if (item.description) { %>
+      <p class="product-description"><%= item.description.lang %></p>
+    <% } %>
+
+    <div class="product-pricing">
+      <% if (!taxfree) { %>
+        <span>KR <b><%= Math.ceil(item.price) %></b></span>
+        <% if (item.oldprice) { %>
+          <span>FØR <b><%= Math.ceil(item.oldprice) %></b></span>
+          <span>ENDRING <b><%= Math.floor(item.discount) %>%</b></span>
+        <% } %>
+      <% } else { %>
+        <span>VINMONOPOLET <b><%= Math.ceil(item.price) %></b></span>
+        <span>TAX-FREE <b><%= Math.ceil(item.taxfree.price) %></b></span>
+        <span>DIFFERANSE <b><%= Math.floor(item.taxfree.discount) %>%</b></span>
+      <% } %>
     </div>
   </div>
 

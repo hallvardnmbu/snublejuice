@@ -20,6 +20,14 @@ const database = client.db("snublejuice");
 const itemCollection = database.collection("products");
 const metaCollection = database.collection("metadata");
 
+const IGNORED_PRODUCTS = [
+  "Bache-Gabrielsen 5 VSOP Organic", 
+  "Dogarina Valdobbiadene Prosecco Superiore", 
+  "Père Magloire Calvados X.O.",
+  "André Delorme Crémant de Bourgogne Les Cachettes Blanc de Blancs Extra-Brut",
+  "Dom Pérignon",
+];
+
 const URL = {
   url: "https://namx6ho175-3.algolianet.com/1/indexes/*/queries?x-algolia-agent=Algolia%20for%20JavaScript%20(4.13.1)%3B%20Browser%3B%20JS%20Helper%20(3.14.2)",
   headers: {
@@ -295,12 +303,7 @@ async function findMatchInMongo(record) {
         ...(record.category && { category: record.category }),
 
         // Exclude specific products that are known to cause issues
-        name: { $nin: [
-          "Bache-Gabrielsen 5 VSOP Organic", 
-          "Dogarina Valdobbiadene Prosecco Superiore", 
-          "Père Magloire Calvados X.O.",
-          "André Delorme Crémant de Bourgogne Les Cachettes Blanc de Blancs Extra-Brut"
-        ] },
+        name: { $nin: IGNORED_PRODUCTS },
       },
     },
     {

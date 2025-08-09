@@ -486,7 +486,7 @@ async function main() {
   );
 
   // await itemCollection.updateMany({}, { $set: { "taxfree.updated": false } });
-  await itemCollection.updateMany({}, { $unset: { taxfree: "" } });
+  // await itemCollection.updateMany({}, { $unset: { taxfree: "" } });
   await getProducts();
 
   // [!] ONLY RUN THIS AFTER ALL PRICES HAVE BEEN UPDATED [!]

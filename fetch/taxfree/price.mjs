@@ -20,12 +20,31 @@ const database = client.db("snublejuice");
 const itemCollection = database.collection("products");
 const metaCollection = database.collection("metadata");
 
+// Products with a large discount that's wrongly matched:
 const IGNORED_PRODUCTS = [
-  "Bache-Gabrielsen 5 VSOP Organic", 
+  "Bache-Gabrielsen 5 VSOP Organic",
   "Dogarina Valdobbiadene Prosecco Superiore", 
   "Père Magloire Calvados X.O.",
   "André Delorme Crémant de Bourgogne Les Cachettes Blanc de Blancs Extra-Brut",
   "Dom Pérignon",
+  "Bouchard Père & Fils Meursault Premier Cru Genevrières",
+  "Bouchard Père & Fils Montrachet",
+  "Bouchard Père & Fils Chevalier-Montrachet",
+  "Bouchard Père & Fils Corton-Charlemagne",
+  "Bouchard Pere et fils Gevrey-Chambertin",
+  "Bouchard Père & Fils Meursault Premier Cru Genevrières",
+  "Tommasi Amarone della Valpolicella Classico 120 Anniversary",
+  "Mazzei Castello di Fonterutoli Chianti Classico Gran Selezione",
+  "Privat Cava Brut Nature Reserva",
+  "La Combàrbia Vino Nobile di Montepulciano",
+  "Louis Jadot Nuits-Saint-Georges Premier Cru Les Saint-Georges",
+  "Dom. Wachau Grüner Veltliner Federspiel Pichlpoint",
+  "Protos Gran Reserva",
+  "Campo Viejo Gran Reserva",
+  "Villa Calcinaia Chianti Classico Riserva",
+  "Serego Alighieri Possessioni Bianco",
+  "Torres Celeste Reserva",
+  "Yellow Tail Malbec",
 ];
 
 const URL = {
@@ -100,16 +119,14 @@ function processImages(images) {
   );
 }
 
-function processCategories(category, subcategory) {
+function processCategories(category, subcategory, subsubcategory) {
   if (!category) return { category: category, subcategory: subcategory };
 
-  if (category in CATEGORIES)
-    return { category: category, subcategory: subcategory };
+  if (category in CATEGORIES) return { category: category, subcategory: subcategory };
 
   return {
-    category: category,
-    subcategory:
-      subcategory in SUBCATEGORIES ? SUBCATEGORIES[subcategory] : subcategory,
+    category: subcategory in SUBCATEGORIES ? SUBCATEGORIES[subcategory] : category,
+    subcategory: subcategory in SUBCATEGORIES ? subsubcategory : subcategory,
   };
 }
 
@@ -151,9 +168,8 @@ function processProducts(products, alreadyUpdated) {
       ...processCategories(
         product.categoriesLevel1?.no?.at(0).split(" > ").at(-1) || null,
         product.categoriesLevel2?.no?.at(0).split(" > ").at(-1) || null,
-      ),
-      subsubcategory:
         product.categoriesLevel3?.no?.at(0).split(" > ").at(-1) || null,
+      ),
 
       country: product.country?.no || null,
       district:
@@ -231,7 +247,7 @@ async function getResults(order, alreadyUpdated, retry = false, existingItemIndi
 }
 
 async function findMatchInMongo(record) {
-  record.name = record.name
+  const name = record.name
     // Remove volume measurements, case insensitive:
     // - Decimals: 0,70L, 1.00L
     // - Non-decimals: 5cL, 75L
@@ -247,12 +263,11 @@ async function findMatchInMongo(record) {
       $search: {
         index: "name",
         compound: {
-          // Use "should" to combine clauses. Documents matching more clauses get higher scores.
           should: [
             {
               // 1. Exact Phrase Match (Highest Boost): Rewards perfect name matches.
               phrase: {
-                query: record.name,
+                query: name,
                 path: "name",
                 score: { boost: { value: 4 } },
               },
@@ -260,7 +275,7 @@ async function findMatchInMongo(record) {
             {
               // 2. Fuzzy Text Match (Standard Weight): Catches minor misspellings and variations.
               text: {
-                query: record.name,
+                query: name,
                 path: "name",
                 fuzzy: {
                   maxEdits: 1, // Allow only one character difference for higher precision.
@@ -272,13 +287,12 @@ async function findMatchInMongo(record) {
             {
               // 3. Autocomplete Match (Moderate Boost): Good for matching brands or initial words.
               autocomplete: {
-                query: record.name,
+                query: name,
                 path: "name",
                 score: { boost: { value: 1 } },
               },
             },
           ],
-          // The final score is the sum of scores from matching "should" clauses.
           minimumShouldMatch: 1,
         },
       },
@@ -296,15 +310,47 @@ async function findMatchInMongo(record) {
       },
     },
     {
-      // Apply strict filters AFTER the text search for accuracy
+      // Apply strict filters AFTER the text search for accuracy.
       $match: {
         volume: record.volume,
-        alcohol: record.alcohol,
         ...(record.category && { category: record.category }),
+        ...(record.year && {year: record.year}),  // i.e., vintage.
+        name: { 
+          $nin: IGNORED_PRODUCTS, 
+          // Disregard names with year in the title (on the database-side).
+          // This prevents excessive matching of "exclusive" products.
+          $not: /\b(19|20)\d{2}\b/
+        },
 
-        // Exclude specific products that are known to cause issues
-        name: { $nin: IGNORED_PRODUCTS },
-      },
+        // Dynamic match stage for the alcohol percentage.
+        $expr: {
+          $let: {
+            vars: {
+              errorMargin: {
+                $switch: {
+                  branches: [
+                    {
+                      case: { $in: ["$category", ["Øl", "Sider"]] },
+                      then: 0.4
+                    },
+                    {
+                      case: { $in: ["$category", ["Rødvin", "Hvitvin", "Rosévin", "Musserende vin", "Perlende vin"]] },
+                      then: 0.5
+                    },
+                  ],
+                  default: 0.0 // Exact match for all other categories
+                }
+              }
+            },
+            in: {
+              $and: [
+                { $gte: ["$alcohol", { $subtract: [record.alcohol, "$$errorMargin"] }] },
+                { $lte: ["$alcohol", { $add: [record.alcohol, "$$errorMargin"] }] }
+              ]
+            }
+          }
+        }
+      }
     },
     {
       // Sort by the highest score to get the best match first
@@ -495,11 +541,14 @@ async function main() {
     { $set: { "prices.taxfree": false } },
   );
 
+  // [!] REMOVE ALL TAXFREE DATA [!]
+  // // await itemCollection.updateMany({}, { $unset: { taxfree: "" } });
+  // // await itemCollection.updateMany({ name: { $in: IGNORED_PRODUCTS }}}, { $unset: { taxfree: "" } });
+  
+  await itemCollection.updateMany({}, { $set: { "taxfree.updated": false } });
   const existingItemIndices = (await itemCollection.distinct("taxfree.index")).filter(
     (index) => index !== null && !isNaN(index),
   );
-  // await itemCollection.updateMany({}, { $set: { "taxfree.updated": false } });
-  // await itemCollection.updateMany({}, { $unset: { taxfree: "" } });
   await getProducts(existingItemIndices);
 
   // [!] ONLY RUN THIS AFTER ALL PRICES HAVE BEEN UPDATED [!]

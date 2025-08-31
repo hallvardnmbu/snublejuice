@@ -21,6 +21,7 @@ import {
 
 const _PRODUCTION = process.env.NODE_ENV === "production";
 const port = 8080;
+const _RATINGS = false;
 
 const collections = await databaseConnection();
 
@@ -222,12 +223,14 @@ const app = new Elysia()
 const hostApps = {};
 if (_PRODUCTION) {
   // Start the Vivino rating script as a detached background process
-  const ratingScript = path.resolve("fetch/vivino/rating.mjs");
-  const ratingProcess = spawn({
-    cmd: ["bun", ratingScript],
-    stdio: ["ignore", "inherit", "inherit"],
-  });
-  ratingProcess.unref && ratingProcess.unref();
+  if (_RATINGS) {
+    const ratingScript = path.resolve("fetch/vivino/rating.mjs");
+    const ratingProcess = spawn({
+      cmd: ["bun", ratingScript],
+      stdio: ["ignore", "inherit", "inherit"],
+    });
+    ratingProcess.unref && ratingProcess.unref();
+  }
 
   // ORD APPLICATION (dagsord.no)
   hostApps["dagsord.no"] = ordApp;

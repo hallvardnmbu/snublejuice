@@ -545,11 +545,15 @@ async function main() {
   // // await itemCollection.updateMany({}, { $unset: { taxfree: "" } });
   // // await itemCollection.updateMany({ name: { $in: IGNORED_PRODUCTS }}}, { $unset: { taxfree: "" } });
   
+  // Fetch new prices.
   await itemCollection.updateMany({}, { $set: { "taxfree.updated": false } });
   const existingItemIndices = (await itemCollection.distinct("taxfree.index")).filter(
     (index) => index !== null && !isNaN(index),
   );
   await getProducts(existingItemIndices);
+
+  // Delete products with higher tax-free price (incorrect matches).
+  await itemCollection.updateMany({ "taxfree.discount": { $gt: 0.0 } }, { $unset: { taxfree: "" } });
 
   // [!] ONLY RUN THIS AFTER ALL PRICES HAVE BEEN UPDATED [!]
   await syncUnupdatedProducts();

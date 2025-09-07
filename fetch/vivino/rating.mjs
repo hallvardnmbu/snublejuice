@@ -7,7 +7,7 @@ const log = (level, message) => {
 log("?", "Starting Vivino rating script.");
 
 const client = new MongoClient(
-  `mongodb+srv://${process.env.MONGO_USR}:${process.env.MONGO_PWD}@snublejuice.faktu.mongodb.net/?retryWrites=true&w=majority&appName=snublejuice`,
+  `mongodb+srv://${process.env.MONGO_USR.trim()}:${process.env.MONGO_PWD.trim()}@snublejuice.faktu.mongodb.net/?retryWrites=true&w=majority&appName=snublejuice`,
 );
 
 try {
@@ -29,7 +29,7 @@ const REQUEST_HEADERS = {
 const JSON_LD_PATTERN =
   /<script type='application\/ld\+json'>([\s\S]*?)<\/script>/;
 
-const _SECOND = 1000;  // seconds in milliseconds
+const _SECOND = 1000; // seconds in milliseconds
 const CONFIG = {
   requestDelay: 10 * _SECOND, // 10 seconds between requests
   retryDelay: 25, // seconds
@@ -459,9 +459,7 @@ async function convertUpdatedToDate() {
   // This is done every loop iteration, in case a restore has been done.
   await collection.updateMany(
     { "rating.updated": { $type: "string", $ne: null } },
-    [
-      { $set: { "rating.updated": { $toDate: "$rating.updated" } } }
-    ]
+    [{ $set: { "rating.updated": { $toDate: "$rating.updated" } } }],
   );
 }
 
@@ -512,7 +510,10 @@ async function main() {
   try {
     await convertUpdatedToDate();
   } catch (error) {
-    log("!", `Failed to convert updated 'rating.updated' to date: ${error.message}`);
+    log(
+      "!",
+      `Failed to convert updated 'rating.updated' to date: ${error.message}`,
+    );
   }
 
   await continuousLoop();

@@ -6,7 +6,7 @@ const log = (level, message) => {
 };
 
 const client = new MongoClient(
-  `mongodb+srv://${process.env.MONGO_USR}:${process.env.MONGO_PWD}@snublejuice.faktu.mongodb.net/?retryWrites=true&w=majority&appName=snublejuice`,
+  `mongodb+srv://${process.env.MONGO_USR.trim()}:${process.env.MONGO_PWD.trim()}@snublejuice.faktu.mongodb.net/?retryWrites=true&w=majority&appName=snublejuice`,
   {
     serverApi: {
       version: ServerApiVersion.v1,
@@ -113,10 +113,7 @@ async function getPage(page, alreadyUpdated, retry = false) {
     });
 
     if (response.status === 200) {
-      return processProducts(
-        response.data["products"],
-        alreadyUpdated,
-      );
+      return processProducts(response.data["products"], alreadyUpdated);
     }
 
     log("!", `Status code ${response.status} for page ${page}.`);

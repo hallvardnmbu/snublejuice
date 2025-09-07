@@ -6,7 +6,7 @@ const log = (level, message) => {
 };
 
 const client = new MongoClient(
-  `mongodb+srv://${process.env.MONGO_USR}:${process.env.MONGO_PWD}@snublejuice.faktu.mongodb.net/?retryWrites=true&w=majority&appName=snublejuice`,
+  `mongodb+srv://${process.env.MONGO_USR.trim()}:${process.env.MONGO_PWD.trim()}@snublejuice.faktu.mongodb.net/?retryWrites=true&w=majority&appName=snublejuice`,
   {
     serverApi: {
       version: ServerApiVersion.v1,
@@ -186,7 +186,7 @@ async function main() {
   // Fetch products with discount.
   const itemIds = await itemCollection
     .find({
-      discount: { $lt: 0.0 },
+      discount: { $lt: -8.0 },
     })
     .project({ index: 1, _id: 0 })
     .toArray();

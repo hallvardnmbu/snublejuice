@@ -7,7 +7,7 @@ const log = (level, message) => {
 
 log("?", "Connecting to database.");
 const client = new MongoClient(
-  `mongodb+srv://${process.env.MONGO_USR}:${process.env.MONGO_PWD}@snublejuice.faktu.mongodb.net/?retryWrites=true&w=majority&appName=snublejuice`,
+  `mongodb+srv://${process.env.MONGO_USR.trim()}:${process.env.MONGO_PWD.trim()}@snublejuice.faktu.mongodb.net/?retryWrites=true&w=majority&appName=snublejuice`,
 );
 try {
   await client.connect();
@@ -106,9 +106,7 @@ async function getNewProducts(itemIds) {
       });
 
       if (response.status === 200) {
-        return processProducts(
-          response.data["products"],
-        );
+        return processProducts(response.data["products"]);
       } else {
         log("!", `Received status ${response.status} for page ${page}.`);
       }

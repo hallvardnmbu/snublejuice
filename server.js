@@ -19,7 +19,7 @@ import {
   load,
 } from "./src/database/operations.js";
 
-const _PRODUCTION = process.env.NODE_ENV === "production";
+const _PRODUCTION = process.env.NODE_ENV.trim() === "production";
 const port = 8080;
 const _RATINGS = false;
 
@@ -33,10 +33,12 @@ async function render(filePath, data) {
 }
 
 const app = new Elysia()
-  .use(staticPlugin({
-    assets: "src/public",
-    prefix: "/"
-  }))
+  .use(
+    staticPlugin({
+      assets: "src/public",
+      prefix: "/",
+    }),
+  )
   .decorate("collections", collections)
   .decorate("render", render)
   .derive(authenticate)
@@ -48,15 +50,21 @@ const app = new Elysia()
     });
   })
   .get("/", async (context) => {
-    const { request, query, render, collections: appCollections, user: authenticatedUser } = context;
+    const {
+      request,
+      query,
+      render,
+      collections: appCollections,
+      user: authenticatedUser,
+    } = context;
     const hostname = request.headers.get("host") || "";
-    
+
     let subdomain = hostname.startsWith("taxfree")
       ? "taxfree"
       : hostname.startsWith("vinmonopolet")
         ? "vinmonopolet"
         : "landing";
-    
+
     const month = new Date().toISOString().slice(0, 7);
     if (_PRODUCTION) {
       await incrementVisitor(
@@ -213,10 +221,7 @@ const app = new Elysia()
       });
     } catch (err) {
       console.error(err);
-      return Response.redirect(
-        `/error?message=Noe gikk galt.`,
-        302,
-      );
+      return Response.redirect(`/error?message=Noe gikk galt.`, 302);
     }
   });
 
@@ -261,14 +266,14 @@ if (_PRODUCTION) {
 const mainServer = new Elysia()
   .all("*", async ({ request }) => {
     let hostname = request.headers.get("host") || "";
-    hostname = hostname.split(':')[0];
-    
+    hostname = hostname.split(":")[0];
+
     const targetApp = hostApps[hostname];
-    
+
     if (targetApp) {
       return await targetApp.handle(request);
     }
-    
+
     return new Response("No vhost match", { status: 404 });
   })
   .listen(port);

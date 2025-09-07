@@ -5,7 +5,8 @@ function applyFilters(resetPage = true, toggleFavourites = false) {
   }
   if (toggleFavourites) {
     const old = document.querySelector('input[name="favourites"]').value;
-    document.querySelector('input[name="favourites"]').value = old === "true" ? "false" : "true";
+    document.querySelector('input[name="favourites"]').value =
+      old === "true" ? "false" : "true";
   }
   document.getElementById("filter").submit();
 }
@@ -31,7 +32,9 @@ document.getElementById("clearFilters").onclick = function (event) {
   sessionStorage.clear();
   window.location.href =
     "/?fresh=false" +
-    (document.querySelector('input[name="favourites"]').value === "true" ? "&favourites=true" : "");
+    (document.querySelector('input[name="favourites"]').value === "true"
+      ? "&favourites=true"
+      : "");
 };
 
 // Toggle advanced visibility.
@@ -54,7 +57,9 @@ document.addEventListener("DOMContentLoaded", function () {
   const element = document.getElementById("advanced");
   const isVisible = sessionStorage.getItem("advanced") === "true";
   element.style.display = isVisible ? "flex" : "none";
-  document.getElementById("toggleAdvanced").innerHTML = isVisible ? "Skjul valg" : "Flere valg";
+  document.getElementById("toggleAdvanced").innerHTML = isVisible
+    ? "Skjul valg"
+    : "Flere valg";
 });
 
 // Price, volume, alcohol and search change.
@@ -86,9 +91,11 @@ document.getElementById("cyear").addEventListener("change", function () {
 document.getElementById("nsearch").addEventListener("change", function () {
   applyFilters(true, false);
 });
-document.getElementById("stores-search-vinmonopolet").addEventListener("change", function () {
-  applyFilters(true, false);
-});
+document
+  .getElementById("stores-search-vinmonopolet")
+  .addEventListener("change", function () {
+    applyFilters(true, false);
+  });
 document.getElementById("delta").addEventListener("change", function () {
   applyFilters(true, false);
 });

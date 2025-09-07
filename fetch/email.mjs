@@ -7,7 +7,7 @@ const users = await collections.users
   .find({ notify: true }, { projection: { email: 1, _id: 0 } })
   .toArray();
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY.trim());
 
 async function sendEmails() {
   const { _data, error } = await resend.batch.send(

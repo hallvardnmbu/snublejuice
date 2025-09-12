@@ -32,18 +32,22 @@ if [ -f .env ]; then
     export $(grep -v '^#' .env | xargs)
 fi
 
-# 1. Update prices
+# 1. Backup
+log "Creating a backup before beginning"
+bun run ./backups/backup.mjs 2>&1 | while IFS= read -r line; do log "$line" 0; done || abort "Failed to run backups/backup.mjs"
+
+# 2. Update prices
 log "Updating prices"
 bun run ./fetch/vinmonopolet/price.mjs 2>&1 | while IFS= read -r line; do log "$line" 0; done || abort "Failed to run fetch/vinmonopolet/price.mjs"
 bun run ./fetch/taxfree/price.mjs 2>&1 | while IFS= read -r line; do log "$line" 0; done || abort "Failed to run fetch/taxfree/price.mjs"
 
-# 2. Update stock
+# 3. Update stock
 log "Updating stock"
 bun run ./fetch/vinmonopolet/detailed.mjs 2>&1 | while IFS= read -r line; do log "$line" 0; done || abort "Failed to run fetch/vinmonopolet/detailed.mjs."
 bun run ./fetch/vinmonopolet/popular.mjs 2>&1 | while IFS= read -r line; do log "$line" 0; done || abort "Failed to run fetch/vinmonopolet/popular.mjs."
 bun run ./fetch/taxfree/stock.mjs 2>&1 | while IFS= read -r line; do log "$line" 0; done || abort "Failed to run fetch/taxfree/stock.mjs."
 
-# 3. Send mails to subscribers
+# 4. Send mails to subscribers
 log "Mailing subscribers"
 bun run ./fetch/email.mjs 2>&1 | while IFS= read -r line; do log "$line" 0; done || abort "Failed to run fetch/email.mjs"
 

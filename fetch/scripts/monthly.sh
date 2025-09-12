@@ -22,8 +22,13 @@ abort() {
 
 cd "$HOME/snublejuice" || abort "Failed to change directory to project root."
 
+log "Installing dependencies"
+bun install
+bun update
+
 # Load environment variables from .env
 if [ -f .env ]; then
+    log "Loading environment"
     export $(grep -v '^#' .env | xargs)
 fi
 

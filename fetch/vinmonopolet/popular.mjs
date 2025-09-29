@@ -186,7 +186,7 @@ async function main() {
   // Fetch products with discount.
   const itemIds = await itemCollection
     .find({
-      discount: { $lt: -8.0 },
+      discount: { $lt: 0.0 },
     })
     .project({ index: 1, _id: 0 })
     .toArray();

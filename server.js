@@ -162,7 +162,7 @@ const app = new Elysia()
       !store.vinmonopolet || store.vinmonopolet === "Spesifikk butikk";
 
     try {
-      let { data, total, updated } = await load({
+      let { data, total } = await load({
         collection: appCollections.products,
         meta,
         subdomain,
@@ -191,7 +191,6 @@ const app = new Elysia()
         subdomain: subdomain,
         user: user,
         favourites: favourites,
-        updated: updated,
         message:
           delta > 1 && sort === "discount"
             ? "Sortering etter prisendring er ikke mulig når sammenlikning ikke er forrige måneds pris."

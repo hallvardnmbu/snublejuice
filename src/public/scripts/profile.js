@@ -39,7 +39,9 @@ document.getElementById("loginForm").onsubmit = async function (event) {
 
     const data = await response.json();
     userMessage.style.display = "block";
-    userMessage.style.backgroundColor = response.ok ? "var(--positive)" : "var(--negative)";
+    userMessage.style.backgroundColor = response.ok
+      ? "var(--positive)"
+      : "var(--negative)";
 
     if (response.ok) {
       userMessage.textContent = data.message;
@@ -83,7 +85,9 @@ document.getElementById("registerForm").onsubmit = async function (event) {
 
     const data = await response.json();
     userMessage.style.display = "block";
-    userMessage.style.backgroundColor = response.ok ? "var(--positive)" : "var(--negative)";
+    userMessage.style.backgroundColor = response.ok
+      ? "var(--positive)"
+      : "var(--negative)";
 
     if (response.ok) {
       userMessage.textContent = data.message;
@@ -125,7 +129,9 @@ document.getElementById("notifyUserForm").onsubmit = async function (event) {
 
     const data = await response.json();
     userMessage.style.display = "block";
-    userMessage.style.backgroundColor = response.ok ? "var(--positive)" : "var(--negative)";
+    userMessage.style.backgroundColor = response.ok
+      ? "var(--positive)"
+      : "var(--negative)";
 
     if (response.ok) {
       userMessage.textContent = data.message;
@@ -164,7 +170,9 @@ document.getElementById("deleteUserForm").onsubmit = async function (event) {
 
     const data = await response.json();
     userMessage.style.display = "block";
-    userMessage.style.backgroundColor = response.ok ? "var(--positive)" : "var(--negative)";
+    userMessage.style.backgroundColor = response.ok
+      ? "var(--positive)"
+      : "var(--negative)";
 
     if (response.ok) {
       userMessage.textContent = data.message;

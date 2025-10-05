@@ -12,7 +12,11 @@ function generateDates(numPrices) {
   var dates = [];
   var currentDate = new Date();
   for (var i = 0; i < numPrices; i++) {
-    var newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+    var newDate = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() - i,
+      1,
+    );
     dates.unshift(formatDateAsLocalString(newDate));
   }
   return dates;
@@ -64,7 +68,8 @@ function graphPrice(index) {
 
   // Resize canvas to fit container
   canvas.width = canvas.parentElement.clientWidth * _RESOLUTION;
-  canvas.height = (allPricesEqual ? 70 : canvas.parentElement.clientHeight) * _RESOLUTION;
+  canvas.height =
+    (allPricesEqual ? 70 : canvas.parentElement.clientHeight) * _RESOLUTION;
   canvas.style.width = `${canvas.width / _RESOLUTION}px`;
   canvas.style.height = `${canvas.height / _RESOLUTION}px`;
 
@@ -88,7 +93,10 @@ function graphPrice(index) {
 
   // Draw line
   ctx.beginPath();
-  ctx.moveTo(margin.left, canvas.height - margin.bottom - (prices[0] - yMin) * yScale);
+  ctx.moveTo(
+    margin.left,
+    canvas.height - margin.bottom - (prices[0] - yMin) * yScale,
+  );
   for (var i = 1; i < prices.length; i++) {
     // Move horizontally to the new X position
     ctx.lineTo(
@@ -110,7 +118,10 @@ function graphPrice(index) {
     ctx.beginPath();
     ctx.rect(
       margin.left + i * xScale - 5 * _RESOLUTION,
-      canvas.height - margin.bottom - (prices[i] - yMin) * yScale - 5 * _RESOLUTION,
+      canvas.height -
+        margin.bottom -
+        (prices[i] - yMin) * yScale -
+        5 * _RESOLUTION,
       10 * _RESOLUTION,
       10 * _RESOLUTION,
     );
@@ -150,7 +161,9 @@ function graphPrice(index) {
   }
 
   // Hoverinfo
-  const existingHoverLayer = canvas.parentElement.querySelector("canvas:not(#graph-" + index + ")");
+  const existingHoverLayer = canvas.parentElement.querySelector(
+    "canvas:not(#graph-" + index + ")",
+  );
   if (existingHoverLayer) {
     existingHoverLayer.remove();
   }

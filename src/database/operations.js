@@ -14,11 +14,14 @@ export async function incrementVisitor(collection, month, subdomain, fresh) {
 }
 
 export async function getMetadata(collection) {
-  return (await collection.find({}, { _id: 0 }).toArray()).reduce((acc, item) => {
-    const { id, ...rest } = item;
-    acc[id] = rest;
-    return acc;
-  }, {});
+  return (await collection.find({}, { _id: 0 }).toArray()).reduce(
+    (acc, item) => {
+      const { id, ...rest } = item;
+      acc[id] = rest;
+      return acc;
+    },
+    {},
+  );
 }
 
 export const categories = {
@@ -149,31 +152,17 @@ export async function load({
     ...(store.vinmonopolet && !search && !storelike && !taxfree
       ? { stores: { $in: [store.vinmonopolet] } }
       : {}),
-    ...(store.taxfree && !search && taxfree ? { "taxfree.stores": { $in: [store.taxfree] } } : {}),
+    ...(store.taxfree && !search && taxfree
+      ? { "taxfree.stores": { $in: [store.taxfree] } }
+      : {}),
   };
 
-  let updated = null;
   if (!store.vinmonopolet && !storelike && !search && !favourites && !taxfree) {
     if (orderable) {
       matchStage["orderable"] = true;
     }
     if (instores) {
       matchStage["instores"] = true;
-    }
-  } else {
-    let date = meta.stock[subdomain];
-    // Set the `updated` variable as the difference wrt. today as text.
-    if (date) {
-      const ONE_DAY = 1000 * 60 * 60 * 24;
-      const today = new Date();
-      today.setHours(0, 0, 0, 0); // Reset time to start of day
-
-      const compareDate = new Date(date);
-      compareDate.setHours(0, 0, 0, 0); // Reset time to start of day
-
-      const diff = Math.floor((today - compareDate) / ONE_DAY);
-
-      updated = diff === 0 ? "i dag" : diff === 1 ? "i går" : `for ${diff} dager siden`;
     }
   }
 
@@ -207,7 +196,12 @@ export async function load({
     }
 
     if (!nonalcoholic) {
-      matchStage["alcohol"] = { ...matchStage["alcohol"], $ne: null, $exists: true, $gt: 0 };
+      matchStage["alcohol"] = {
+        ...matchStage["alcohol"],
+        $ne: null,
+        $exists: true,
+        $gt: 0,
+      };
     }
 
     matchStage[sort] = { ...matchStage[sort], $exists: true, $ne: null };
@@ -220,7 +214,9 @@ export async function load({
 
   let total;
   if (fresh) {
-    const tot = await collection.aggregate([...pipeline, { $count: "amount" }]).toArray();
+    const tot = await collection
+      .aggregate([...pipeline, { $count: "amount" }])
+      .toArray();
     if (tot.length === 0) {
       total = 1;
     } else {
@@ -240,14 +236,16 @@ export async function load({
 
     if (delta > 1) {
       data.forEach((item) => {
-        item["oldprice"] = item["prices"][Math.max(item["prices"].length - delta - 1, 0)];
-        item["discount"] = ((item["price"] - item["oldprice"]) * 100) / item["oldprice"];
+        item["oldprice"] =
+          item["prices"][Math.max(item["prices"].length - delta - 1, 0)];
+        item["discount"] =
+          ((item["price"] - item["oldprice"]) * 100) / item["oldprice"];
       });
     }
 
-    return { data, total, updated };
+    return { data, total };
   } catch (err) {
     console.log(err);
-    return { data: null, total: 1, updated: null };
+    return { data: null, total: 1 };
   }
 }

@@ -27,7 +27,7 @@
     <%- include('partials/account', { favourites, landing: false }) %>
   </header>
 
-  <%- include('partials/forms', { updated, favourites, taxfree: subdomain === "taxfree" }) %>
+  <%- include('partials/forms', { favourites, taxfree: subdomain === "taxfree" }) %>
 
   <%- include('partials/pagination', { placement: "top" }) %>
 
@@ -40,7 +40,6 @@
       <% } %>
       <div id="message-stores" style="display: none;">
           <span class="message">N.b.: Faktisk lagerbeholdning kan avvike. Oppdateres med jevne mellomrom.</span>
-          <span class="message">Sist oppdatert <%= updated %>.</span>
       </div>
 
       <% if (message) { %>

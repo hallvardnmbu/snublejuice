@@ -13,7 +13,7 @@ function toggleView(modal) {
 
   // Open the clicked modal.
   let element = document.getElementById(modal);
-  element.style.display = element.style.display === "block" ? "none" : "block";
+  element.style.display = element.style.display === "flex" ? "none" : "flex";
 }
 
 // LOGIN

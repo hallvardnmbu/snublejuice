@@ -79,6 +79,7 @@ const app = new Elysia()
       ? {
           username: authenticatedUser.username,
           email: authenticatedUser.email,
+          notify: authenticatedUser.notify,
           favourites:
             (
               await appCollections.users.findOne(

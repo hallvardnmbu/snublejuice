@@ -1,117 +1,125 @@
-<menu id="menu">
-    <% if (!user) { %>
-        <button onclick="toggleView('login')">Logg inn</button>
-        <span>&nbsp;</span>
-        <button onclick="toggleView('register')">Registrer</button>
-    <% } else { %>
-        <span>Velkommen tilbake&nbsp;</span>
-        <button onclick="toggleView('account')"><%= user.username %></button>
-        <span>!</span>
+<header>
+
+    <menu id="menu">
+        <% if (!user) { %>
+            <button onclick="toggleView('login')">Logg inn</button>
+            <span>&nbsp;</span>
+            <button onclick="toggleView('register')">Registrer</button>
+        <% } else { %>
+            <span>Velkommen tilbake&nbsp;</span>
+            <button onclick="toggleView('account')"><%= user.username %></button>
+            <% if (landing) { %>
+                <span>!</span>
+            <% } else { %>
+                <span>;&nbsp;vis&nbsp</span>
+                <% if (!favourites) { %>
+                    <button onclick="applyFilters(true, true)">favoritter</button>
+                <% } else if (favourites) { %>
+                    <button onclick="applyFilters(true, true)">hovedside</button>
+                <% } %>
+                <span>.</span>
+            <% } %>
+        <% } %>
+    </menu>
+
+    <menu id="account" style="display: none;">
+    <% if (user) { %>
+        <button onclick="toggleView('profile')">Innstillinger</button>
+        <button onclick="logout()">Logg ut</button>
     <% } %>
-</menu>
+    </menu>
 
-<menu id="account" style="display: none;">
-  <% if (!user) { %>
-  <% } else { %>
-    <button onclick="toggleView('profile')">Innstillinger</button>
-    <button onclick="logout()">Logg ut</button>
-    <% if (!favourites && !landing) { %>
-      <button onclick="applyFilters(true, true)">Favoritter</button>
-    <% } else if (favourites) { %>
-      <button onclick="applyFilters(true, true)">Hovedside</button>
-    <% } %>
-  <% } %>
-</menu>
+    <menu id="profile" style="display: none;">
+        <button onclick="toggleView('notifications')">Varslinger</button>
+        <button onclick="toggleView('deletion')">Slett meg</button>
+    </menu>
 
-<menu id="profile" style="display: none;">
-    <button onclick="toggleView('notifications')">Varslinger</button>
-    <button onclick="toggleView('deletion')">Slett meg</button>
-</menu>
+    <search id="login" style="display: none;">
+    <form id="loginForm">
+        <table>
+        <tr>
+            <td>Brukernavn&nbsp;</td>
+            <td><input type="text" id="usernameLogin" name="username" minlength="2" required></td>
+        </tr>
+        <tr>
+            <td>Passord</td>
+            <td><input type="password" id="passwordLogin" name="password" minlength="4" required></td>
+        </tr>
+        </table>
 
-<search id="login" style="display: none;">
-  <form id="loginForm">
-    <table>
-      <tr>
-        <td>Brukernavn&nbsp;</td>
-        <td><input type="text" id="usernameLogin" name="username" minlength="2" required></td>
-      </tr>
-      <tr>
-        <td>Passord</td>
-        <td><input type="password" id="passwordLogin" name="password" minlength="4" required></td>
-      </tr>
-    </table>
+        <button type="submit" style="text-wrap: nowrap; padding: var(--margin);">Logg inn</button>
+    </form>
+    </search>
 
-    <button type="submit" style="text-wrap: nowrap; padding: var(--margin);">Logg inn</button>
-  </form>
-</search>
+    <search id="register" style="display: none;">
+    <form id="registerForm">
+        <table>
+        <tr>
+            <td>Brukernavn&nbsp;</td>
+            <td><input type="text" id="usernameRegister" name="username" minlength="2" required></td>
+        </tr>
+        <tr>
+            <td>E-post</td>
+            <td><input type="email" id="emailRegister" name="email" required></td>
+        </tr>
+        <tr>
+            <td>Passord</td>
+            <td><input type="password" id="passwordRegister" name="password" minlength="4" required></td>
+        </tr>
+        <tr>
+            <td>Månedsvarsel&nbsp;</td>
+            <td><input type="checkbox" id="notifyRegister" name="notify" value="true"></td>
+        </tr>
+        </table>
 
-<search id="register" style="display: none;">
-  <form id="registerForm">
-    <table>
-      <tr>
-        <td>Brukernavn&nbsp;</td>
-        <td><input type="text" id="usernameRegister" name="username" minlength="2" required></td>
-      </tr>
-      <tr>
-        <td>E-post</td>
-        <td><input type="email" id="emailRegister" name="email" required></td>
-      </tr>
-      <tr>
-        <td>Passord</td>
-        <td><input type="password" id="passwordRegister" name="password" minlength="4" required></td>
-      </tr>
-      <tr>
-        <td>Månedsvarsel&nbsp;</td>
-        <td><input type="checkbox" id="notifyRegister" name="notify" value="true"></td>
-      </tr>
-    </table>
+        <button type="submit" style="text-wrap: nowrap; padding: var(--margin);">Registrer</button>
+    </form>
+    </search>
 
-    <button type="submit" style="text-wrap: nowrap; padding: var(--margin);">Registrer</button>
-  </form>
-</search>
+    <search id="notifications" style="display: none;">
+    <form id="notifyUserForm">
+        <input type="hidden" id="usernameNotify" name="username" value="<%= user?.username %>">
 
-<search id="notifications" style="display: none;">
-  <form id="notifyUserForm">
-    <input type="hidden" id="usernameNotify" name="username" value="<%= user?.username %>">
+        <table>
+        <tr>
+            <td>E-post</td>
+            <td><%= user?.email %></td>
+        </tr>
+        <tr>
+            <td>Månedsvarsel&nbsp;</td>
+            <td><input type="checkbox" id="activeNotify" name="notify" <%= user?.notify ? 'checked' : '' %>></td>
+        </tr>
+        </table>
 
-    <table>
-      <tr>
-        <td>E-post</td>
-        <td><%= user?.email %></td>
-      </tr>
-      <tr>
-        <td>Månedsvarsel&nbsp;</td>
-        <td><input type="checkbox" id="activeNotify" name="notify" <%= user?.notify ? 'checked' : '' %>></td>
-      </tr>
-    </table>
+        <button type="submit" style="text-wrap: nowrap; padding: var(--margin);">Lagre</button>
+    </form>
+    </search>
 
-    <button type="submit" style="text-wrap: nowrap; padding: var(--margin);">Lagre</button>
-  </form>
-</search>
+    <search id="deletion" style="display: none;">
+    <form id="deleteUserForm">
+        <input type="hidden" id="usernameDelete" name="username" value="<%= user?.username %>">
 
-<search id="deletion" style="display: none;">
-  <form id="deleteUserForm">
-    <input type="hidden" id="usernameDelete" name="username" value="<%= user?.username %>">
+        <table>
+        <tr>
+            <td>Brukernavn&nbsp;</td>
+            <td><%= user?.username %></td>
+        </tr>
+        <tr>
+            <td>E-post</td>
+            <td><%= user?.email %></td>
+        </tr>
+        <tr>
+            <td>Passord</td>
+            <td><input type="password" id="passwordDelete" name="password" minlength="4" required></td>
+        </tr>
+        </table>
 
-    <table>
-      <tr>
-        <td>Brukernavn&nbsp;</td>
-        <td><%= user?.username %></td>
-      </tr>
-      <tr>
-        <td>E-post</td>
-        <td><%= user?.email %></td>
-      </tr>
-      <tr>
-        <td>Passord</td>
-        <td><input type="password" id="passwordDelete" name="password" minlength="4" required></td>
-      </tr>
-    </table>
+        <button type="submit" style="text-wrap: nowrap; padding: var(--margin);">Slett bruker</button>
+    </form>
+    </search>
 
-    <button type="submit" style="text-wrap: nowrap; padding: var(--margin);">Slett bruker</button>
-  </form>
-</search>
+    <span id="userMessage"></span>
 
-<span id="userMessage"></span>
+    <script src="scripts/profile.js"></script>
 
-<script src="scripts/profile.js"></script>
+</header>

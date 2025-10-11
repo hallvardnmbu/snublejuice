@@ -14,7 +14,6 @@
     "@elysiajs/static": "^1.4.0",
     "axios": "^1.12.2",
     "bcryptjs": "^2.4.3",
-    "bson": "^6.10.4",
     "ejs": "^3.1.10",
     "elysia": "^1.4.10",
     "jsonwebtoken": "^9.0.2",

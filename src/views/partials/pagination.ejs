@@ -1,8 +1,7 @@
-<div class="pagination" id="<%= placement %>">
-  <div onclick="window.location.href='https://snublejuice.no'" style="cursor: pointer;">Snublejuice.no</div>
-  <img src="images/snublejuice.jpg" alt="Snublejuice.no" onclick="window.location.href='https://snublejuice.no'" style="cursor: pointer;">
+<menu id="<%= placement %>">
+    <div onclick="window.location.href='https://snublejuice.no'" style="cursor: pointer;">Snublejuice.no</div>
+    <img src="images/snublejuice.jpg" alt="Snublejuice.no" onclick="window.location.href='https://snublejuice.no'" style="cursor: pointer;">
 
-  <menu>
     <% if (page > 1) { %>
         <li><a href="#" onclick="changePage(<%= page - 1 %>)"><-</a></li>
     <% } %>
@@ -12,5 +11,4 @@
     <% if (page < totalPages) { %>
         <li><a href="#" onclick="changePage(<%= page + 1 %>)">-></a></li>
     <% } %>
-  </menu>
-</div>
+</menu>

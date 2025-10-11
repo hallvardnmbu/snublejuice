@@ -31,28 +31,30 @@
 
   <%- include('partials/pagination', { placement: "top" }) %>
 
-  <% if (data.length === 0) { %>
-    <span class="message">Ingen resultater finnes for valgt kominasjon.</span>
-  <% } else { %>
-    <div id="messages">
-      <% if (new Date().getDate() <= 5) { %>
-        <span class="message">[!] NY MÅNED; NYE TILBUD [!]</span>
-      <% } %>
-      <div id="message-stores" style="display: none;">
-          <span class="message">N.b.: Faktisk lagerbeholdning kan avvike. Oppdateres med jevne mellomrom.</span>
+  <main>
+    <% if (data.length === 0) { %>
+      <span class="message">Ingen resultater finnes for valgt kominasjon.</span>
+    <% } else { %>
+      <div id="messages">
+        <% if (new Date().getDate() <= 5) { %>
+          <span class="message">[!] NY MÅNED; NYE TILBUD [!]</span>
+        <% } %>
+        <div id="message-stores" style="display: none;">
+            <span class="message">N.b.: Faktisk lagerbeholdning kan avvike. Oppdateres med jevne mellomrom.</span>
+        </div>
+
+        <% if (message) { %>
+          <span class="message"><%= message %></span>
+        <% } %>
       </div>
 
-      <% if (message) { %>
-        <span class="message"><%= message %></span>
-      <% } %>
-    </div>
+      <% data.forEach((item, index) => { %>
+        <%- include('partials/product', { index, item, user, storelike, taxfree: subdomain === "taxfree", maxIndex: data.length - 1 }) %>
+      <% }) %>
+    <% } %>
+  </main>
 
-    <% data.forEach((item, index) => { %>
-      <%- include('partials/product', { index, item, user, storelike, taxfree: subdomain === "taxfree", maxIndex: data.length - 1 }) %>
-    <% }) %>
-
-    <%- include('partials/pagination', { placement: "bottom" }) %>
-  <% } %>
+  <%- include('partials/pagination', { placement: "bottom" }) %>
 
   <%- include('partials/footer', { landing: false }) %>
 </body>

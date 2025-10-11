@@ -1,32 +1,31 @@
-<menu id="account">
+<menu id="menu">
+    <% if (!user) { %>
+        <button onclick="toggleView('login')">Logg inn</button>
+        <span>&nbsp;</span>
+        <button onclick="toggleView('register')">Registrer</button>
+    <% } else { %>
+        <span>Velkommen tilbake&nbsp;</span>
+        <button onclick="toggleView('account')"><%= user.username %></button>
+        <span>!</span>
+    <% } %>
+</menu>
+
+<menu id="account" style="display: none;">
   <% if (!user) { %>
-    <li><button onclick="toggleView('login')">
-      Logg inn
-    </button></li>
-    <span>|</span>
-    <li><button onclick="toggleView('register')">
-      Registrer
-    </button></li>
   <% } else { %>
-    <li><button onclick="toggleView('profile')">
-      <%= user?.username %>
-    </button></li>
-      <span>|</span>
-    <li><button onclick="logout()">
-      Logg ut
-    </button></li>
+    <button onclick="toggleView('profile')">Innstillinger</button>
+    <button onclick="logout()">Logg ut</button>
     <% if (!favourites && !landing) { %>
-      <span>|</span>
-      <li><button onclick="applyFilters(true, true)">
-        Favoritter
-      </button></li>
+      <button onclick="applyFilters(true, true)">Favoritter</button>
     <% } else if (favourites) { %>
-      <span>|</span>
-      <li><button onclick="applyFilters(true, true)">
-        Hovedside
-      </button></li>
+      <button onclick="applyFilters(true, true)">Hovedside</button>
     <% } %>
   <% } %>
+</menu>
+
+<menu id="profile" style="display: none;">
+    <button onclick="toggleView('notifications')">Varslinger</button>
+    <button onclick="toggleView('deletion')">Slett meg</button>
 </menu>
 
 <search id="login" style="display: none;">
@@ -42,7 +41,7 @@
       </tr>
     </table>
 
-    <button type="submit" style="text-wrap: nowrap;">Logg inn</button>
+    <button type="submit" style="text-wrap: nowrap; padding: var(--margin);">Logg inn</button>
   </form>
 </search>
 
@@ -67,20 +66,8 @@
       </tr>
     </table>
 
-    <button type="submit">Registrer</button>
+    <button type="submit" style="text-wrap: nowrap; padding: var(--margin);">Registrer</button>
   </form>
-</search>
-
-<search id="profile" style="display: none;">
-  <menu>
-      <li><button onclick="toggleView('notifications')">
-        Varslinger
-      </button></li>
-      <span>|</span>
-      <li><button onclick="toggleView('deletion')">
-        Slett meg
-      </button></li>
-  </menu>
 </search>
 
 <search id="notifications" style="display: none;">
@@ -98,7 +85,7 @@
       </tr>
     </table>
 
-    <button type="submit">Oppdater varslinger</button>
+    <button type="submit" style="text-wrap: nowrap; padding: var(--margin);">Lagre</button>
   </form>
 </search>
 
@@ -121,7 +108,7 @@
       </tr>
     </table>
 
-    <button type="submit">Slett bruker</button>
+    <button type="submit" style="text-wrap: nowrap; padding: var(--margin);">Slett bruker</button>
   </form>
 </search>
 

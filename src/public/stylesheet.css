@@ -9,6 +9,7 @@
   --faint: #fafafa;
 
   --text: #000000;
+  --clickable: blue;
 
   --negative: rgba(100, 0, 0, 0.2);
   --positive: rgba(0, 100, 0, 0.2);
@@ -43,6 +44,9 @@ body {
   font-family: monospace;
   font-size: var(--fontsize);
 }
+header form search button {
+  margin-right: auto;
+}
 footer {
   flex-direction: row;
   gap: var(--padding);
@@ -74,7 +78,7 @@ h1 {
 a,
 a:visited,
 button {
-  color: blue;
+  color: var(--clickable);
   text-decoration: underline 1px;
 }
 a:hover,
@@ -93,8 +97,7 @@ button {
   cursor: pointer;
 }
 
-menu,
-search {
+menu {
   display: inline-flex;
   flex-direction: row;
   gap: 0 var(--padding);
@@ -108,7 +111,6 @@ search {
   gap: 0;
 }
 menu,
-search,
 nav {
   padding: 0;
   margin: var(--margin);
@@ -118,9 +120,86 @@ img {
   max-width: calc(var(--image) - 4 * var(--padding));
 }
 
+form:not(header *) {
+  width: calc(100% - 2 * var(--padding));
+  max-width: 400px;
+}
+form:not(header *) search {
+  display: flex;
+  flex-direction: column;
+  gap: var(--margin);
+}
+form search div {
+  display: flex;
+  flex-direction: row;
+  gap: var(--padding);
+  justify-content: space-between;
+  align-items: center;
+}
+form search div select,
+form search div input:first-of-type {
+  width: 100%;
+}
+
+form:not(header *) input,
+form:not(header *) select {
+  font-family: monospace;
+  font-size: var(--fontsize);
+  font-weight: bold;
+  color: var(--text);
+
+  background-color: transparent;
+  appearance: none;
+  border-radius: 0;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+
+  /*border-bottom: 1px solid var(--clickable);*/
+}
+select {
+  width: 100%;
+  padding-right: calc(var(--padding) * 2);
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10"><polygon points="0,0 10,0 5,5" fill="rgb(0, 0, 0)"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right calc(var(--padding) / 2) bottom;
+}
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+}
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  flex-shrink: 0;
+  height: var(--fontsize-small);
+  width: var(--fontsize-small);
+  border: var(--underline) solid var(--dimtext);
+  cursor: pointer;
+  background-color: var(--faint);
+}
+input[type="checkbox"]:checked,
+input[type="checkbox"]:hover {
+  background-color: var(--block);
+}
+
 section {
+  width: auto;
   padding-top: calc(2 * var(--padding));
   max-width: calc(10 * var(--image));
+}
+
+.message {
 }
 
 .slim {

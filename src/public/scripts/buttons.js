@@ -16,15 +16,30 @@ function changePage(newPage) {
   applyFilters(false, false);
 }
 
-// Toggle sort order.
-document.getElementById("sortButton").onclick = function (event) {
-  event.preventDefault();
+function toggleHandler(name) {
+  return function (event) {
+    event.preventDefault();
 
-  const ascendingInput = document.querySelector('input[name="ascending"]');
-  ascendingInput.value = ascendingInput.value === "true" ? "false" : "true";
+    const inputElement = document.querySelector(`input[name="${name}"]`);
 
-  applyFilters(false, false);
-};
+    console.log(inputElement.value);
+    inputElement.value = inputElement.value === "true" ? "false" : "true";
+
+    applyFilters(true, false);
+  };
+}
+
+const toggles = [
+  { buttonId: "toggleSort", inputName: "ascending" },
+  { buttonId: "togglePrice", inputName: "cprice" },
+  { buttonId: "toggleVolume", inputName: "cvolume" },
+  { buttonId: "toggleAlcohol", inputName: "calcohol" },
+  { buttonId: "toggleYear", inputName: "cyear" },
+];
+toggles.forEach((toggle) => {
+  const button = document.getElementById(toggle.buttonId);
+  button.onclick = toggleHandler(toggle.inputName);
+});
 
 // Reset the page.
 document.getElementById("clearFilters").onclick = function (event) {
@@ -46,7 +61,7 @@ document.getElementById("toggleAdvanced").onclick = function (event) {
 
   // Set the button text based on visibility.
   document.getElementById("toggleAdvanced").innerHTML =
-    section.style.display === "flex" ? "Skjul valg" : "Flere valg";
+    section.style.display === "flex" ? "Færre" : "Flere";
 
   // Save the visibility state to session storage.
   sessionStorage.setItem("advanced", section.style.display === "flex");
@@ -58,34 +73,21 @@ document.addEventListener("DOMContentLoaded", function () {
   const isVisible = sessionStorage.getItem("advanced") === "true";
   element.style.display = isVisible ? "flex" : "none";
   document.getElementById("toggleAdvanced").innerHTML = isVisible
-    ? "Skjul valg"
-    : "Flere valg";
+    ? "Færre"
+    : "Flere";
 });
 
 // Price, volume, alcohol and search change.
 document.getElementById("price").addEventListener("change", function () {
   applyFilters(true, false);
 });
-document.getElementById("cprice").addEventListener("change", function () {
-  applyFilters(true, false);
-});
 document.getElementById("volume").addEventListener("change", function () {
-  applyFilters(true, false);
-});
-document.getElementById("cvolume").addEventListener("change", function () {
   applyFilters(true, false);
 });
 document.getElementById("alcohol").addEventListener("change", function () {
   applyFilters(true, false);
 });
-document.getElementById("calcohol").addEventListener("change", function () {
-  applyFilters(true, false);
-});
 document.getElementById("year").addEventListener("change", function () {
-  applyFilters(true, false);
-});
-document.getElementById("cyear").addEventListener("change", function () {
-  console.log("Here!");
   applyFilters(true, false);
 });
 document.getElementById("nsearch").addEventListener("change", function () {
@@ -96,9 +98,6 @@ document
   .addEventListener("change", function () {
     applyFilters(true, false);
   });
-document.getElementById("delta").addEventListener("change", function () {
-  applyFilters(true, false);
-});
 
 // Toggle favourite.
 document.querySelectorAll(".favourite-toggle").forEach((img) => {

@@ -47,9 +47,6 @@ export async function load({
   meta,
   subdomain,
 
-  // Month delta:
-  delta = 1,
-
   // Favourites:
   favourites = null,
 
@@ -233,15 +230,6 @@ export async function load({
 
   try {
     let data = await collection.aggregate(pipeline).toArray();
-
-    if (delta > 1) {
-      data.forEach((item) => {
-        item["oldprice"] =
-          item["prices"][Math.max(item["prices"].length - delta - 1, 0)];
-        item["discount"] =
-          ((item["price"] - item["oldprice"]) * 100) / item["oldprice"];
-      });
-    }
 
     return { data, total };
   } catch (err) {

@@ -1,4 +1,10 @@
-const _MODALS = ["login", "register", "profile", "notifications", "deletion"];
+const _MODALS = [
+  "profile",
+  "loginForm",
+  "registerForm",
+  "notifyUserForm",
+  "deleteUserForm",
+];
 
 function toggleView(modal) {
   // Close all modals except the one that was clicked.

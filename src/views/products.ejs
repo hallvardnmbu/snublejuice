@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="nb">
 <head>
     <meta charset="UTF-8">
@@ -23,41 +24,43 @@
 </head>
 
 <body>
-  <header>
-    <%- include('partials/account', { favourites, landing: false }) %>
-  </header>
+    <header>
+        <%- include('partials/account', { favourites, landing: false }) %>
+    </header>
 
-  <%- include('partials/forms', { favourites, taxfree: subdomain === "taxfree" }) %>
+    <main>
+        <%- include('partials/forms', { favourites, taxfree: subdomain === "taxfree" }) %>
 
-  <%- include('partials/pagination', { placement: "top" }) %>
+        <%- include('partials/pagination', { placement: "top" }) %>
 
-  <main>
-    <% if (data.length === 0) { %>
-      <span class="message">Ingen resultater finnes for valgt kominasjon.</span>
-    <% } else { %>
-      <div id="messages">
-        <% if (new Date().getDate() <= 5) { %>
-          <span class="message">[!] NY MÅNED; NYE TILBUD [!]</span>
+        <% if (data.length === 0) { %>
+            <span class="message">Ingen resultater finnes for valgt kominasjon.</span>
+        <% } else { %>
+            <div id="messages">
+                <% if (new Date().getDate() <= 5) { %>
+                    <span class="message">[!] NY MÅNED; NYE TILBUD [!]</span>
+                <% } %>
+                <div id="message-stores" style="display: none;">
+                    <span class="message">N.b.: Faktisk lagerbeholdning kan avvike. Oppdateres med jevne mellomrom.</span>
+                </div>
+
+                <% if (message) { %>
+                    <span class="message"><%= message %></span>
+                <% } %>
+            </div>
+
+            <% data.forEach((item, index) => { %>
+                <%- include('partials/product', { index, item, user, storelike, taxfree: subdomain === "taxfree", maxIndex: data.length - 1 }) %>
+            <% }) %>
         <% } %>
-        <div id="message-stores" style="display: none;">
-            <span class="message">N.b.: Faktisk lagerbeholdning kan avvike. Oppdateres med jevne mellomrom.</span>
-        </div>
 
-        <% if (message) { %>
-          <span class="message"><%= message %></span>
-        <% } %>
-      </div>
+        <%- include('partials/pagination', { placement: "bottom" }) %>
+    </main>
 
-      <% data.forEach((item, index) => { %>
-        <%- include('partials/product', { index, item, user, storelike, taxfree: subdomain === "taxfree", maxIndex: data.length - 1 }) %>
-      <% }) %>
-    <% } %>
-  </main>
+    <footer>
+        <%- include('partials/footer', { landing: false }) %>
+    </footer>
 
-  <%- include('partials/pagination', { placement: "bottom" }) %>
-
-  <%- include('partials/footer', { landing: false }) %>
-
-  <script src="scripts/buttons.js"></script>
+    <script src="scripts/buttons.js"></script>
 </body>
 </html>

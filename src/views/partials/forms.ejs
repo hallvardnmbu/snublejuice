@@ -56,12 +56,12 @@
         <% } %>
 
         <input type="search" id="nsearch" name="search" value="<%= search || null %>" placeholder="Navnesøk ...">
-
-        <menu>
-            <button id="clearFilters">Nullstill</button>
-            <button id="toggleAdvanced">Flere/button>
-        </menu>
     </search>
+
+    <menu>
+        <button id="clearFilters">Nullstill</button>
+        <button id="toggleAdvanced">Flere/button>
+    </menu>
 
     <search id="advanced" style="display: none;">
         <% if (favourites || taxfree) { %>

@@ -25,6 +25,7 @@ html {
 }
 
 body,
+main,
 header,
 footer {
   display: flex;
@@ -44,9 +45,6 @@ body {
   font-family: monospace;
   font-size: var(--fontsize);
 }
-header form search button {
-  margin-right: auto;
-}
 footer {
   flex-direction: row;
   gap: var(--padding);
@@ -59,6 +57,7 @@ footer {
 }
 
 h1,
+h2,
 a,
 a:visited,
 button {
@@ -69,7 +68,8 @@ button {
   margin: 0;
   padding: 0;
 }
-h1 {
+h1,
+h2 {
   display: inline-flex;
   flex-direction: column;
   gap: var(--margin);
@@ -97,23 +97,28 @@ button {
   cursor: pointer;
 }
 
-menu {
-  display: inline-flex;
+menu,
+nav ol {
+  display: flex;
   flex-direction: row;
   gap: 0 var(--padding);
+
+  padding: 0;
   list-style: none;
 
-  align-self: center;
   align-items: center;
-  align-content: center;
+  justify-content: center;
+}
+nav ol li a {
+  font-size: calc(1.5 * var(--fontsize));
+  text-decoration: none;
 }
 #menu {
   gap: 0;
 }
-menu,
-nav {
-  padding: 0;
-  margin: var(--margin);
+menu {
+  align-items: center;
+  margin: var(--margin) 0;
 }
 
 img {
@@ -134,13 +139,7 @@ form search div {
   flex-direction: row;
   gap: var(--padding);
   justify-content: space-between;
-  align-items: center;
 }
-form search div select,
-form search div input:first-of-type {
-  width: 100%;
-}
-
 form:not(header *) input,
 form:not(header *) select {
   font-family: monospace;
@@ -194,8 +193,9 @@ input[type="checkbox"]:hover {
 }
 
 section {
-  width: auto;
   padding-top: calc(2 * var(--padding));
+
+  width: calc(100% - 2 * var(--padding));
   max-width: calc(10 * var(--image));
 }
 

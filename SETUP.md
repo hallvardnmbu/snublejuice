@@ -1,6 +1,8 @@
 # Refresh the app
 
 ```bash
+bun upgrade
+
 cd /var/www/snublejuice
 git pull
 
@@ -48,7 +50,7 @@ sudo vim /etc/nginx/sites-available/snublejuice
 server {
 	listen 80;
 	server_name snublejuice.no;
-	
+
 	location / {
 		proxy_pass http://localhost:8080;
 		proxy_http_version 1.1;
@@ -66,7 +68,7 @@ server {
 server {
 	listen 80;
 	server_name www.snublejuice.no;
-	
+
 	location / {
 		proxy_pass http://localhost:8080;
 		proxy_http_version 1.1;
@@ -84,7 +86,7 @@ server {
 server {
 	listen 80;
 	server_name vinmonopolet.snublejuice.no;
-	
+
 	location / {
 		proxy_pass http://localhost:8080;
 		proxy_http_version 1.1;
@@ -102,7 +104,7 @@ server {
 server {
 	listen 80;
 	server_name taxfree.snublejuice.no;
-	
+
 	location / {
 		proxy_pass http://localhost:8080;
 		proxy_http_version 1.1;
@@ -120,7 +122,7 @@ server {
 server {
 	listen 80;
 	server_name dagsord.no;
-	
+
 	location / {
 		proxy_pass http://localhost:8080;
 		proxy_http_version 1.1;
@@ -138,7 +140,7 @@ server {
 server {
 	listen 80;
 	server_name www.dagsord.no;
-	
+
 	location / {
 		proxy_pass http://localhost:8080;
 		proxy_http_version 1.1;
@@ -156,7 +158,7 @@ server {
 server {
 	listen 80;
 	server_name elektron.dagsord.no;
-	
+
 	location / {
 		proxy_pass http://localhost:8080;
 		proxy_http_version 1.1;
@@ -174,7 +176,7 @@ server {
 server {
 	listen 80;
 	server_name dilettant.no;
-	
+
 	location / {
 		proxy_pass http://localhost:8080;
 		proxy_http_version 1.1;
@@ -192,7 +194,7 @@ server {
 server {
 	listen 80;
 	server_name www.dilettant.no;
-	
+
 	location / {
 		proxy_pass http://localhost:8080;
 		proxy_http_version 1.1;

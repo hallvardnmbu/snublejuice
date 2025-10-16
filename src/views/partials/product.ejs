@@ -18,139 +18,113 @@
     %>;"
 >
 
-  <div class="image">
-    <img src="<%= item.images.product %>" alt="flaske">
-    <span class="text">
-      <b class="number"><%= (item.volume % 1 === 0) ? item.volume.toFixed(0) : item.volume.toFixed(1) %></b> cL
-    </span>
-  </div>
-
-  <div class="metadata">
-    <div class="information">
-      <div class="name">
-        <span><%= item.name %></span>
-
-        <% if (user) { %>
-          <img
-              src="images/favourite<%= user.favourites.includes(item.index) ? '-filled' : '' %>.png"
-              alt="Favoritt"
-              data-index="<%= item.index %>"
-              class="favourite-toggle"
-          >
-        <% } %>
-      </div>
-
-      <div class="category">
-        <span>
-          <b><%= item.category %></b>
-          <span style="font-size: 14px;"> <%= item.subcategory %></span>
-        </span>
-
-        <span>
-          <b class="alcohol"><%= item.alcohol %></b>
-          <b class="percent">%</b> alk.
-        </span>
-      </div>
-
-      <div class="country">
-        <span style="font-size: var(--fontsize-normal);"><%= item.country %></span>
-        <% if (item.district) { %>
-          <span id="dot" style="font-size: 10px;">●</span>
-          <span style="font-size: var(--fontsize-small);"><%= item.district %></span>
-        <% } %>
-        <% if (item.subdistrict) { %>
-          <span id="dot" style="font-size: 10px;">●</span>
-          <span style="font-size: var(--fontsize-smallest);"><%= item.subdistrict %></span>
-        <% } %>
-      </div>
-
-      <% if (storelike) { %>
-        <div class="country">
-          <% const storeRegex = new RegExp(`(^|[^a-zæøåA-ZÆØÅ])${storelike}([^a-zæøåA-ZÆØÅ]|$)`, 'i') %>
-          <% const matchingStores = item.stores.filter(store => storeRegex.test(store)) %>
-          <% matchingStores.forEach((store, index) => { %>
-            <div style="font-size: 16px;"><%= store %></div>
-            <% if (index !== matchingStores.length - 1) { %>
-              <div id="dot" style="font-size: 10px;">●</div>
-            <% } %>
-          <% }) %>
-        </div>
-      <% } %>
-
-      <% if (taxfree && item.taxfree.stores) { %>
-        <div class="country">
-          <% const taxfreeStores = item.taxfree.stores.sort((a,b) => a.localeCompare(b)) %>
-          <% taxfreeStores.forEach((store, index) => { %>
-            <div style="font-size: 16px;"><%= store %></div>
-            <% if (index !== taxfreeStores.length - 1) { %>
-              <div id="dot" style="font-size: 10px;">●</div>
-            <% } %>
-          <% }) %>
-        </div>
-      <% } %>
-
-      <% if (item.rating && (item.rating.value !== undefined && item.rating.value !== null)) { %>
-        <div class="rating">
-          <% if (item.rating.url) { %>
-            <a href="<%= item.rating.url %>"
-                target="_blank"
-                rel="noopener noreferrer"
-                onclick="event.stopPropagation()">
-          <% } %>
-
-          <% for (let i = 0; i < 5; i++) { %>
-            <span class="star" style="--fill: <%=
-              i < Math.floor(item.rating.value) ? 100 :
-              i === Math.floor(item.rating.value) ? (item.rating.value - Math.floor(item.rating.value)) * 100 : 0
-            %>%">★</span>
-          <% } %>
-
-          <span class="number"><%= item.rating.value %></span>
-          <span>av</span>
-          <span class="number">5</span>
-
-          <% if (item.rating.url) { %>
-            </a>
-          <% } %>
-        </div>
-      <% } %>
-
-      <% if (item.description) { %>
-        <span class="description"><%= item.description.lang %></span>
-      <% } %>
+    <div class="bottle">
+        <img src="<%= item.images.product %>" alt="flaske">
+        <p>
+            <b><%= (item.volume % 1 === 0) ? item.volume.toFixed(0) : item.volume.toFixed(1) %></b> cL
+        </p>
     </div>
 
-    <div class="price">
-        <div class="prices">
-          <% if (!taxfree) { %>
-            <span class="text">KR <b class="number"><%= Math.ceil(item.price) %></b></span>
-            <% if (item.oldprice) { %>
-              <span class="text">FØR <b class="number"><%= Math.ceil(item.oldprice) %></b></span>
+    <div>
+        <h1>
+            <%= item.name %>
+
+            <% if (user) { %>
+                <p
+                    alt="Favoritt"
+                    data-index="<%= item.index %>"
+                    class="favourite-toggle"
+                >
+                    <%= user.favourites.includes(item.index) ? '★' : '☆' %>
+                </p>
             <% } %>
-        </div>
+        </h1>
 
-          <% if (item.oldprice) { %>
-            <span class="text">
-              ENDRING
-              <b class="number"><%= Math.floor(item.discount) %></b>
-              <b class="percent">%</b>
-            </span>
-          <% } %>
+        <span>
+            <h2><%= item.category %></h2>
+            <p><%= item.subcategory %></p>
+        </span>
 
-        <% } else { %>
-          <span class="text">VINMONOPOLET <b class="number"><%= Math.ceil(item.price) %></b></span>
-          <span class="text">TAX-FREE <b class="number"><%= Math.ceil(item.taxfree.price) %></b></span>
-        </div>
+        <span><p><b><%= item.alcohol %> %</b> alk.</p></span>
 
-        <span class="text">
-            DIFFERANSE
-            <b class="number"><%= Math.floor(item.taxfree.discount) %></b>
-            <b class="percent">%</b>
-          </span>
+        <span>
+            <h3><%= item.country %></h3>
+            <% if (item.district) { %>
+                <p><%= item.district %></p>
+            <% } %>
+            <% if (item.subdistrict) { %>
+                <p><i><%= item.subdistrict %></i></p>
+            <% } %>
+        </span>
+
+        <% if (storelike) { %>
+        <span>
+            <% const storeRegex = new RegExp(`(^|[^a-zæøåA-ZÆØÅ])${storelike}([^a-zæøåA-ZÆØÅ]|$)`, 'i') %>
+            <% const matchingStores = item.stores.filter(store => storeRegex.test(store)) %>
+            <% matchingStores.forEach((store, index) => { %>
+            <p><%= store %></p>
+            <% }) %>
+        </span>
         <% } %>
-    </div>
-  </div>
 
-  <%- include('detailed', { taxfree: taxfree, item: item, index: index }) %>
+        <% if (taxfree && item.taxfree.stores) { %>
+        <span>
+            <% const taxfreeStores = item.taxfree.stores.sort((a,b) => a.localeCompare(b)) %>
+            <% taxfreeStores.forEach((store, index) => { %>
+            <p><%= store %></p>
+            <% }) %>
+        </span>
+        <% } %>
+
+        <% if (item.rating && (item.rating.value !== undefined && item.rating.value !== null)) { %>
+        <span>
+            <% for (let i = 0; i < 5; i++) { %>
+                <p style="--fill: <%=
+                    i < Math.floor(item.rating.value) ? 100 :
+                    i === Math.floor(item.rating.value) ? (item.rating.value - Math.floor(item.rating.value)) * 100 : 0
+                %>%">★</p>
+            <% } %>
+
+            <% if (item.rating.url) { %>
+                <a href="<%= item.rating.url %>"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onclick="event.stopPropagation()">
+            <% } %>
+
+            <p><b><%= item.rating.value %></b> av <b>5</b></p>
+
+            <% if (item.rating.url) { %>
+                </a>
+            <% } %>
+        </span>
+        <% } %>
+
+        <% if (item.description) { %>
+            <span><%= item.description.lang %></span>
+        <% } %>
+
+        <span>
+            <p>
+                <% if (!taxfree) { %>
+                    KR <b><%= Math.ceil(item.price) %></b>
+                <% if (item.oldprice) { %>
+                    FØR <b><%= Math.ceil(item.oldprice) %></b>
+                <% } %>
+
+                <% if (item.oldprice) { %>
+                    ENDRING <b><%= Math.floor(item.discount) %> %</b>
+                <% } %>
+
+                <% } else { %>
+                    VINMONOPOLET <b><%= Math.ceil(item.price) %></b>
+                    TAX-FREE <b><%= Math.ceil(item.taxfree.price) %></b>
+                    DIFFERANSE <b><%= Math.floor(item.taxfree.discount) %> %</b>
+                <% } %>
+            </p>
+        </span>
+    </div>
+
+    <%- include('detailed', { taxfree: taxfree, item: item, index: index }) %>
 
 </section>

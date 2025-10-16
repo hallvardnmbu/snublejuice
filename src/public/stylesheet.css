@@ -58,6 +58,7 @@ footer {
 
 h1,
 h2,
+h3,
 a,
 a:visited,
 button {
@@ -69,7 +70,8 @@ button {
   padding: 0;
 }
 h1,
-h2 {
+h2,
+h3 {
   display: inline-flex;
   flex-direction: column;
   gap: var(--margin);
@@ -153,8 +155,6 @@ form:not(header *) select {
   padding: 0;
   border: none;
   cursor: pointer;
-
-  /*border-bottom: 1px solid var(--clickable);*/
 }
 select {
   width: 100%;
@@ -163,6 +163,74 @@ select {
   background-repeat: no-repeat;
   background-position: right calc(var(--padding) / 2) bottom;
 }
+
+section {
+  display: flex;
+  flex-direction: column;
+  margin-top: calc(2 * var(--padding));
+
+  width: calc(100% - 2 * var(--padding));
+  max-width: calc(10 * var(--image));
+}
+.product {
+  flex-direction: row;
+  border: 2px solid var(--marker);
+}
+section div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--margin);
+  width: 100%;
+}
+section div:not(.bottle) {
+  padding: var(--padding);
+}
+section div h1,
+section div span {
+  display: flex;
+  flex-direction: row;
+  gap: var(--margin);
+}
+section div h1 {
+  width: 100%;
+  justify-content: space-between;
+}
+section .favourite-toggle {
+  cursor: pointer;
+}
+section div p {
+  margin: 0;
+}
+section .bottle,
+section img {
+  max-width: var(--image);
+  align-items: center;
+}
+
+aside {
+  display: none;
+}
+
+.message {
+}
+
+.slim {
+  display: none;
+}
+@media (max-width: 310px) {
+  .slim {
+    display: block;
+  }
+  .wide {
+    display: none;
+  }
+  nav menu {
+    flex-direction: column-reverse;
+    align-items: center;
+    gap: var(--padding) 0;
+  }
+}
+
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -190,31 +258,4 @@ input[type="checkbox"] {
 input[type="checkbox"]:checked,
 input[type="checkbox"]:hover {
   background-color: var(--block);
-}
-
-section {
-  padding-top: calc(2 * var(--padding));
-
-  width: calc(100% - 2 * var(--padding));
-  max-width: calc(10 * var(--image));
-}
-
-.message {
-}
-
-.slim {
-  display: none;
-}
-@media (max-width: 310px) {
-  .slim {
-    display: block;
-  }
-  .wide {
-    display: none;
-  }
-  nav menu {
-    flex-direction: column-reverse;
-    align-items: center;
-    gap: var(--padding) 0;
-  }
 }

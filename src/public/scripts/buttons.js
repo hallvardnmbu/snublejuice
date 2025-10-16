@@ -100,8 +100,8 @@ document
   });
 
 // Toggle favourite.
-document.querySelectorAll(".favourite-toggle").forEach((img) => {
-  img.addEventListener("click", async function (event) {
+document.querySelectorAll(".favourite-toggle").forEach((star) => {
+  star.addEventListener("click", async function (event) {
     event.stopPropagation();
 
     // Send POST request to server.
@@ -115,22 +115,16 @@ document.querySelectorAll(".favourite-toggle").forEach((img) => {
       body: JSON.stringify({ index: index }),
     });
 
-    // Toggle image.
-    this.src = this.src.includes("favourite-filled.png")
-      ? "./images/favourite.png"
-      : "./images/favourite-filled.png";
+    // Toggle star.
+    this.innerText = this.innerText === "☆" ? "★" : "☆";
   });
 
   // Hover events
-  img.addEventListener("mouseenter", function () {
-    this.src = this.src.includes("favourite-filled.png")
-      ? "./images/favourite.png"
-      : "./images/favourite-filled.png";
+  star.addEventListener("mouseenter", function () {
+    this.innerText = this.innerText === "☆" ? "★" : "☆";
   });
-  img.addEventListener("mouseleave", function () {
-    this.src = this.src.includes("favourite-filled.png")
-      ? "./images/favourite.png"
-      : "./images/favourite-filled.png";
+  star.addEventListener("mouseleave", function () {
+    this.innerText = this.innerText === "☆" ? "★" : "☆";
   });
 });
 

@@ -41,55 +41,58 @@
         </h1>
 
         <span>
-            <h2><%= item.category %></h2>
-            <p><%= item.subcategory %></p>
+            <p><%= item.category %></p>
+            <% if (item.subcategory) { %>
+                <i><%= item.subcategory %></i>
+            <% } %>
+            <p>•</p>
+            <p><%= item.alcohol %> % alk.</p>
         </span>
 
-        <span><p><b><%= item.alcohol %> %</b> alk.</p></span>
-
         <span>
-            <h3><%= item.country %></h3>
+            <p><%= item.country %></p>
             <% if (item.district) { %>
-                <p><%= item.district %></p>
+                <i><%= item.district %></i>
             <% } %>
             <% if (item.subdistrict) { %>
-                <p><i><%= item.subdistrict %></i></p>
+                <p><%= item.subdistrict %></p>
             <% } %>
         </span>
 
         <% if (storelike) { %>
-        <span>
+        <span style="flex-direction: column;">
             <% const storeRegex = new RegExp(`(^|[^a-zæøåA-ZÆØÅ])${storelike}([^a-zæøåA-ZÆØÅ]|$)`, 'i') %>
             <% const matchingStores = item.stores.filter(store => storeRegex.test(store)) %>
             <% matchingStores.forEach((store, index) => { %>
-            <p><%= store %></p>
+            <p>• <%= store %></p>
             <% }) %>
         </span>
         <% } %>
 
         <% if (taxfree && item.taxfree.stores) { %>
-        <span>
+        <span style="flex-direction: column;">
             <% const taxfreeStores = item.taxfree.stores.sort((a,b) => a.localeCompare(b)) %>
             <% taxfreeStores.forEach((store, index) => { %>
-            <p><%= store %></p>
+            <p>• <%= store %></p>
             <% }) %>
         </span>
         <% } %>
 
         <% if (item.rating && (item.rating.value !== undefined && item.rating.value !== null)) { %>
         <span>
-            <% for (let i = 0; i < 5; i++) { %>
-                <p style="--fill: <%=
-                    i < Math.floor(item.rating.value) ? 100 :
-                    i === Math.floor(item.rating.value) ? (item.rating.value - Math.floor(item.rating.value)) * 100 : 0
-                %>%">★</p>
-            <% } %>
-
             <% if (item.rating.url) { %>
                 <a href="<%= item.rating.url %>"
+                    class="rating"
                     target="_blank"
                     rel="noopener noreferrer"
                     onclick="event.stopPropagation()">
+            <% } %>
+
+            <% for (let i = 0; i < 5; i++) { %>
+                <p class="star" style="--fill: <%=
+                    i < Math.floor(item.rating.value) ? 100 :
+                    i === Math.floor(item.rating.value) ? (item.rating.value - Math.floor(item.rating.value)) * 100 : 0
+                %>%">★</p>
             <% } %>
 
             <p><b><%= item.rating.value %></b> av <b>5</b></p>
@@ -103,6 +106,12 @@
         <% if (item.description) { %>
             <span><%= item.description.lang %></span>
         <% } %>
+
+        <!-- Price chart. -->
+        <h2>PRISHISTORIKK</h2>
+        <span style="height: 100%;">
+        <canvas id="graph-<%= index %>" data-prices='<%= JSON.stringify(taxfree ? item.taxfree.prices : item.prices) %>'></canvas>
+        </span>
 
         <span>
             <p>

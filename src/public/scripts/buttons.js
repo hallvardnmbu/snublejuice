@@ -133,8 +133,6 @@ function changeModal(currentModal, newModal, event) {
 
   document.getElementById(currentModal).style.display = "none";
   document.getElementById(newModal).style.display = "block";
-
-  graphPrice(newModal);
 }
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -150,9 +148,6 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
       modal.style.display = "block";
-
-      // Graph the price history
-      graphPrice(itemIndex);
     });
   });
 

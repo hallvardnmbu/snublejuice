@@ -1,42 +1,27 @@
-const _RESOLUTION = 4;
+const DPR = window.devicePixelRatio || 1;
 
-// Format the date to custom string.
-function formatDateAsLocalString(date) {
-  const year = date.getFullYear();
-  const month = (date.getMonth() + 1).toString().padStart(2, "0");
-  return `${year}-${month}`;
+function generateDates(count) {
+  const pad = (n) => n.toString().padStart(2, "0");
+  const today = new Date();
+  return Array.from({ length: count }, (_, i) => {
+    const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+    return `${pad(d.getMonth() + 1)}-${d.getFullYear()}`;
+  }).reverse();
 }
 
-// Function to generate dates on the 1st of each month in local time
-function generateDates(numPrices) {
-  var dates = [];
-  var currentDate = new Date();
-  for (var i = 0; i < numPrices; i++) {
-    var newDate = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth() - i,
-      1,
-    );
-    dates.unshift(formatDateAsLocalString(newDate));
-  }
-  return dates;
-}
+function getCanvasData(index) {
+  const canvas = document.getElementById(`graph-${index}`);
+  let prices = JSON.parse(canvas.dataset.prices || "[]").map(Math.ceil);
+  if (prices.length === 0) prices = [0, 0];
+  const dates = generateDates(prices.length);
 
-function graphPrice(index) {
-  // Extract prices and dates from session storage
-  const data = JSON.parse(sessionStorage.getItem(`${index}`));
-  if (!data) {
-    return;
-  }
-  const prices = data.price;
-  const dates = data.date;
+  prices.push(prices.at(-1));
+  dates.push("nå");
 
-  // Color assigning based on the the discount sign.
   let color;
   if (prices.length > 2) {
     const oldPrice = prices[prices.length - 3];
     const newPrice = prices[prices.length - 2];
-
     if (oldPrice > newPrice) {
       color = {
         marker: "#00640099",
@@ -60,174 +45,208 @@ function graphPrice(index) {
     };
   }
 
-  var canvas = document.getElementById(`graph-${index}`);
-  var ctx = canvas.getContext("2d");
+  return { canvas, prices, dates, color };
+}
 
-  // Check if all prices are the same
-  const allPricesEqual = prices.every((price) => price === prices[0]);
+function setupCanvas(canvas) {
+  const parent = canvas.parentElement;
 
-  // Resize canvas to fit container
-  canvas.width = canvas.parentElement.clientWidth * _RESOLUTION;
-  canvas.height =
-    (allPricesEqual ? 70 : canvas.parentElement.clientHeight) * _RESOLUTION;
-  canvas.style.width = `${canvas.width / _RESOLUTION}px`;
-  canvas.style.height = `${canvas.height / _RESOLUTION}px`;
+  // Get the display size from parent (in CSS pixels)
+  const displayWidth = Math.max(parent.clientWidth - 1, 1);
+  const displayHeight = Math.max(parent.clientHeight, 1);
 
-  // Calculate margins and plot area
-  var margin = {
-    top: 20 * _RESOLUTION,
-    right: 10 * _RESOLUTION,
-    bottom: 20 * _RESOLUTION,
-    left: 40 * _RESOLUTION,
-  };
-  var plotWidth = canvas.width - margin.left - margin.right;
-  var plotHeight = canvas.height - margin.top - margin.bottom;
+  // Set CSS size to match parent
+  canvas.style.width = `${displayWidth}px`;
+  canvas.style.height = `${displayHeight}px`;
 
-  // Calculate scales
-  var xScale = plotWidth / (dates.length - 1);
-  var yMax = Math.max(...prices);
-  var yMin = Math.min(...prices);
+  // Set internal resolution (drawing buffer)
+  // This is where DPR matters for crisp rendering
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = displayWidth * dpr;
+  canvas.height = displayHeight * dpr;
 
-  // Check if all prices are the same
-  var yScale = plotHeight / (yMax - yMin === 0 ? 1 : yMax - yMin);
+  // Scale context to account for DPR
+  const ctx = canvas.getContext("2d");
+  ctx.scale(dpr, dpr);
 
-  // Draw line
+  return { displayWidth, displayHeight, ctx };
+}
+
+function getScales(prices, canvas, margin) {
+  const width = canvas.width - margin.left - margin.right;
+  const height = canvas.height - margin.top - margin.bottom;
+  const xScale = width / Math.max(prices.length - 1, 1);
+  const yMax = Math.max(...prices);
+  const yMin = Math.min(...prices);
+  const yScale = height / (yMax - yMin || 1);
+  return { xScale, yScale, yMin };
+}
+
+function xPos(i, scales, margin) {
+  return i * scales.xScale + margin.left;
+}
+function yPos(value, canvas, scales, margin) {
+  return canvas.height - (value - scales.yMin) * scales.yScale - margin.bottom;
+}
+
+function drawLine(ctx, canvas, prices, scales, color, margin) {
   ctx.beginPath();
-  ctx.moveTo(
-    margin.left,
-    canvas.height - margin.bottom - (prices[0] - yMin) * yScale,
-  );
-  for (var i = 1; i < prices.length; i++) {
-    // Move horizontally to the new X position
+  ctx.moveTo(margin.left, yPos(prices[0], canvas, scales, margin));
+  for (let i = 1; i < prices.length; i++) {
     ctx.lineTo(
-      margin.left + i * xScale,
-      canvas.height - margin.bottom - (prices[i - 1] - yMin) * yScale,
-    );
-    // Move vertically to the new Y position
+      xPos(i, scales, margin),
+      yPos(prices[i - 1], canvas, scales, margin),
+    ); // Horizontally to new X.
     ctx.lineTo(
-      margin.left + i * xScale,
-      canvas.height - margin.bottom - (prices[i] - yMin) * yScale,
-    );
+      xPos(i, scales, margin),
+      yPos(prices[i], canvas, scales, margin),
+    ); // Vertically to new Y.
   }
   ctx.strokeStyle = color.line;
-  ctx.lineWidth = 10 * _RESOLUTION;
+  ctx.lineWidth = 10;
   ctx.stroke();
+}
 
-  // Draw markers
-  for (var i = 0; i < prices.length; i++) {
+function drawMarkers(ctx, canvas, prices, scales, color, margin) {
+  for (let i = 0; i < prices.length; i++) {
     ctx.beginPath();
     ctx.rect(
-      margin.left + i * xScale - 5 * _RESOLUTION,
-      canvas.height -
-        margin.bottom -
-        (prices[i] - yMin) * yScale -
-        5 * _RESOLUTION,
-      10 * _RESOLUTION,
-      10 * _RESOLUTION,
+      xPos(i, scales, margin) - 5,
+      yPos(prices[i], canvas, scales, margin) - 5,
+      10,
+      10,
     );
     ctx.fillStyle = color.marker;
     ctx.fill();
   }
+}
 
-  // X-axis labels
+function drawAxes(ctx, canvas, dates, prices, scales, margin) {
   ctx.fillStyle = "black";
+  ctx.font = "12px monospace";
+
+  // X labels
   ctx.textAlign = "center";
-  ctx.font = `${14 * _RESOLUTION}px alpha-beta`;
-  // Calculate the number of labels to show.
-  const sampleDateWidth = ctx.measureText(dates[0]).width;
-  const maxLabels = Math.floor(plotWidth / sampleDateWidth);
+  const plotWidth = canvas.width;
+  const sampleWidth = ctx.measureText(dates[0]).width + 2;
+  const maxLabels = Math.floor(plotWidth / sampleWidth);
   const mod = Math.ceil(dates.length / maxLabels);
-  for (var i = 0; i < dates.length; i++) {
+  dates.forEach((d, i) => {
     if ((i + 1) % mod === 0) {
       ctx.fillText(
-        dates[i],
-        margin.left + i * xScale,
-        canvas.height - margin.bottom + 20 * _RESOLUTION,
+        d,
+        xPos(i, scales, margin),
+        canvas.height - margin.bottom + 20,
       );
-    }
-  }
-
-  // Y-axis labels
-  ctx.fillStyle = "black";
-  ctx.textAlign = "right";
-  ctx.textBaseline = "middle";
-  for (var i = 0; i <= 5; i++) {
-    var yValue = yMin + ((yMax - yMin) * i) / 5;
-    ctx.fillText(
-      yValue.toFixed(0),
-      margin.left - 10 * _RESOLUTION,
-      canvas.height - margin.bottom - yScale * (yValue - yMin),
-    );
-  }
-
-  // Hoverinfo
-  const existingHoverLayer = canvas.parentElement.querySelector(
-    "canvas:not(#graph-" + index + ")",
-  );
-  if (existingHoverLayer) {
-    existingHoverLayer.remove();
-  }
-  let hoverLayer = document.createElement("canvas");
-  hoverLayer.style.position = "absolute";
-  hoverLayer.style.left = canvas.offsetLeft + "px";
-  hoverLayer.style.top = canvas.offsetTop + "px";
-  hoverLayer.width = canvas.width;
-  hoverLayer.height = canvas.height;
-  hoverLayer.style.width = canvas.style.width;
-  hoverLayer.style.height = canvas.style.height;
-  hoverLayer.style.pointerEvents = "none"; // Allow events to pass through to canvas underneath
-  canvas.parentElement.appendChild(hoverLayer);
-  let hoverCtx = hoverLayer.getContext("2d");
-
-  // Add the listeners to the main canvas
-  canvas.addEventListener("mousemove", function (event) {
-    const rect = canvas.getBoundingClientRect();
-    const x = (event.clientX - rect.left) * _RESOLUTION;
-    const y = (event.clientY - rect.top) * _RESOLUTION;
-
-    const hoverIndex = Math.floor((x - margin.left) / xScale);
-    if (hoverIndex >= 0 && hoverIndex < prices.length) {
-      const hoverPrice = prices[hoverIndex];
-      const hoverDate = dates[hoverIndex];
-
-      // Clear previous hover info
-      hoverCtx.clearRect(0, 0, hoverLayer.width, hoverLayer.height);
-
-      // Draw hover info
-      hoverCtx.fillStyle = "black";
-      hoverCtx.textAlign = "left";
-      hoverCtx.font = `${14 * _RESOLUTION}px alpha-beta`;
-      hoverCtx.fillText(
-        `${hoverPrice} kr (${hoverDate})`,
-        x + 10 * _RESOLUTION,
-        y - 10 * _RESOLUTION,
-      );
-
-      // Draw vertical line at mouse position
-      hoverCtx.beginPath();
-      hoverCtx.moveTo(x, 0);
-      hoverCtx.lineTo(x, canvas.height);
-      hoverCtx.strokeStyle = color.line;
-      hoverCtx.lineWidth = 10 * _RESOLUTION;
-      hoverCtx.stroke();
-    } else {
-      hoverCtx.clearRect(0, 0, hoverLayer.width, hoverLayer.height);
     }
   });
 
-  // Clear hover info when mouse leaves the canvas
-  canvas.addEventListener("mouseleave", function () {
-    hoverCtx.clearRect(0, 0, hoverLayer.width, hoverLayer.height);
+  // Y labels
+  ctx.textAlign = "right";
+  ctx.textBaseline = "middle";
+  for (let i = 0; i <= 5; i++) {
+    const v = scales.yMin + ((Math.max(...prices) - scales.yMin) * i) / 5;
+    ctx.fillText(
+      v.toFixed(0),
+      margin.left - 10,
+      yPos(v, canvas, scales, margin),
+    );
+  }
+}
+
+function setupHover(canvas, prices, dates, scales, color, margin) {
+  const old = canvas.parentElement.querySelector(".hover-layer");
+  if (old) old.remove();
+
+  const hover = document.createElement("canvas");
+  hover.className = "hover-layer";
+  hover.width = canvas.width;
+  hover.height = canvas.height;
+  hover.style.position = "absolute";
+  hover.style.left = canvas.offsetLeft + "px";
+  hover.style.top = canvas.offsetTop + "px";
+  hover.style.width = canvas.style.width;
+  hover.style.height = canvas.style.height;
+  hover.style.pointerEvents = "none";
+  canvas.parentElement.appendChild(hover);
+
+  const hctx = hover.getContext("2d");
+  canvas.addEventListener("mousemove", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const idx = Math.floor((x - margin.left) / scales.xScale);
+    hctx.clearRect(0, 0, hover.width, hover.height);
+    if (idx < 0 || idx >= prices.length) return;
+
+    hctx.fillStyle = "black";
+    hctx.font = "12px monospace";
+    hctx.fillText(`${prices[idx]} kr (${dates[idx]})`, x + 10, 30);
+
+    hctx.beginPath();
+    hctx.moveTo(x, 0);
+    hctx.lineTo(x, canvas.height);
+    hctx.strokeStyle = color.line;
+    hctx.lineWidth = 10;
+    hctx.stroke();
+  });
+
+  canvas.addEventListener("mouseleave", () => {
+    hctx.clearRect(0, 0, hover.width, hover.height);
   });
 }
 
-window.addEventListener("resize", function () {
-  const modals = document.getElementsByClassName("modal");
-  for (const modal of modals) {
-    if (modal.style.display === "block") {
-      const index = parseInt(modal.id);
-      graphPrice(index);
-      break;
+function graphPrice(index) {
+  const { canvas, prices, dates, color } = getCanvasData(index);
+  setupCanvas(canvas);
+  const ctx = canvas.getContext("2d");
+
+  // console.log(prices);
+  const margin = {
+    top: 20,
+    right: 10,
+    bottom: 20,
+    left: Math.max(...prices) > 10000 ? 60 : 40,
+  };
+
+  const scales = getScales(prices, canvas, margin);
+
+  drawLine(ctx, canvas, prices, scales, color, margin);
+  drawMarkers(ctx, canvas, prices, scales, color, margin);
+  drawAxes(ctx, canvas, dates, prices, scales, margin);
+  setupHover(canvas, prices, dates, scales, color, margin);
+}
+
+const observers = new Map();
+
+function initGraphs() {
+  document.querySelectorAll("[id^=graph-]").forEach((canvas) => {
+    const parent = canvas.parentElement;
+
+    // Clean up old observer if exists
+    if (observers.has(canvas)) {
+      observers.get(canvas).disconnect();
     }
-  }
+
+    // Create new observer
+    const observer = new ResizeObserver(() => {
+      const index = canvas.id.replace("graph-", "");
+      graphPrice(index);
+    });
+
+    observer.observe(parent);
+    observers.set(canvas, observer);
+
+    // Initial render
+    const index = canvas.id.replace("graph-", "");
+    graphPrice(index);
+  });
+}
+
+// Only need DOMContentLoaded now
+document.addEventListener("DOMContentLoaded", initGraphs);
+
+// Optional: cleanup on page unload
+window.addEventListener("unload", () => {
+  observers.forEach((obs) => obs.disconnect());
+  observers.clear();
 });

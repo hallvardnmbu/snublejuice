@@ -4,11 +4,11 @@
   --padding: 10px;
   --image: 100px;
 
-  --block: #cccccc;
+  --gray: #cccccc;
   --dimmed: #eeeeee;
   --faint: #fafafa;
 
-  --text: #000000;
+  --text: black;
   --clickable: blue;
 
   --negative: rgba(100, 0, 0, 0.2);
@@ -80,6 +80,10 @@ h3 {
 a,
 a:visited,
 button {
+  display: inline-flex;
+  flex-direction: row;
+  gap: var(--margin);
+
   color: var(--clickable);
   text-decoration: underline 1px;
 }
@@ -140,7 +144,6 @@ form search div {
   display: flex;
   flex-direction: row;
   gap: var(--padding);
-  justify-content: space-between;
 }
 form:not(header *) input,
 form:not(header *) select {
@@ -155,6 +158,9 @@ form:not(header *) select {
   padding: 0;
   border: none;
   cursor: pointer;
+}
+form:not(header *) search div input {
+  width: 100%;
 }
 select {
   width: 100%;
@@ -185,18 +191,25 @@ section div {
 section div:not(.bottle) {
   padding: var(--padding);
 }
+section .bottle p {
+  margin: 0 10px 10px 10px;
+}
 section div h1,
 section div span {
   display: flex;
   flex-direction: row;
   gap: var(--margin);
 }
+section div span:last-of-type {
+  margin-top: auto;
+}
 section div h1 {
-  width: 100%;
   justify-content: space-between;
+  align-items: center;
 }
 section .favourite-toggle {
   cursor: pointer;
+  font-size: 1.3em;
 }
 section div p {
   margin: 0;
@@ -205,6 +218,20 @@ section .bottle,
 section img {
   max-width: var(--image);
   align-items: center;
+}
+.rating {
+  text-decoration: none;
+}
+.star {
+  background: linear-gradient(
+    90deg,
+    currentColor var(--fill),
+    var(--gray) var(--fill)
+  );
+
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 aside {
@@ -244,18 +271,4 @@ input[type="search"]::-webkit-search-cancel-button,
 input[type="search"]::-webkit-search-results-button,
 input[type="search"]::-webkit-search-results-decoration {
   -webkit-appearance: none;
-}
-input[type="checkbox"] {
-  appearance: none;
-  -webkit-appearance: none;
-  flex-shrink: 0;
-  height: var(--fontsize-small);
-  width: var(--fontsize-small);
-  border: var(--underline) solid var(--dimtext);
-  cursor: pointer;
-  background-color: var(--faint);
-}
-input[type="checkbox"]:checked,
-input[type="checkbox"]:hover {
-  background-color: var(--block);
 }

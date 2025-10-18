@@ -1,4 +1,4 @@
-<aside id="<%= index %>" class="modal">
+<aside id="<%= index %>">
 
     <div class="navigation" id="above">
         <% if (index > 0) { %>
@@ -248,32 +248,6 @@
                 <% } %>
             </tbody>
         </table>
-
-        <hr>
-
-        <!-- Price chart. -->
-        <div>
-          <b>PRISHISTORIKK</b>
-          <canvas id="graph-<%= index %>"></canvas>
-        </div>
-
-        <script>
-          var prices = <%= JSON.stringify(taxfree ? item.taxfree.prices : item.prices) %>.map(price => Math.ceil(price));
-          if (!prices || prices.length === 0) {
-            prices = [0, 0];
-          }
-          var dates = generateDates(prices.length);
-
-          // Duplicate the last price and add today's date to the end of the list
-          prices.push(prices[prices.length - 1]);
-          dates.push("nå");
-
-          // Store the price history in session.
-          sessionStorage.setItem("<%= index %>", JSON.stringify({
-            price: prices,
-            date: dates
-          }));
-        </script>
 
         <hr>
 

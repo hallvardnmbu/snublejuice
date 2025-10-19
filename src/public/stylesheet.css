@@ -5,7 +5,7 @@
   --image: 100px;
 
   --gray: #cccccc;
-  --dimmed: #eeeeee;
+  --foreground: #eeeeee;
   --faint: #fafafa;
 
   --text: black;
@@ -91,10 +91,6 @@ a:hover,
 button:hover {
   color: purple;
 }
-h1 a:first-of-type {
-  color: var(--text);
-  text-decoration: none;
-}
 button {
   background-color: transparent;
   appearance: none;
@@ -179,28 +175,32 @@ section {
   max-width: calc(10 * var(--image));
 }
 .product {
-  flex-direction: row;
-  border: 2px solid var(--marker);
+  border: var(--margin) solid var(--highlight);
+  border-bottom: none;
 }
-section div {
+section > div {
+  display: flex;
+  flex-direction: row;
+}
+section > div > span {
   display: flex;
   flex-direction: column;
   gap: var(--margin);
   width: 100%;
 }
-section div:not(.bottle) {
+section > div > span:not(.bottle) {
   padding: var(--padding);
 }
-section .bottle p {
+section > div > span.bottle p {
   margin: 0 10px 10px 10px;
 }
 section div h1,
-section div span {
+section > div > span > span {
   display: flex;
   flex-direction: row;
   gap: var(--margin);
 }
-section div span:last-of-type {
+section > div > span > span:last-of-type {
   margin-top: auto;
 }
 section div h1 {
@@ -236,6 +236,30 @@ section img {
 
 aside {
   display: none;
+  border-bottom: var(--margin) solid var(--highlight);
+}
+aside hr {
+  height: var(--margin);
+  background-color: var(--highlight);
+  border: none;
+  margin: 0;
+}
+aside > div:last-of-type {
+  display: flex;
+  flex-direction: row;
+  gap: var(--margin);
+  justify-content: space-between;
+  margin: var(--padding);
+}
+aside table {
+  margin: var(--padding);
+}
+aside table tbody {
+  margin: none;
+}
+
+.expand {
+  background-color: var(--highlight);
 }
 
 .message {
@@ -271,4 +295,70 @@ input[type="search"]::-webkit-search-cancel-button,
 input[type="search"]::-webkit-search-results-button,
 input[type="search"]::-webkit-search-results-decoration {
   -webkit-appearance: none;
+}
+
+.key-val {
+  line-height: var(--padding);
+  align-items: center;
+
+  border-collapse: separate;
+  border-spacing: 0 var(--padding);
+}
+.key-val tr {
+  position: relative;
+}
+.key {
+  color: var(--text);
+  white-space: nowrap;
+  vertical-align: top;
+}
+.val {
+  position: relative;
+  padding-left: 5px;
+  width: 100%;
+
+  color: var(--text);
+  background-color: var(--foreground);
+}
+.val::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: calc(-1 * var(--padding));
+  width: var(--padding);
+  height: 100%;
+  background: var(--highlight);
+}
+.fractions {
+  border-collapse: separate;
+  border-spacing: 0 calc(0.5 * var(--padding));
+}
+.fractions tr .label {
+  min-width: calc(1.5 * var(--image));
+}
+.fractions tr .value {
+  width: 100%;
+  background: linear-gradient(
+    to right,
+    var(--highlight) 0 calc(var(--value) * 100% / var(--total) - var(--padding)),
+    var(--marker) 0 calc(var(--value) * 100% / var(--total) - var(--padding)),
+    var(--marker) 0 calc(var(--value) * 100% / var(--total)),
+    var(--foreground) calc(var(--value) * 100% / var(--total)) 100%
+  );
+  background-size: 100% var(--padding);
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.fractions tr .percentage {
+  width: 100%;
+  background: linear-gradient(
+    to right,
+    var(--highlight) calc(var(--percentage) * 1% - var(--padding)),
+    var(--marker) calc(var(--percentage) * 1% - var(--padding)),
+    var(--marker) calc(var(--percentage) * 1%),
+    var(--foreground) calc(var(--percentage) * 1%)
+  );
+  background-size: 100% var(--padding);
+  background-repeat: no-repeat;
+  background-position: center;
 }

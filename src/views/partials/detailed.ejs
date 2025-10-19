@@ -1,347 +1,178 @@
+<span class="expand">Utvid</span>
+
 <aside id="<%= index %>">
 
-    <div class="navigation" id="above">
-        <% if (index > 0) { %>
-          <a onclick="changeModal(<%= index %>, <%= index - 1 %>, event)">FORRIGE</a>
-        <% } else { %>
-          <span></span>
-        <% } %>
-
-        <% if (index < maxIndex) { %>
-          <a onclick="changeModal(<%= index %>, <%= index + 1 %>, event)">NESTE</a>
-        <% } else { %>
-          <span></span>
-        <% } %>
-    </div>
-
-    <div class="detailed">
-
-        <div class="heading">
-            <div class="link">
-                <a href="<%= taxfree ? item.taxfree.url : item.url %>" target="_blank"><img src="images/www.png" class="www"><%= item.name %></a>
-            </div>
-            <div class="close" index="<%= index %>">x</div>
-        </div>
-
-        <hr>
-
-        <% if (taxfree) { %>
-
-          <div class="price">
-            <div class="prices">
-              <span class="text"><a href="<%= item.url %>" target="_blank">VINMONOPOLET</a> <b class="number"><%= Math.ceil(item.price) %></b></span>
-              <span class="text"><a href="<%= item.taxfree.url %>" target="_blank">TAX-FREE</a> <b class="number"><%= Math.ceil(item.taxfree.price) %></b></span>
-            </div>
-            <span class="text">
-                DIFFERANSE
-                <b class="number"><%= Math.floor(item.taxfree.discount) %></b>
-                <b class="percent">%</b>
-              </span>
-          </div>
-
-          <div class="price">
-            <div class="prices">
-              <span class="text">
-                LITERPRIS <b class="number"><%= Math.ceil(item.taxfree.literprice) %></b>
-              </span>
-
-              <% if (item.alcoholprice) { %>
-                <span class="text">
-                  ALKOHOLLITERPRIS <b class="number"><%= Math.ceil(item.taxfree.alcoholprice) %></b>
-                </span>
-
-                <span class="text">
-                  ALKOHOL <b class="number"><%= item.alcohol %></b><b class="percent">%</b>
-                </span>
-              <% } %>
-            </div>
-          </div>
-
-        <% } else { %>
-
-          <div class="price">
-            <div class="prices">
-              <span class="text">KR <b class="number"><%= Math.ceil(item.price) %></b></span>
-              <% if (item.oldprice) { %>
-                <span class="text">FØR <b class="number"><%= Math.ceil(item.oldprice) %></b></span>
-              <% } %>
-            </div>
-            <% if (item.oldprice) { %>
-              <span class="text">
-                ENDRING
-                <b class="number"><%= Math.floor(item.discount) %></b>
-                <b class="percent">%</b>
-              </span>
+    <table class="fractions">
+        <tbody>
+            <% if (item.characteristics && Array.isArray(item.characteristics) && item.characteristics.length > 0) { %>
+                <tr>
+                    <td><b>EGENSKAPER</b><td>
+                    <td><td>
+                </tr>
+                <% item.characteristics.forEach(function(character) {
+                    var parts = character.split(', ');
+                    var values = parts[1].split(' av ');
+                %>
+                    <tr>
+                    <td class="label"><%= parts[0] %>&nbsp;</td>
+                    <td class="value" style="--value: <%= parseInt(values[0]) %>; --total: <%= parseInt(values[1]) %>;"></td>
+                    </tr>
+                <% }); %>
             <% } %>
-          </div>
 
-          <div class="price">
-            <div class="prices">
-              <span class="text">
-                LITERPRIS <b class="number"><%= Math.ceil(item.literprice) %></b>
-              </span>
-
-              <% if (item.alcoholprice) { %>
-                <span class="text">
-                  ALKOHOLLITERPRIS <b class="number"><%= Math.ceil(item.alcoholprice) %></b>
-                </span>
-
-                <span class="text">
-                  ALKOHOL <b class="number"><%= item.alcohol %></b><b class="percent">%</b>
-                </span>
-              <% } %>
-            </div>
-          </div>
-
-        <% } %>
-
-        <hr>
-
-        <table class="fractions">
-            <tbody>
-                <!-- Characteristics. -->
-                <% if (item.characteristics && Array.isArray(item.characteristics) && item.characteristics.length > 0) { %>
-                    <tr>
-                      <td>EGENSKAPER<td>
-                      <td><td>
-                    </tr>
-                    <% item.characteristics.forEach(function(character) {
-                      var parts = character.split(', ');
-                      var values = parts[1].split(' av ');
-                    %>
-                      <tr>
-                        <td class="label"><%= parts[0] %>&nbsp;</td>
-                        <td class="value" style="--value: <%= parseInt(values[0]) %>; --total: <%= parseInt(values[1]) %>;"></td>
-                      </tr>
-                  <% }); %>
-                <% } %>
-
-                <!-- Ingredients. -->
-                <% if (item.ingredients && Array.isArray(item.ingredients) && item.ingredients.length > 0) { %>
-                    <tr>
-                      <td>&nbsp;<td>
-                      <td><td>
-                    </tr>
-                    <tr>
-                      <td>INGREDIENSER<td>
-                      <td><td>
-                    </tr>
-                    <% item.ingredients.forEach(function(ingredient) {
-                      const patterns = [
-                        /(\d+)\s*%\s*([a-zA-ZæøåÆØÅéÉèÈêÊëËáÁàÀâÂäÄíÍìÌîÎïÏóÓòÒôÔöÖúÚùÙûÛüÜñÑçÇßðÐþÞ\u0300-\u036f, ()]+)/i, // Matches "90% eple" or "10% (rips, solbær)"
-                        /([a-zA-ZæøåÆØÅéÉèÈêÊëËáÁàÀâÂäÄíÍìÌîÎïÏóÓòÒôÔöÖúÚùÙûÛüÜñÑçÇßðÐþÞ\u0300-\u036f, ()]+)\s*(\d+)\s*prosent/i, // Matches "Sumoll (Vijariego Negro) 10 prosent" or "Pinot Bianco 80 prosent"
-                        /([a-zA-ZæøåÆØÅéÉèÈêÊëËáÁàÀâÂäÄíÍìÌîÎïÏóÓòÒôÔöÖúÚùÙûÛüÜñÑçÇßðÐþÞ\u0300-\u036f, ()]+)/i, // Matches single word types like "Riesling"
-                      ];
-                      let result = null;
-                      for (const pattern of patterns) {
-                        const match = ingredient.match(pattern);
-                        if (match) {
-                          if (pattern === patterns[0]) {
-                            result = { grape: match[2].trim(), percentage: parseFloat(match[1].trim()) };
-                            result.grape = result.grape.charAt(0).toUpperCase() + result.grape.slice(1);
-                          } else if (pattern === patterns[1]) {
-                            result = { grape: match[1].trim(), percentage: parseFloat(match[2].trim()) };
-                          } else if (pattern === patterns[2]) {
-                            result = { grape: match[1].trim(), percentage: 100.0 };
-                          }
-                          break;
+            <% if (item.ingredients && Array.isArray(item.ingredients) && item.ingredients.length > 0) { %>
+                <tr>
+                    <td>&nbsp;<td>
+                    <td><td>
+                </tr>
+                <tr>
+                    <td><b>INGREDIENSER</b><td>
+                    <td><td>
+                </tr>
+                <% item.ingredients.forEach(function(ingredient) {
+                    const patterns = [
+                    /(\d+)\s*%\s*([a-zA-ZæøåÆØÅéÉèÈêÊëËáÁàÀâÂäÄíÍìÌîÎïÏóÓòÒôÔöÖúÚùÙûÛüÜñÑçÇßðÐþÞ\u0300-\u036f, ()]+)/i, // Matches "90% eple" or "10% (rips, solbær)"
+                    /([a-zA-ZæøåÆØÅéÉèÈêÊëËáÁàÀâÂäÄíÍìÌîÎïÏóÓòÒôÔöÖúÚùÙûÛüÜñÑçÇßðÐþÞ\u0300-\u036f, ()]+)\s*(\d+)\s*prosent/i, // Matches "Sumoll (Vijariego Negro) 10 prosent" or "Pinot Bianco 80 prosent"
+                    /([a-zA-ZæøåÆØÅéÉèÈêÊëËáÁàÀâÂäÄíÍìÌîÎïÏóÓòÒôÔöÖúÚùÙûÛüÜñÑçÇßðÐþÞ\u0300-\u036f, ()]+)/i, // Matches single word types like "Riesling"
+                    ];
+                    let result = null;
+                    for (const pattern of patterns) {
+                    const match = ingredient.match(pattern);
+                    if (match) {
+                        if (pattern === patterns[0]) {
+                        result = { grape: match[2].trim(), percentage: parseFloat(match[1].trim()) };
+                        result.grape = result.grape.charAt(0).toUpperCase() + result.grape.slice(1);
+                        } else if (pattern === patterns[1]) {
+                        result = { grape: match[1].trim(), percentage: parseFloat(match[2].trim()) };
+                        } else if (pattern === patterns[2]) {
+                        result = { grape: match[1].trim(), percentage: 100.0 };
                         }
-                      }
-                      if (result) { %>
-                      <tr>
-                        <td class="label"><%= result.grape %>&nbsp;</td>
-                        <td class="percentage" style="--percentage: <%= result.percentage %>;"></td>
-                      </tr>
-                      <% } %>
-                    <% }); %>
-                <% } %>
-            </tbody>
-        </table>
-
-        <hr>
-
-        <!-- Various fields of the product. -->
-        <table class="key-val">
-            <tbody>
-                <% if (item.description.lang) { %>
-                  <tr>
-                    <td class="key">BESKRIVELSE &nbsp;</td>
-                    <td class="val"><%= item.description.lang %></td>
-                  </tr>
-                <% } %>
-
-                <% if (item.rating && (item.rating.value !== undefined && item.rating.value !== null)) { %>
-                  <tr>
-                    <td class="key">RATING</td>
-                    <td class="val">Vurdert <%= item.rating.value %> av 5 hos
-                      <% if (item.rating.url) { %>
-                        <a href="<%= item.rating.url %>"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onclick="event.stopPropagation()">vivino</a>.
-                      <% } else { %>
-                        vivino.
-                      <% } %>
-                      <% if (item.rating.updated) { %>
-                        Oppdatert <%= (typeof item.rating.updated === 'string' ? new Date(item.rating.updated) : item.rating.updated).toLocaleString('nb-NO', { dateStyle: 'long' }) %>.
-                      <% } %>
-                    </td>
-                  </tr>
-                <% } %>
-                <% if (taxfree && item.taxfree.stores) { %>
-                  <tr>
-                    <td class="key">FLYPLASSER &nbsp;</td>
-                    <td class="val"><%= item.taxfree.stores.sort((a,b) => a.localeCompare(b)).join(' + ') %></td>
-                  </tr>
-                <% } %>
-                <% if (item.smell) { %>
-                  <tr>
-                    <td class="key">LUKT</td>
-                    <td class="val"><%= item.smell %></td>
-                  </tr>
-                <% } %>
-                <% if (item.taste) { %>
-                  <tr>
-                    <td class="key">SMAK</td>
-                    <td class="val"><%= item.taste %></td>
-                  </tr>
-                <% } %>
-                <% if (item.storage) { %>
-                  <tr>
-                    <td class="key">LAGRING</td>
-                    <td class="val"><%= item.storage %></td>
-                  </tr>
-                <% } %>
-                <% if (item.colour) { %>
-                  <tr>
-                    <td class="key">FARGE</td>
-                    <td class="val"><%= item.colour %></td>
-                  </tr>
-                <% } %>
-                <% if (item.selection) { %>
-                  <tr>
-                    <td class="key">VAREUTVALG &nbsp;</td>
-                    <td class="val"><%= item.selection %></td>
-                  </tr>
-                <% } %>
-                <% if (item.pair && item.pair.length > 0) { %>
-                  <tr>
-                    <td class="key">PASSER TIL &nbsp;</td>
-                    <td class="val"><%=
-                      item.pair.map(function(pair) {
-                        return pair.trim();
-                      }).join(' & ')
-                      %></td>
-                  </tr>
-                <% } %>
-                <% if (item.method) { %>
-                  <tr>
-                    <td class="key">METODE</td>
-                    <td class="val"><%= item.method %></td>
-                  </tr>
-                <% } %>
-                <% if (item.year) { %>
-                  <tr>
-                    <td class="key">ÅRGANG</td>
-                    <td class="val"><%= item.year %></td>
-                  </tr>
-                <% } %>
-            </tbody>
-        </table>
-
-        <hr>
-
-        <% if (taxfree) { %>
-
-          <div class="price">
-            <div class="prices">
-              <span class="text"><a href="<%= item.url %>" target="_blank">VINMONOPOLET</a> <b class="number"><%= Math.ceil(item.price) %></b></span>
-              <span class="text"><a href="<%= item.taxfree.url %>" target="_blank">TAX-FREE</a> <b class="number"><%= Math.ceil(item.taxfree.price) %></b></span>
-            </div>
-            <span class="text">
-                DIFFERANSE
-                <b class="number"><%= Math.floor(item.taxfree.discount) %></b>
-                <b class="percent">%</b>
-              </span>
-          </div>
-
-          <div class="price">
-            <div class="prices">
-              <span class="text">
-                LITERPRIS <b class="number"><%= Math.ceil(item.taxfree.literprice) %></b>
-              </span>
-
-              <% if (item.alcoholprice) { %>
-                <span class="text">
-                  ALKOHOLLITERPRIS <b class="number"><%= Math.ceil(item.taxfree.alcoholprice) %></b>
-                </span>
-
-                <span class="text">
-                  ALKOHOL <b class="number"><%= item.alcohol %></b><b class="percent">%</b>
-                </span>
-              <% } %>
-            </div>
-          </div>
-
-        <% } else { %>
-
-          <div class="price">
-            <div class="prices">
-              <span class="text">KR <b class="number"><%= Math.ceil(item.price) %></b></span>
-              <% if (item.oldprice) { %>
-                <span class="text">FØR <b class="number"><%= Math.ceil(item.oldprice) %></b></span>
-              <% } %>
-            </div>
-            <% if (item.oldprice) { %>
-              <span class="text">
-                ENDRING
-                <b class="number"><%= Math.floor(item.discount) %></b>
-                <b class="percent">%</b>
-              </span>
+                        break;
+                    }
+                    }
+                    if (result) { %>
+                    <tr>
+                    <td class="label"><%= result.grape %>&nbsp;</td>
+                    <td class="percentage" style="--percentage: <%= result.percentage %>;"></td>
+                    </tr>
+                    <% } %>
+                <% }); %>
             <% } %>
-          </div>
+        </tbody>
+    </table>
 
-          <div class="price">
-            <div class="prices">
-              <span class="text">
-                LITERPRIS <b class="number"><%= Math.ceil(item.literprice) %></b>
-              </span>
+    <hr>
 
-              <% if (item.alcoholprice) { %>
-                <span class="text">
-                  ALKOHOLLITERPRIS <b class="number"><%= Math.ceil(item.alcoholprice) %></b>
-                </span>
+    <table class="key-val">
+        <tbody>
+            <% if (item.description.lang) { %>
+                <tr>
+                <td class="key">Beskrivelse &nbsp;</td>
+                <td class="val"><%= item.description.lang %></td>
+                </tr>
+            <% } %>
 
-                <span class="text">
-                  ALKOHOL <b class="number"><%= item.alcohol %></b><b class="percent">%</b>
-                </span>
-              <% } %>
-            </div>
-          </div>
+            <% if (item.rating && (item.rating.value !== undefined && item.rating.value !== null)) { %>
+                <tr>
+                <td class="key">Rating</td>
+                <td class="val">Vurdert <%= item.rating.value %> av 5 hos
+                    <% if (item.rating.url) { %>
+                    <a href="<%= item.rating.url %>"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onclick="event.stopPropagation()">vivino</a>.
+                    <% } else { %>
+                    vivino.
+                    <% } %>
+                    <% if (item.rating.updated) { %>
+                    Oppdatert <%= (typeof item.rating.updated === 'string' ? new Date(item.rating.updated) : item.rating.updated).toLocaleString('nb-NO', { dateStyle: 'long' }) %>.
+                    <% } %>
+                </td>
+                </tr>
+            <% } %>
+            <% if (taxfree && item.taxfree.stores) { %>
+                <tr>
+                <td class="key">Flyplasser &nbsp;</td>
+                <td class="val"><%= item.taxfree.stores.sort((a,b) => a.localeCompare(b)).join(' + ') %></td>
+                </tr>
+            <% } %>
+            <% if (item.smell) { %>
+                <tr>
+                <td class="key">Lukt</td>
+                <td class="val"><%= item.smell %></td>
+                </tr>
+            <% } %>
+            <% if (item.taste) { %>
+                <tr>
+                <td class="key">Smak</td>
+                <td class="val"><%= item.taste %></td>
+                </tr>
+            <% } %>
+            <% if (item.storage) { %>
+                <tr>
+                <td class="key">Lagring</td>
+                <td class="val"><%= item.storage %></td>
+                </tr>
+            <% } %>
+            <% if (item.colour) { %>
+                <tr>
+                <td class="key">Farge</td>
+                <td class="val"><%= item.colour %></td>
+                </tr>
+            <% } %>
+            <% if (item.selection) { %>
+                <tr>
+                <td class="key">Vareutvalg &nbsp;</td>
+                <td class="val"><%= item.selection %></td>
+                </tr>
+            <% } %>
+            <% if (item.pair && item.pair.length > 0) { %>
+                <tr>
+                <td class="key">Passer til &nbsp;</td>
+                <td class="val"><%=
+                    item.pair.map(function(pair) {
+                    return pair.trim();
+                    }).join(' & ')
+                    %></td>
+                </tr>
+            <% } %>
+            <% if (item.method) { %>
+                <tr>
+                <td class="key">Metode</td>
+                <td class="val"><%= item.method %></td>
+                </tr>
+            <% } %>
+            <% if (item.year) { %>
+                <tr>
+                <td class="key">Årgang</td>
+                <td class="val"><%= item.year %></td>
+                </tr>
+            <% } %>
+        </tbody>
+    </table>
 
+    <hr>
+
+    <div>
+        <% if (taxfree) { %>
+            <span><a href="<%= item.url %>" target="_blank">VINMONOPOLET</a> <b><%= Math.ceil(item.price) %></b></span>
+            <span><a href="<%= item.taxfree.url %>" target="_blank">TAX-FREE</a> <b><%= Math.ceil(item.taxfree.price) %></b></span>
+            <span>DIFFERANSE <b><%= Math.floor(item.taxfree.discount) %>%</b></span>
+        <% } else { %>
+            <span>KR <b><%= Math.ceil(item.price) %></b></span>
+
+            <% if (item.oldprice) { %>
+                <span>FØR <b><%= Math.ceil(item.oldprice) %></b></span>
+                <span>ENDRING <b><%= Math.floor(item.discount) %>%</b></span>
+            <% } %>
         <% } %>
 
-        <hr>
+        <span>LITERPRIS <b><%= Math.ceil(item.literprice) %></b></span>
 
-        <div class="heading">
-            <div class="link">
-              <a href="<%= taxfree ? item.taxfree.url : item.url %>" target="_blank"><img src="images/www.png" class="www"><%= item.name %></a>
-            </div>
-            <div class="close" index="<%= index %>">x</div>
-        </div>
+        <% if (item.alcoholprice) { %>
+            <span>ALKOHOLLITERPRIS <b><%= Math.ceil(item.alcoholprice) %></b></span>
+            <span>ALKOHOL <b><%= item.alcohol %> %</b></span>
+        <% } %>
     </div>
 
-    <div class="navigation" id="below">
-        <% if (index > 0) { %>
-          <a onclick="changeModal(<%= index %>, <%= index - 1 %>, event)">FORRIGE</a>
-        <% } else { %>
-          <span></span>
-        <% } %>
-
-        <% if (index < maxIndex) { %>
-          <a onclick="changeModal(<%= index %>, <%= index + 1 %>, event)">NESTE</a>
-        <% } else { %>
-          <span></span>
-        <% } %>
-    </div>
 </aside>

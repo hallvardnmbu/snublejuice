@@ -16,34 +16,11 @@ function getCanvasData(index) {
   prices.push(prices.at(-1));
   dates.push("nå");
 
-  let color;
-  if (prices.length > 2) {
-    const oldPrice = prices[prices.length - 3];
-    const newPrice = prices[prices.length - 2];
-    if (oldPrice > newPrice) {
-      color = {
-        marker: "#00640099",
-        line: "#00640033",
-      };
-    } else if (oldPrice < newPrice) {
-      color = {
-        marker: "#64000099",
-        line: "#64000033",
-      };
-    } else {
-      color = {
-        marker: "#666666",
-        line: "#cccccc",
-      };
-    }
-  } else {
-    color = {
-      marker: "#666666",
-      line: "#cccccc",
-    };
-  }
+  const section = document.getElementById(index);
+  const color = getComputedStyle(section).getPropertyValue("--color").trim();
+  const colors = { marker: `rgba(${color}, 0.6)`, line: `rgba(${color}, 0.2)` };
 
-  return { canvas, prices, dates, color };
+  return { canvas, prices, dates, colors };
 }
 
 function setupCanvas(canvas) {
@@ -83,7 +60,7 @@ function yPos(value, canvas, scales, margin) {
   return canvas.height - (value - scales.yMin) * scales.yScale - margin.bottom;
 }
 
-function drawLine(ctx, canvas, prices, scales, color, margin) {
+function drawLine(ctx, canvas, prices, scales, colors, margin) {
   ctx.beginPath();
   ctx.moveTo(margin.left, yPos(prices[0], canvas, scales, margin));
   for (let i = 1; i < prices.length; i++) {
@@ -96,12 +73,12 @@ function drawLine(ctx, canvas, prices, scales, color, margin) {
       yPos(prices[i], canvas, scales, margin),
     ); // Vertically to new Y.
   }
-  ctx.strokeStyle = color.line;
+  ctx.strokeStyle = colors.line;
   ctx.lineWidth = 10;
   ctx.stroke();
 }
 
-function drawMarkers(ctx, canvas, prices, scales, color, margin) {
+function drawMarkers(ctx, canvas, prices, scales, colors, margin) {
   for (let i = 0; i < prices.length; i++) {
     ctx.beginPath();
     ctx.rect(
@@ -110,7 +87,7 @@ function drawMarkers(ctx, canvas, prices, scales, color, margin) {
       10,
       10,
     );
-    ctx.fillStyle = color.marker;
+    ctx.fillStyle = colors.marker;
     ctx.fill();
   }
 }
@@ -119,11 +96,13 @@ function drawAxes(ctx, canvas, dates, prices, scales, margin) {
   ctx.fillStyle = "black";
   ctx.font = "12px monospace";
 
+  let maxLabels;
+
   // X labels
   ctx.textAlign = "center";
   const plotWidth = canvas.width;
   const sampleWidth = ctx.measureText(dates[0]).width + 2;
-  const maxLabels = Math.floor(plotWidth / sampleWidth);
+  maxLabels = Math.floor(plotWidth / sampleWidth) - 1;
   const mod = Math.ceil(dates.length / maxLabels);
   dates.forEach((d, i) => {
     if ((i + 1) % mod === 0) {
@@ -138,8 +117,10 @@ function drawAxes(ctx, canvas, dates, prices, scales, margin) {
   // Y labels
   ctx.textAlign = "right";
   ctx.textBaseline = "middle";
-  for (let i = 0; i <= 5; i++) {
-    const v = scales.yMin + ((Math.max(...prices) - scales.yMin) * i) / 5;
+  maxLabels = Math.min(new Set(prices).size, 5);
+  for (let i = 0; i <= (maxLabels > 1 ? maxLabels : 0); i++) {
+    const v =
+      scales.yMin + ((Math.max(...prices) - scales.yMin) * i) / maxLabels;
     ctx.fillText(
       v.toFixed(0),
       margin.left - 10,
@@ -148,7 +129,7 @@ function drawAxes(ctx, canvas, dates, prices, scales, margin) {
   }
 }
 
-function setupHover(canvas, prices, dates, scales, color, margin) {
+function setupHover(canvas, prices, dates, scales, colors, margin) {
   const old = canvas.parentElement.querySelector(".hover-layer");
   if (old) old.remove();
 
@@ -191,7 +172,7 @@ function setupHover(canvas, prices, dates, scales, color, margin) {
     hctx.beginPath();
     hctx.moveTo(x, 0);
     hctx.lineTo(x, rect.height);
-    hctx.strokeStyle = color.line;
+    hctx.strokeStyle = colors.line;
     hctx.lineWidth = 10;
     hctx.stroke();
   });
@@ -202,7 +183,7 @@ function setupHover(canvas, prices, dates, scales, color, margin) {
 }
 
 function graphPrice(index) {
-  const { canvas, prices, dates, color } = getCanvasData(index);
+  const { canvas, prices, dates, colors } = getCanvasData(index);
   const ctx = setupCanvas(canvas);
 
   const margin = {
@@ -214,10 +195,10 @@ function graphPrice(index) {
 
   const scales = getScales(prices, canvas, margin);
 
-  drawLine(ctx, canvas, prices, scales, color, margin);
-  drawMarkers(ctx, canvas, prices, scales, color, margin);
+  drawLine(ctx, canvas, prices, scales, colors, margin);
+  drawMarkers(ctx, canvas, prices, scales, colors, margin);
   drawAxes(ctx, canvas, dates, prices, scales, margin);
-  setupHover(canvas, prices, dates, scales, color, margin);
+  setupHover(canvas, prices, dates, scales, colors, margin);
 }
 
 function drawGraphs() {

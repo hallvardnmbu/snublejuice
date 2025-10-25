@@ -10,14 +10,13 @@
 
   --text: black;
   --clickable: blue;
+  --hover: purple;
 
-  --negative: rgba(100, 0, 0, 0.2);
-  --positive: rgba(0, 100, 0, 0.2);
-  --green: rgba(0, 100, 0, 0.6);
-  --red: rgba(100, 0, 0, 0.6);
+  --negative: 100, 0, 0;
+  --positive: 0, 100, 0;
+  --neutral: 100, 100, 100;
 
-  --highlight: var(--positive);
-  --marker: var(--green);
+  --color: var(--neutral);
 }
 
 html {
@@ -31,6 +30,9 @@ footer {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+main {
+  width: 100%;
 }
 body {
   background: white;
@@ -89,7 +91,7 @@ button {
 }
 a:hover,
 button:hover {
-  color: purple;
+  color: var(--hover);
   cursor: pointer;
 }
 button {
@@ -122,6 +124,9 @@ menu {
   align-items: center;
   margin: var(--margin) 0;
 }
+header form {
+  margin-bottom: var(--padding);
+}
 
 img {
   max-width: calc(var(--image) - 4 * var(--padding));
@@ -129,7 +134,7 @@ img {
 
 form:not(header *) {
   width: calc(100% - 2 * var(--padding));
-  max-width: 400px;
+  max-width: calc(4 * var(--image));
 }
 form:not(header *) search {
   display: flex;
@@ -166,6 +171,21 @@ select {
   background-position: right calc(var(--padding) / 2) bottom;
 }
 
+.message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--margin);
+
+  width: calc(100% - 2 * var(--padding));
+  max-width: calc(4 * var(--image));
+}
+#userMessage {
+  width: 100%;
+  text-align: center;
+  padding: var(--margin);
+}
+
 section {
   display: flex;
   flex-direction: column;
@@ -175,7 +195,7 @@ section {
   max-width: calc(10 * var(--image));
 }
 .product {
-  border: var(--margin) solid var(--highlight);
+  border: var(--margin) solid rgba(var(--color), 0.2);
   border-bottom: none;
 }
 section > div {
@@ -192,16 +212,13 @@ section > div > span:not(.bottle) {
   padding: var(--padding);
 }
 section > div > span.bottle p {
-  margin: 0 10px 10px 10px;
+  margin: 0 var(--padding) var(--padding) var(--padding);
 }
 section div h1,
 section > div > span > span {
   display: flex;
   flex-direction: row;
   gap: var(--margin);
-}
-section > div > span > span:last-of-type {
-  margin-top: auto;
 }
 section div h1 {
   justify-content: space-between;
@@ -222,6 +239,7 @@ section img {
 section div span div:has(canvas) {
   position: relative;
   height: calc(1.5 * var(--image));
+  margin-top: auto;
 }
 canvas {
   width: 100%;
@@ -252,11 +270,11 @@ section div span div:last-of-type {
 
 aside {
   display: none;
-  border-bottom: var(--margin) solid var(--highlight);
+  border-bottom: var(--margin) solid rgba(var(--color), 0.2);
 }
 aside hr {
   height: var(--margin);
-  background-color: var(--highlight);
+  background-color: rgba(var(--color), 0.2);
   border: none;
   margin: 0;
 }
@@ -268,11 +286,8 @@ aside table tbody {
 }
 
 .expand {
-  background-color: var(--highlight);
+  background-color: rgba(var(--color), 0.2);
   padding-left: calc(var(--padding) + var(--image));
-}
-
-.message {
 }
 
 .slim {
@@ -324,7 +339,7 @@ input[type="search"]::-webkit-search-results-decoration {
 }
 .val {
   position: relative;
-  padding-left: 5px;
+  padding-left: calc(0.5 * var(--padding));
   width: 100%;
 
   color: var(--text);
@@ -337,7 +352,7 @@ input[type="search"]::-webkit-search-results-decoration {
   left: calc(-1 * var(--padding));
   width: var(--padding);
   height: 100%;
-  background: var(--highlight);
+  background: rgba(var(--color), 0.2);
 }
 .fractions {
   border-collapse: separate;
@@ -350,9 +365,11 @@ input[type="search"]::-webkit-search-results-decoration {
   width: 100%;
   background: linear-gradient(
     to right,
-    var(--highlight) 0 calc(var(--value) * 100% / var(--total) - var(--padding)),
-    var(--marker) 0 calc(var(--value) * 100% / var(--total) - var(--padding)),
-    var(--marker) 0 calc(var(--value) * 100% / var(--total)),
+    rgba(var(--color), 0.2) 0
+      calc(var(--value) * 100% / var(--total) - var(--padding)),
+    rgba(var(--color), 0.6) 0
+      calc(var(--value) * 100% / var(--total) - var(--padding)),
+    rgba(var(--color), 0.6) 0 calc(var(--value) * 100% / var(--total)),
     var(--foreground) calc(var(--value) * 100% / var(--total)) 100%
   );
   background-size: 100% var(--padding);
@@ -363,9 +380,9 @@ input[type="search"]::-webkit-search-results-decoration {
   width: 100%;
   background: linear-gradient(
     to right,
-    var(--highlight) calc(var(--percentage) * 1% - var(--padding)),
-    var(--marker) calc(var(--percentage) * 1% - var(--padding)),
-    var(--marker) calc(var(--percentage) * 1%),
+    rgba(var(--color), 0.2) calc(var(--percentage) * 1% - var(--padding)),
+    rgba(var(--color), 0.6) calc(var(--percentage) * 1% - var(--padding)),
+    rgba(var(--color), 0.6) calc(var(--percentage) * 1%),
     var(--foreground) calc(var(--percentage) * 1%)
   );
   background-size: 100% var(--padding);

@@ -1,20 +1,14 @@
 <section
   class="product"
+  id="<%= index %>"
   index="<%= index %>"
   style="
-    --highlight: <%=
+    --color: <%=
       taxfree ?
         (item.taxfree.discount > 0 ? 'var(--negative)' :
-         item.taxfree.discount < 0 ? 'var(--positive)' : 'var(--block)') :
+        item.taxfree.discount < 0 ? 'var(--positive)' : 'var(--neutral)') :
         (item.discount > 0 ? 'var(--negative)' :
-         item.discount < 0 ? 'var(--positive)' : 'var(--block)')
-    %>;
-    --marker: <%=
-      taxfree ?
-        (item.taxfree.discount > 0 ? 'var(--red)' :
-         item.taxfree.discount < 0 ? 'var(--green)' : 'var(--dimtext)') :
-        (item.discount > 0 ? 'var(--red)' :
-         item.discount < 0 ? 'var(--green)' : 'var(--dimtext)')
+        item.discount < 0 ? 'var(--positive)' : 'var(--neutral)')
     %>;"
 >
 
@@ -131,11 +125,7 @@
                 <% } %>
 
                 <span>LITERPRIS <b><%= Math.ceil(item.literprice) %></b></span>
-
-                <% if (item.alcoholprice) { %>
-                    <span>ALKOHOLLITERPRIS <b><%= Math.ceil(item.alcoholprice) %></b></span>
-                    <span>ALKOHOL <b><%= item.alcohol %> %</b></span>
-                <% } %>
+                <span>ALKOHOL <b><%= item.alcohol %>%</b></span>
             </div>
         </span>
     </div>

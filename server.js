@@ -192,7 +192,7 @@ const app = new Elysia()
         favourites: favourites,
         message:
           subdomain === "taxfree"
-            ? "OBS: Det hender at sammenlikninger er ukorrekte. Det anbefales derfor alltid å dobbeltsjekke at produktene stemmer overens hos både vinmonopolet og tax-free ved å gå inn på lenkene deres. Beklager ulempen."
+            ? "OBS: Det hender at sammenlikninger er ukorrekte. Dette anbefales derfor å dobbeltsjekke før kjøp via lenkene til vinmonopolet og tax-free."
             : null,
         data: data,
         page: page,

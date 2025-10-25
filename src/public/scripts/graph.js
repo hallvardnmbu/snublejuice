@@ -1,5 +1,3 @@
-const DPR = window.devicePixelRatio || 1;
-
 function generateDates(count) {
   const pad = (n) => n.toString().padStart(2, "0");
   const today = new Date();
@@ -50,26 +48,22 @@ function getCanvasData(index) {
 
 function setupCanvas(canvas) {
   const parent = canvas.parentElement;
-
-  // Get the display size from parent (in CSS pixels)
-  const displayWidth = Math.max(parent.clientWidth - 1, 1);
-  const displayHeight = Math.max(parent.clientHeight, 1);
-
-  // Set CSS size to match parent
-  canvas.style.width = `${displayWidth}px`;
-  canvas.style.height = `${displayHeight}px`;
-
-  // Set internal resolution (drawing buffer)
-  // This is where DPR matters for crisp rendering
   const dpr = window.devicePixelRatio || 1;
-  canvas.width = displayWidth * dpr;
-  canvas.height = displayHeight * dpr;
 
-  // Scale context to account for DPR
+  // Get the parent's dimensions
+  const rect = parent.getBoundingClientRect();
+  const width = rect.width;
+  const height = rect.height;
+
+  // Set the canvas resolution
+  canvas.width = Math.floor(width * dpr);
+  canvas.height = Math.floor(height * dpr);
+
+  // Scale the context
   const ctx = canvas.getContext("2d");
   ctx.scale(dpr, dpr);
 
-  return { displayWidth, displayHeight, ctx };
+  return ctx;
 }
 
 function getScales(prices, canvas, margin) {
@@ -160,31 +154,43 @@ function setupHover(canvas, prices, dates, scales, color, margin) {
 
   const hover = document.createElement("canvas");
   hover.className = "hover-layer";
+
+  const dpr = window.devicePixelRatio || 1;
+
+  // Match the main canvas dimensions exactly
   hover.width = canvas.width;
   hover.height = canvas.height;
+
+  // Position absolutely and match CSS size (100%)
   hover.style.position = "absolute";
-  hover.style.left = canvas.offsetLeft + "px";
-  hover.style.top = canvas.offsetTop + "px";
-  hover.style.width = canvas.style.width;
-  hover.style.height = canvas.style.height;
+  hover.style.left = "0";
+  hover.style.top = "0";
+  hover.style.width = "100%";
+  hover.style.height = "100%";
   hover.style.pointerEvents = "none";
+
   canvas.parentElement.appendChild(hover);
 
   const hctx = hover.getContext("2d");
+  hctx.scale(dpr, dpr);
+
   canvas.addEventListener("mousemove", (e) => {
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
     const idx = Math.floor((x - margin.left) / scales.xScale);
+
     hctx.clearRect(0, 0, hover.width, hover.height);
+
     if (idx < 0 || idx >= prices.length) return;
 
     hctx.fillStyle = "black";
     hctx.font = "12px monospace";
-    hctx.fillText(`${prices[idx]} kr (${dates[idx]})`, x + 10, 30);
+    hctx.fillText(`${prices[idx]} kr (${dates[idx]})`, x + 10, y);
 
     hctx.beginPath();
     hctx.moveTo(x, 0);
-    hctx.lineTo(x, canvas.height);
+    hctx.lineTo(x, rect.height);
     hctx.strokeStyle = color.line;
     hctx.lineWidth = 10;
     hctx.stroke();
@@ -197,10 +203,8 @@ function setupHover(canvas, prices, dates, scales, color, margin) {
 
 function graphPrice(index) {
   const { canvas, prices, dates, color } = getCanvasData(index);
-  setupCanvas(canvas);
-  const ctx = canvas.getContext("2d");
+  const ctx = setupCanvas(canvas);
 
-  // console.log(prices);
   const margin = {
     top: 20,
     right: 10,
@@ -216,37 +220,14 @@ function graphPrice(index) {
   setupHover(canvas, prices, dates, scales, color, margin);
 }
 
-const observers = new Map();
-
-function initGraphs() {
+function drawGraphs() {
   document.querySelectorAll("[id^=graph-]").forEach((canvas) => {
-    const parent = canvas.parentElement;
-
-    // Clean up old observer if exists
-    if (observers.has(canvas)) {
-      observers.get(canvas).disconnect();
-    }
-
-    // Create new observer
-    const observer = new ResizeObserver(() => {
-      const index = canvas.id.replace("graph-", "");
-      graphPrice(index);
-    });
-
-    observer.observe(parent);
-    observers.set(canvas, observer);
-
-    // Initial render
     const index = canvas.id.replace("graph-", "");
     graphPrice(index);
   });
 }
 
-// Only need DOMContentLoaded now
-document.addEventListener("DOMContentLoaded", initGraphs);
-
-// Optional: cleanup on page unload
-window.addEventListener("unload", () => {
-  observers.forEach((obs) => obs.disconnect());
-  observers.clear();
+document.addEventListener("DOMContentLoaded", drawGraphs);
+window.addEventListener("resize", function () {
+  drawGraphs();
 });

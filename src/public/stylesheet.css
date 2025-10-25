@@ -90,13 +90,13 @@ button {
 a:hover,
 button:hover {
   color: purple;
+  cursor: pointer;
 }
 button {
   background-color: transparent;
   appearance: none;
   border-radius: 0;
   border: none;
-  cursor: pointer;
 }
 
 menu,
@@ -219,6 +219,22 @@ section img {
   max-width: var(--image);
   align-items: center;
 }
+section div span div:has(canvas) {
+  position: relative;
+  height: calc(1.5 * var(--image));
+}
+canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+section div span div:last-of-type {
+  display: flex;
+  flex-direction: row;
+  gap: var(--margin);
+  justify-content: space-between;
+  margin-top: var(--padding);
+}
 .rating {
   text-decoration: none;
 }
@@ -244,13 +260,6 @@ aside hr {
   border: none;
   margin: 0;
 }
-aside > div:last-of-type {
-  display: flex;
-  flex-direction: row;
-  gap: var(--margin);
-  justify-content: space-between;
-  margin: var(--padding);
-}
 aside table {
   margin: var(--padding);
 }
@@ -260,6 +269,7 @@ aside table tbody {
 
 .expand {
   background-color: var(--highlight);
+  padding-left: calc(var(--padding) + var(--image));
 }
 
 .message {

@@ -1,4 +1,4 @@
-<span class="expand">Utvid</span>
+<a class="expand" index="<%= index %>">Utvid</a>
 
 <aside id="<%= index %>">
 
@@ -150,29 +150,5 @@
             <% } %>
         </tbody>
     </table>
-
-    <hr>
-
-    <div>
-        <% if (taxfree) { %>
-            <span><a href="<%= item.url %>" target="_blank">VINMONOPOLET</a> <b><%= Math.ceil(item.price) %></b></span>
-            <span><a href="<%= item.taxfree.url %>" target="_blank">TAX-FREE</a> <b><%= Math.ceil(item.taxfree.price) %></b></span>
-            <span>DIFFERANSE <b><%= Math.floor(item.taxfree.discount) %>%</b></span>
-        <% } else { %>
-            <span>KR <b><%= Math.ceil(item.price) %></b></span>
-
-            <% if (item.oldprice) { %>
-                <span>FØR <b><%= Math.ceil(item.oldprice) %></b></span>
-                <span>ENDRING <b><%= Math.floor(item.discount) %>%</b></span>
-            <% } %>
-        <% } %>
-
-        <span>LITERPRIS <b><%= Math.ceil(item.literprice) %></b></span>
-
-        <% if (item.alcoholprice) { %>
-            <span>ALKOHOLLITERPRIS <b><%= Math.ceil(item.alcoholprice) %></b></span>
-            <span>ALKOHOL <b><%= item.alcohol %> %</b></span>
-        <% } %>
-    </div>
 
 </aside>

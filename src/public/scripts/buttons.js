@@ -128,64 +128,15 @@ document.querySelectorAll(".favourite-toggle").forEach((star) => {
   });
 });
 
-function changeModal(currentModal, newModal, event) {
-  event.stopPropagation();
-
-  document.getElementById(currentModal).style.display = "none";
-  document.getElementById(newModal).style.display = "block";
-}
-
 document.addEventListener("DOMContentLoaded", function () {
-  // Open modal when section is clicked
-  const productSections = document.querySelectorAll(".product");
-  productSections.forEach((section) => {
-    section.addEventListener("click", function () {
+  // Detailed view.
+  const expands = document.querySelectorAll(".expand");
+  expands.forEach((expand) => {
+    expand.addEventListener("click", function () {
       const itemIndex = this.getAttribute("index");
-      const modal = document.getElementById(itemIndex);
-
-      // Prevent modal from opening if it's already open (to avoid graphing etc.)
-      if (modal.style.display === "block") {
-        return;
-      }
-      modal.style.display = "block";
+      const aside = document.getElementById(itemIndex);
+      aside.style.display = aside.style.display === "block" ? "none" : "block";
+      expand.innerText = aside.style.display === "block" ? "Lukk" : "Utvid";
     });
-  });
-
-  // Close modal when the 'x' is clicked
-  const closeModalButtons = document.querySelectorAll(".close");
-  closeModalButtons.forEach((button) => {
-    button.addEventListener("click", function (event) {
-      event.stopPropagation(); // Prevent bubbling to avoid modal reopening
-      const itemIndex = this.getAttribute("index");
-      const modal = document.getElementById(itemIndex);
-      modal.style.display = "none";
-    });
-  });
-
-  // Close modal when clicking outside of the modal content
-  window.onclick = function (event) {
-    const modals = document.querySelectorAll(".modal");
-    modals.forEach((modal) => {
-      if (event.target === modal) {
-        modal.style.display = "none";
-      }
-    });
-  };
-
-  // Close modal when ESC key is pressed
-  document.addEventListener("keydown", function (event) {
-    if (
-      event.key === "Escape" ||
-      event.key === "Esc" ||
-      event.key === "Enter" ||
-      event.key === "Return"
-    ) {
-      const modals = document.querySelectorAll(".modal");
-      modals.forEach((modal) => {
-        if (modal.style.display === "block") {
-          modal.style.display = "none";
-        }
-      });
-    }
   });
 });

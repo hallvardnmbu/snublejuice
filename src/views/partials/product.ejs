@@ -109,29 +109,34 @@
             <% } %>
 
             <h2>PRISHISTORIKK</h2>
-            <span style="height: 100%;">
-            <canvas id="graph-<%= index %>" data-prices='<%= JSON.stringify(taxfree ? item.taxfree.prices : item.prices) %>'></canvas>
-            </span>
+            <div>
+                <canvas
+                    id="graph-<%= index %>"
+                    data-prices='<%= JSON.stringify(taxfree ? item.taxfree.prices : item.prices) %>'
+                ></canvas>
+            </div>
 
-            <span>
-                <p>
-                    <% if (!taxfree) { %>
-                        KR <b><%= Math.ceil(item.price) %></b>
+            <div>
+                <% if (taxfree) { %>
+                    <span><a href="<%= item.url %>" target="_blank">VINMONOPOLET</a> <b><%= Math.ceil(item.price) %></b></span>
+                    <span><a href="<%= item.taxfree.url %>" target="_blank">TAX-FREE</a> <b><%= Math.ceil(item.taxfree.price) %></b></span>
+                    <span>DIFFERANSE <b><%= Math.floor(item.taxfree.discount) %>%</b></span>
+                <% } else { %>
+                    <span>KR <b><%= Math.ceil(item.price) %></b></span>
+
                     <% if (item.oldprice) { %>
-                        FØR <b><%= Math.ceil(item.oldprice) %></b>
+                        <span>FØR <b><%= Math.ceil(item.oldprice) %></b></span>
+                        <span>ENDRING <b><%= Math.floor(item.discount) %>%</b></span>
                     <% } %>
+                <% } %>
 
-                    <% if (item.oldprice) { %>
-                        ENDRING <b><%= Math.floor(item.discount) %> %</b>
-                    <% } %>
+                <span>LITERPRIS <b><%= Math.ceil(item.literprice) %></b></span>
 
-                    <% } else { %>
-                        VINMONOPOLET <b><%= Math.ceil(item.price) %></b>
-                        TAX-FREE <b><%= Math.ceil(item.taxfree.price) %></b>
-                        DIFFERANSE <b><%= Math.floor(item.taxfree.discount) %> %</b>
-                    <% } %>
-                </p>
-            </span>
+                <% if (item.alcoholprice) { %>
+                    <span>ALKOHOLLITERPRIS <b><%= Math.ceil(item.alcoholprice) %></b></span>
+                    <span>ALKOHOL <b><%= item.alcohol %> %</b></span>
+                <% } %>
+            </div>
         </span>
     </div>
 

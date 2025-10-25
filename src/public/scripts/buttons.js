@@ -134,7 +134,7 @@ document.addEventListener("DOMContentLoaded", function () {
   expands.forEach((expand) => {
     expand.addEventListener("click", function () {
       const itemIndex = this.getAttribute("index");
-      const aside = document.getElementById(itemIndex);
+      const aside = document.getElementById(itemIndex).querySelector("aside");
       aside.style.display = aside.style.display === "block" ? "none" : "block";
       expand.innerText = aside.style.display === "block" ? "Lukk" : "Utvid";
     });

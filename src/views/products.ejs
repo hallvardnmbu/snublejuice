@@ -34,18 +34,18 @@
         <%- include('partials/pagination', { placement: "top" }) %>
 
         <% if (data.length === 0) { %>
-            <span class="message">Ingen resultater finnes for valgt kominasjon.</span>
+            <span>Ingen resultater finnes for valgt kominasjon.</span>
         <% } else { %>
-            <div id="messages">
+            <div class="message">
                 <% if (new Date().getDate() <= 5) { %>
-                    <span class="message">[!] NY MÅNED; NYE TILBUD [!]</span>
+                    <span>[!] NY MÅNED; NYE TILBUD [!]</span>
                 <% } %>
-                <div id="message-stores" style="display: none;">
-                    <span class="message">N.b.: Faktisk lagerbeholdning kan avvike. Oppdateres med jevne mellomrom.</span>
+                <div id="messageStock" style="display: none;">
+                    <span>N.b.: Faktisk lagerbeholdning kan avvike. Oppdateres med jevne mellomrom.</span>
                 </div>
 
                 <% if (message) { %>
-                    <span class="message"><%= message %></span>
+                    <span><%= message %></span>
                 <% } %>
             </div>
 

@@ -7,7 +7,7 @@ function getCookieOptions() {
   const options = {
     httpOnly: true,
     secure: process.env.NODE_ENV.trim() === "production",
-    sameSite: "strict",
+    sameSite: "lax",
     maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
     path: "/",
   };
@@ -154,7 +154,7 @@ const accountRouter = new Elysia()
     },
   )
   .post("/logout", ({ cookie, set }) => {
-    cookie.token.remove();
+    cookie.token.remove(getCookieOptions());
     set.status = 200;
     return { ok: true };
   })

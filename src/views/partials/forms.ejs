@@ -24,22 +24,24 @@
             </select>
         </div>
 
-        <select name="category" id="category" onchange="applyFilters(true, false)">
-            <option value="null" <%= category === 'null' ? 'selected' : '' %>>Alle kategorier</option>
-            <option value="aromatisert" <%= category === 'aromatisert' ? 'selected' : '' %>>Aromatisert vin</option>
-            <option value="brennevin" <%= category === 'brennevin' ? 'selected' : '' %>>Brennevin</option>
-            <option value="fruktvin" <%= category === 'fruktvin' ? 'selected' : '' %>>Fruktvin</option>
-            <option value="hvitvin" <%= category === 'hvitvin' ? 'selected' : '' %>>Hvitvin</option>
-            <option value="mjød" <%= category === 'mjød' ? 'selected' : '' %>>Mjød</option>
-            <option value="musserende" <%= category === 'musserende' ? 'selected' : '' %>>Musserende vin</option>
-            <option value="perlende" <%= category === 'perlende' ? 'selected' : '' %>>Perlende vin</option>
-            <option value="rosévin" <%= category === 'rosévin' ? 'selected' : '' %>>Rosévin</option>
-            <option value="rødvin" <%= category === 'rødvin' ? 'selected' : '' %>>Rødvin</option>
-            <option value="sake" <%= category === 'sake' ? 'selected' : '' %>>Sake</option>
-            <option value="sider" <%= category === 'sider' ? 'selected' : '' %>>Sider</option>
-            <option value="sterkvin" <%= category === 'sterkvin' ? 'selected' : '' %>>Sterkvin</option>
-            <option value="øl" <%= category === 'øl' ? 'selected' : '' %>>Øl</option>
-        </select>
+        <div>
+            <select name="category" id="category" onchange="applyFilters(true, false)">
+                <option value="null" <%= category === 'null' ? 'selected' : '' %>>Alle kategorier</option>
+                <option value="aromatisert" <%= category === 'aromatisert' ? 'selected' : '' %>>Aromatisert vin</option>
+                <option value="brennevin" <%= category === 'brennevin' ? 'selected' : '' %>>Brennevin</option>
+                <option value="fruktvin" <%= category === 'fruktvin' ? 'selected' : '' %>>Fruktvin</option>
+                <option value="hvitvin" <%= category === 'hvitvin' ? 'selected' : '' %>>Hvitvin</option>
+                <option value="mjød" <%= category === 'mjød' ? 'selected' : '' %>>Mjød</option>
+                <option value="musserende" <%= category === 'musserende' ? 'selected' : '' %>>Musserende vin</option>
+                <option value="perlende" <%= category === 'perlende' ? 'selected' : '' %>>Perlende vin</option>
+                <option value="rosévin" <%= category === 'rosévin' ? 'selected' : '' %>>Rosévin</option>
+                <option value="rødvin" <%= category === 'rødvin' ? 'selected' : '' %>>Rødvin</option>
+                <option value="sake" <%= category === 'sake' ? 'selected' : '' %>>Sake</option>
+                <option value="sider" <%= category === 'sider' ? 'selected' : '' %>>Sider</option>
+                <option value="sterkvin" <%= category === 'sterkvin' ? 'selected' : '' %>>Sterkvin</option>
+                <option value="øl" <%= category === 'øl' ? 'selected' : '' %>>Øl</option>
+            </select>
+        </div>
 
         <% if (favourites || taxfree) { %>
         <input type="hidden" id="stores-search-vinmonopolet" name="storelike" value="">
@@ -48,9 +50,11 @@
         <% } %>
 
         <% if (taxfree) { %>
-        <select name="store-taxfree" id="stores-taxfree" onchange="applyFilters(true, false)">
-            <!-- Options will be dynamically populated by `public/scripts/stores.js`. -->
-        </select>
+        <div>
+            <select name="store-taxfree" id="stores-taxfree" onchange="applyFilters(true, false)">
+                <!-- Options will be dynamically populated by `public/scripts/stores.js`. -->
+            </select>
+        </div>
         <% } else { %>
         <input type="hidden" name="store-taxfree" id="stores-taxfree" value="">
         <% } %>
@@ -67,14 +71,18 @@
         <% if (favourites || taxfree) { %>
         <input type="hidden" name="store-vinmonopolet" id="stores-vinmonopolet" value="">
         <% } else { %>
-        <select name="store-vinmonopolet" id="stores-vinmonopolet" onchange="applyFilters(true, false)">
-            <!-- Options will be dynamically populated by `public/scripts/stores.js`. -->
-        </select>
+        <div>
+            <select name="store-vinmonopolet" id="stores-vinmonopolet" onchange="applyFilters(true, false)">
+                <!-- Options will be dynamically populated by `public/scripts/stores.js`. -->
+            </select>
+        </div>
         <% } %>
 
-        <select name="country" id="country" onchange="applyFilters(true, false)">
-        <!-- Options will be dynamically populated by `public/scripts/countries.js`. -->
-        </select>
+        <div>
+            <select name="country" id="country" onchange="applyFilters(true, false)">
+            <!-- Options will be dynamically populated by `public/scripts/countries.js`. -->
+            </select>
+        </div>
 
         <div>
             <button id="togglePrice"><%= cprice ? 'lik' : 'under' %></button>

@@ -14,7 +14,7 @@
 
     <div>
         <span class="bottle">
-            <img src="<%= item.images.product %>" alt="flaske">
+            <!--<img src="<%= item.images.product %>" alt="flaske">-->
             <p>
                 <b><%= (item.volume % 1 === 0) ? item.volume.toFixed(0) : item.volume.toFixed(1) %></b> cL
             </p>
@@ -41,7 +41,7 @@
                     <i><%= item.subcategory %></i>
                 <% } %>
                 <p>•</p>
-                <p><%= item.alcohol %> % alk.</p>
+                <p><%= item.alcohol %>% alk.</p>
             </span>
 
             <span>
@@ -112,9 +112,11 @@
 
             <div>
                 <% if (taxfree) { %>
-                    <span><a href="<%= item.url %>" target="_blank">VINMONOPOLET</a> <b><%= Math.ceil(item.price) %></b></span>
                     <span><a href="<%= item.taxfree.url %>" target="_blank">TAX-FREE</a> <b><%= Math.ceil(item.taxfree.price) %></b></span>
+                    <span class="slim"><a href="<%= item.url %>" target="_blank">POLET</a> <b><%= Math.ceil(item.price) %></b></span>
+                    <span class="wide"><a href="<%= item.url %>" target="_blank">VINMONOPOLET</a> <b><%= Math.ceil(item.price) %></b></span>
                     <span>DIFFERANSE <b><%= Math.floor(item.taxfree.discount) %>%</b></span>
+                    <span class="wide">KR/L <b><%= Math.ceil(item.literprice) %></b></span>
                 <% } else { %>
                     <span>KR <b><%= Math.ceil(item.price) %></b></span>
 
@@ -122,10 +124,10 @@
                         <span>FØR <b><%= Math.ceil(item.oldprice) %></b></span>
                         <span>ENDRING <b><%= Math.floor(item.discount) %>%</b></span>
                     <% } %>
+
+                    <span>KR/L <b><%= Math.ceil(item.literprice) %></b></span>
                 <% } %>
 
-                <span>LITERPRIS <b><%= Math.ceil(item.literprice) %></b></span>
-                <span>ALKOHOL <b><%= item.alcohol %>%</b></span>
             </div>
         </span>
     </div>

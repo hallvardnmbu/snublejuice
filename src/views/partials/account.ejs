@@ -5,7 +5,7 @@
         <button onclick="toggleView('registerForm')">Registrer</button>
     <% } else { %>
         <span>Velkommen tilbake&nbsp;</span>
-        <button onclick="toggleView('account')"><%= user.username %></button>
+        <button onclick="toggleView('profile')"><%= user.username %></button>
         <% if (landing) { %>
             <span>!</span>
         <% } else { %>
@@ -20,16 +20,10 @@
     <% } %>
 </menu>
 
-<menu id="account" style="display: none;">
-<% if (user) { %>
-    <button onclick="toggleView('profile')">Innstillinger</button>
-    <button onclick="logout()">Logg ut</button>
-<% } %>
-</menu>
-
 <menu id="profile" style="display: none;">
     <button onclick="toggleView('notifyUserForm')">Varslinger</button>
     <button onclick="toggleView('deleteUserForm')">Slett meg</button>
+    <button onclick="logout()">Logg ut</button>
 </menu>
 
 <form id="loginForm" style="display: none;">

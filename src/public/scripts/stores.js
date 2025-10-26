@@ -58,7 +58,7 @@ function populateStores(stores, subdomain) {
 
 // Function to display a message if a store other than "null" is selected
 function displayMessage(active = false) {
-  const messageElement = document.getElementById("message-stores");
+  const messageElement = document.getElementById("messageStock");
   if (!messageElement) return;
   messageElement.style.display = active ? "block" : "none";
 }

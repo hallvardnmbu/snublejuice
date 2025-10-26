@@ -1,36 +1,43 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="nb">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="stylesheet" href="./stylesheet.css" />
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./stylesheet.css" />
 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.7/axios.min.js"></script>
-        <script type="module" src="scripts/graph.js"></script>
-        <script src="scripts/stores.js"></script>
-        <script src="scripts/countries.js"></script>
+    <title>Snublejuice</title>
+    <meta name="theme-color" content="#fcfbf9" />
+    <link rel="manifest" href="/manifest.json?" />
+    <link rel="icon" type="image/png" href="./images/150x150.png" />
+    <link rel="apple-touch-icon" href="./images/320x320.png" />
 
-        <title>Snublejuice</title>
-        <meta name="theme-color" content="#ffffff" />
-        <link rel="manifest" href="/manifest.json?" />
-        <link rel="icon" type="image/png" href="./images/64x64.png" />
-        <link rel="apple-touch-icon" href="./images/64x64.png" />
+    <meta property="og:image" content="./images/web.png" />
+    <meta property="og:title" content="Snublejuice.no" />
+    <meta property="og:description" content="Vinmonopolets prisendring, prishistorikk og sammenlikning med tax-free." />
+    <meta name="description" content="Vinmonopolets prisendring, prishistorikk og sammenlikning med tax-free." />
 
-        <meta property="og:image" content="./images/web.png" />
-        <meta property="og:title" content="Snublejuice.no" />
-        <meta property="og:description" content="Vinmonopolets prisendring, prishistorikk og sammenlikning med tax-free." />
-        <meta name="description" content="Vinmonopolets prisendring, prishistorikk og sammenlikning med tax-free." />
+    <meta name="keywords" content="Vinmonopolet priser, Tax free priser, Vinmonopolet tilbud, Tax free alkohol, Prissammenligning alkohol, Duty free Norge, Vinmonopolet prishistorikk, Vinmonopolet prisendring, Duty free Gardermoen, Tax free Gardermoen, Vinmonopolet vs tax free, Alkohol tax free, Vin tax free, Øl tax free, Sprit tax free, Vinmonopolet åpningstider, Vinmonopolet nettbutikk, Vinmonopolet prisliste, Duty free kvote, Tax free kvote, Vinmonopolet sortiment, Billig alkohol Norge, Alkoholpriser Norge, Vinmonopolet vs duty free priser, Tax free tilbud, Duty free tilbud, Vinmonopolet beste kjøp, Rødvin priser, Hvitvin priser, Sprit priser, Øl priser, Champagne priser, Whisky priser, Gin priser, Vodka priser, Cognac priser, Rosévin priser, Musserende vin priser, Portvin priser, Brennevin priser, Akevitt priser, Tax free calculator, Duty free calculator, Vinmonopolet vs Heinemann, Color Line tax free, Stena Line tax free, DFDS tax free, Viking Line tax free, Flyplassbutikk alkohol, Taxfreebutikk Norge, Vinmonopolet bestselgere, Duty free bestselgere, Alkohol prisguide, Tax free guide Norge, Vinmonopolet prisgaranti, Duty free shopping Norge, Hvor mye sparer jeg på tax free, Tax free kalkulator Norge, Vinmonopolet vs tax free priser, Billigste alkohol Norge, Alkohol prissammenligning, Duty free allowance Norway, Vinmonopolet prissøk, Tax free prissøk, Duty free Torp, Tax free Flesland, Tax free Værnes, Tax free Sola, Fergeterminal tax free, Cruise tax free shopping, Billig vin Norge, Billig øl Norge, Billig sprit Norge, Vinmonopolet netthandel, Polet priser, Polpriser, Duty free åpningstider, Travel retail Norge, Heinemann Norge priser, Heinemann vs Vinmonopolet, Alkoholkvoter Norge, Import av alkohol Norge, Vinmonopolet prisjakt, Duty free prisjakt, Tax free shopping tips, Beste tax free tilbud, Vinmonopolet pristips, Spritpriser Norge, Vinpriser Norge, Ølpriser Norge, Rimelig alkohol Norge, Alkohol tilbud Norge, Vinmonopolet rabatt, Duty free rabatt, Tax free savings calculator, Vinmonopolet price tracker, Polet vs tax free, Billigste vinmonopol, Vinmonopolet kampanjer, Duty free kampanjer, Tax free deals Norway, Alkohol price comparison Norway, Vinmonopolet price comparison, Duty free price comparison, Vinmonopolet produktsøk, Tax free produktsøk, Vinmonopolet varesøk, Duty free varesøk, Alkohol shopping guide Norge, Beste kjøp Vinmonopolet, Beste kjøp tax free, Vinmonopolet vs utlandet priser, Norske alkoholpriser, Skandinaviske alkoholpriser, Tax free shopping Norge guide, Vinmonopolet kundeservice, Tax free kundeservice, Vinmonopolet leveringstid, Vinmonopolet bestilling, Duty free forhåndsbestilling, Tax free pre-order, Vinmonopolet nyheter, Tax free nyheter, Vinmonopolet prisendringer, Sesongvarer Vinmonopolet, Julevin Vinmonopolet, Tax free juletilbud, Påsketilbud Vinmonopolet, Sommertilbud tax free, Vinmonopolet gavepakker, Tax free gaver, Eksklusive varer tax free, Vinmonopolet luksusvarer, Travel retail exclusive, Limited edition tax free, Vinmonopolet spesialutvalg"/>
+</head>
 
-        <meta name="keywords" content="Vinmonopolet priser, Tax free priser, Vinmonopolet tilbud, Tax free alkohol, Prissammenligning alkohol, Duty free Norge, Vinmonopolet prishistorikk, Vinmonopolet prisendring, Duty free Gardermoen, Tax free Gardermoen, Vinmonopolet vs tax free, Alkohol tax free, Vin tax free, Øl tax free, Sprit tax free, Vinmonopolet åpningstider, Vinmonopolet nettbutikk, Vinmonopolet prisliste, Duty free kvote, Tax free kvote, Vinmonopolet sortiment, Billig alkohol Norge, Alkoholpriser Norge, Vinmonopolet vs duty free priser, Tax free tilbud, Duty free tilbud, Vinmonopolet beste kjøp, Rødvin priser, Hvitvin priser, Sprit priser, Øl priser, Champagne priser, Whisky priser, Gin priser, Vodka priser, Cognac priser, Rosévin priser, Musserende vin priser, Portvin priser, Brennevin priser, Akevitt priser, Tax free calculator, Duty free calculator, Vinmonopolet vs Heinemann, Color Line tax free, Stena Line tax free, DFDS tax free, Viking Line tax free, Flyplassbutikk alkohol, Taxfreebutikk Norge, Vinmonopolet bestselgere, Duty free bestselgere, Alkohol prisguide, Tax free guide Norge, Vinmonopolet prisgaranti, Duty free shopping Norge, Hvor mye sparer jeg på tax free, Tax free kalkulator Norge, Vinmonopolet vs tax free priser, Billigste alkohol Norge, Alkohol prissammenligning, Duty free allowance Norway, Vinmonopolet prissøk, Tax free prissøk, Duty free Torp, Tax free Flesland, Tax free Værnes, Tax free Sola, Fergeterminal tax free, Cruise tax free shopping, Billig vin Norge, Billig øl Norge, Billig sprit Norge, Vinmonopolet netthandel, Polet priser, Polpriser, Duty free åpningstider, Travel retail Norge, Heinemann Norge priser, Heinemann vs Vinmonopolet, Alkoholkvoter Norge, Import av alkohol Norge, Vinmonopolet prisjakt, Duty free prisjakt, Tax free shopping tips, Beste tax free tilbud, Vinmonopolet pristips, Spritpriser Norge, Vinpriser Norge, Ølpriser Norge, Rimelig alkohol Norge, Alkohol tilbud Norge, Vinmonopolet rabatt, Duty free rabatt, Tax free savings calculator, Vinmonopolet price tracker, Polet vs tax free, Billigste vinmonopol, Vinmonopolet kampanjer, Duty free kampanjer, Tax free deals Norway, Alkohol price comparison Norway, Vinmonopolet price comparison, Duty free price comparison, Vinmonopolet produktsøk, Tax free produktsøk, Vinmonopolet varesøk, Duty free varesøk, Alkohol shopping guide Norge, Beste kjøp Vinmonopolet, Beste kjøp tax free, Vinmonopolet vs utlandet priser, Norske alkoholpriser, Skandinaviske alkoholpriser, Tax free shopping Norge guide, Vinmonopolet kundeservice, Tax free kundeservice, Vinmonopolet leveringstid, Vinmonopolet bestilling, Duty free forhåndsbestilling, Tax free pre-order, Vinmonopolet nyheter, Tax free nyheter, Vinmonopolet prisendringer, Sesongvarer Vinmonopolet, Julevin Vinmonopolet, Tax free juletilbud, Påsketilbud Vinmonopolet, Sommertilbud tax free, Vinmonopolet gavepakker, Tax free gaver, Eksklusive varer tax free, Vinmonopolet luksusvarer, Travel retail exclusive, Limited edition tax free, Vinmonopolet spesialutvalg"/>
-    </head>
+<body>
+    <header>
+        <%- include('partials/account', { favourites: false, landing: true }) %>
+    </header>
 
-    <body>
-        <span class="message"><%= message %> Kom tilbake senere.</span>
-
-        <div style="display: flex; justify-content: center; margin-top: var(--margin);">
-          <img src="images/snublejuice.jpg" alt="Snublejuice.no" style="width: 70%;">
+    <main>
+        <div class="message">
+            <span><%= message %> Kom tilbake senere.</span>
         </div>
 
+
+        <div style="display: flex; justify-content: center; margin-top: var(--margin);">
+            <img src="images/snublejuice.png" alt="Snublejuice.no" style="width: 70%;">
+        </div>
+    </main>
+
+    <footer>
         <%- include('partials/footer', { landing: true }) %>
-    </body>
+    </footer>
+</body>
 </html>

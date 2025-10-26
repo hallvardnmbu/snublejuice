@@ -43,6 +43,7 @@ export const authenticate = async (context) => {
     context.user = {
       username: user.username,
       email: user.email,
+      notify: user.notify,
     };
   } catch (error) {
     context.user = null;

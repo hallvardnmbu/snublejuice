@@ -79,6 +79,7 @@ const app = new Elysia()
       ? {
           username: authenticatedUser.username,
           email: authenticatedUser.email,
+          notify: authenticatedUser.notify,
           favourites:
             (
               await appCollections.users.findOne(
@@ -118,7 +119,6 @@ const app = new Elysia()
         : sort === "rating"
           ? "rating.value"
           : sort;
-    const delta = parseInt(query.delta) || 1;
     const ascending = !(query.ascending === "false");
 
     const category = query.category || null;
@@ -126,19 +126,19 @@ const app = new Elysia()
 
     const price = {
       value: parseFloat(query.price) || null,
-      exact: query.cprice === "on",
+      exact: query.cprice === "true",
     };
     const volume = {
       value: parseFloat(query.volume) || null,
-      exact: query.cvolume === "on",
+      exact: query.cvolume === "true",
     };
     const alcohol = {
       value: parseFloat(query.alcohol) || null,
-      exact: query.calcohol === "on",
+      exact: query.calcohol === "true",
     };
     const year = {
       value: parseInt(query.year) || null,
-      exact: query.cyear === "on",
+      exact: query.cyear === "true",
     };
 
     const search = query.search?.trim() || null;
@@ -167,7 +167,6 @@ const app = new Elysia()
         meta,
         subdomain,
         favourites: favourites && user ? user.favourites || [] : null,
-        delta: delta,
         category: categories[category],
         country: country === "Alle land" ? null : country,
         nonalcoholic: false,
@@ -192,12 +191,9 @@ const app = new Elysia()
         user: user,
         favourites: favourites,
         message:
-          delta > 1 && sort === "discount"
-            ? "Sortering etter prisendring er ikke mulig når sammenlikning ikke er forrige måneds pris."
-            : subdomain === "taxfree"
-              ? "OBS: Det hender at sammenlikninger er ukorrekte. Det anbefales derfor alltid å dobbeltsjekke at produktene stemmer overens hos både vinmonopolet og tax-free ved å gå inn på lenkene deres. Beklager ulempen."
-              : null,
-        delta: delta,
+          subdomain === "taxfree"
+            ? "N.b.: Det hender at sammenlikninger er ukorrekte. Dette anbefales derfor å dobbeltsjekke før kjøp via lenkene til vinmonopolet og tax-free."
+            : null,
         data: data,
         page: page,
         totalPages: total,

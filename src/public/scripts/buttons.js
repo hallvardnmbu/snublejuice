@@ -16,15 +16,30 @@ function changePage(newPage) {
   applyFilters(false, false);
 }
 
-// Toggle sort order.
-document.getElementById("sortButton").onclick = function (event) {
-  event.preventDefault();
+function toggleHandler(name) {
+  return function (event) {
+    event.preventDefault();
 
-  const ascendingInput = document.querySelector('input[name="ascending"]');
-  ascendingInput.value = ascendingInput.value === "true" ? "false" : "true";
+    const inputElement = document.querySelector(`input[name="${name}"]`);
 
-  applyFilters(false, false);
-};
+    console.log(inputElement.value);
+    inputElement.value = inputElement.value === "true" ? "false" : "true";
+
+    applyFilters(true, false);
+  };
+}
+
+const toggles = [
+  { buttonId: "toggleSort", inputName: "ascending" },
+  { buttonId: "togglePrice", inputName: "cprice" },
+  { buttonId: "toggleVolume", inputName: "cvolume" },
+  { buttonId: "toggleAlcohol", inputName: "calcohol" },
+  { buttonId: "toggleYear", inputName: "cyear" },
+];
+toggles.forEach((toggle) => {
+  const button = document.getElementById(toggle.buttonId);
+  button.onclick = toggleHandler(toggle.inputName);
+});
 
 // Reset the page.
 document.getElementById("clearFilters").onclick = function (event) {
@@ -46,7 +61,7 @@ document.getElementById("toggleAdvanced").onclick = function (event) {
 
   // Set the button text based on visibility.
   document.getElementById("toggleAdvanced").innerHTML =
-    section.style.display === "flex" ? "Skjul valg" : "Flere valg";
+    section.style.display === "flex" ? "Færre" : "Flere";
 
   // Save the visibility state to session storage.
   sessionStorage.setItem("advanced", section.style.display === "flex");
@@ -58,34 +73,21 @@ document.addEventListener("DOMContentLoaded", function () {
   const isVisible = sessionStorage.getItem("advanced") === "true";
   element.style.display = isVisible ? "flex" : "none";
   document.getElementById("toggleAdvanced").innerHTML = isVisible
-    ? "Skjul valg"
-    : "Flere valg";
+    ? "Færre"
+    : "Flere";
 });
 
 // Price, volume, alcohol and search change.
 document.getElementById("price").addEventListener("change", function () {
   applyFilters(true, false);
 });
-document.getElementById("cprice").addEventListener("change", function () {
-  applyFilters(true, false);
-});
 document.getElementById("volume").addEventListener("change", function () {
-  applyFilters(true, false);
-});
-document.getElementById("cvolume").addEventListener("change", function () {
   applyFilters(true, false);
 });
 document.getElementById("alcohol").addEventListener("change", function () {
   applyFilters(true, false);
 });
-document.getElementById("calcohol").addEventListener("change", function () {
-  applyFilters(true, false);
-});
 document.getElementById("year").addEventListener("change", function () {
-  applyFilters(true, false);
-});
-document.getElementById("cyear").addEventListener("change", function () {
-  console.log("Here!");
   applyFilters(true, false);
 });
 document.getElementById("nsearch").addEventListener("change", function () {
@@ -96,13 +98,10 @@ document
   .addEventListener("change", function () {
     applyFilters(true, false);
   });
-document.getElementById("delta").addEventListener("change", function () {
-  applyFilters(true, false);
-});
 
 // Toggle favourite.
-document.querySelectorAll(".favourite-toggle").forEach((img) => {
-  img.addEventListener("click", async function (event) {
+document.querySelectorAll(".favourite-toggle").forEach((star) => {
+  star.addEventListener("click", async function (event) {
     event.stopPropagation();
 
     // Send POST request to server.
@@ -116,88 +115,29 @@ document.querySelectorAll(".favourite-toggle").forEach((img) => {
       body: JSON.stringify({ index: index }),
     });
 
-    // Toggle image.
-    this.src = this.src.includes("favourite-filled.png")
-      ? "./images/favourite.png"
-      : "./images/favourite-filled.png";
+    // Toggle star.
+    this.innerText = this.innerText === "☆" ? "★" : "☆";
   });
 
   // Hover events
-  img.addEventListener("mouseenter", function () {
-    this.src = this.src.includes("favourite-filled.png")
-      ? "./images/favourite.png"
-      : "./images/favourite-filled.png";
+  star.addEventListener("mouseenter", function () {
+    this.innerText = this.innerText === "☆" ? "★" : "☆";
   });
-  img.addEventListener("mouseleave", function () {
-    this.src = this.src.includes("favourite-filled.png")
-      ? "./images/favourite.png"
-      : "./images/favourite-filled.png";
+  star.addEventListener("mouseleave", function () {
+    this.innerText = this.innerText === "☆" ? "★" : "☆";
   });
 });
 
-function changeModal(currentModal, newModal, event) {
-  event.stopPropagation();
-
-  document.getElementById(currentModal).style.display = "none";
-  document.getElementById(newModal).style.display = "block";
-
-  graphPrice(newModal);
-}
-
 document.addEventListener("DOMContentLoaded", function () {
-  // Open modal when section is clicked
-  const productSections = document.querySelectorAll(".product");
-  productSections.forEach((section) => {
-    section.addEventListener("click", function () {
+  // Detailed view.
+  const expands = document.querySelectorAll(".expand");
+  expands.forEach((expand) => {
+    expand.addEventListener("click", function () {
       const itemIndex = this.getAttribute("index");
-      const modal = document.getElementById(itemIndex);
-
-      // Prevent modal from opening if it's already open (to avoid graphing etc.)
-      if (modal.style.display === "block") {
-        return;
-      }
-      modal.style.display = "block";
-
-      // Graph the price history
-      graphPrice(itemIndex);
+      const aside = document.getElementById(itemIndex).querySelector("aside");
+      aside.style.display = aside.style.display === "block" ? "none" : "block";
+      expand.innerText =
+        aside.style.display === "block" ? "OK, gjem det." : "Vis meg mere!";
     });
-  });
-
-  // Close modal when the 'x' is clicked
-  const closeModalButtons = document.querySelectorAll(".close");
-  closeModalButtons.forEach((button) => {
-    button.addEventListener("click", function (event) {
-      event.stopPropagation(); // Prevent bubbling to avoid modal reopening
-      const itemIndex = this.getAttribute("index");
-      const modal = document.getElementById(itemIndex);
-      modal.style.display = "none";
-    });
-  });
-
-  // Close modal when clicking outside of the modal content
-  window.onclick = function (event) {
-    const modals = document.querySelectorAll(".modal");
-    modals.forEach((modal) => {
-      if (event.target === modal) {
-        modal.style.display = "none";
-      }
-    });
-  };
-
-  // Close modal when ESC key is pressed
-  document.addEventListener("keydown", function (event) {
-    if (
-      event.key === "Escape" ||
-      event.key === "Esc" ||
-      event.key === "Enter" ||
-      event.key === "Return"
-    ) {
-      const modals = document.querySelectorAll(".modal");
-      modals.forEach((modal) => {
-        if (modal.style.display === "block") {
-          modal.style.display = "none";
-        }
-      });
-    }
   });
 });

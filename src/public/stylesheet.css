@@ -1,21 +1,32 @@
+@font-face {
+  font-family: "Syne Mono";
+  font-style: normal;
+  font-weight: normal;
+  src: url("fonts/SyneMono-Regular.ttf") format("truetype");
+}
+
 :root {
   --fontsize: 12px;
   --margin: 4px;
   --padding: 10px;
   --image: 100px;
 
-  --gray: #cccccc;
-  --foreground: #eeeeee;
-  --faint: #fafafa;
+  --white: white;
+  --black: #333333;
 
-  --text: black;
-  --clickable: blue;
-  --hover: purple;
+  --text: var(--black);
+  --clickable: black;
+  --hover: blue;
 
+  --background: #fcfbf9;
+  --foreground: #faf7f3;
+  --star: var(--foreground);
+
+  --line: 20%;
+  --marker: 60%;
   --negative: 100, 0, 0;
   --positive: 0, 100, 0;
   --neutral: 100, 100, 100;
-
   --color: var(--neutral);
 }
 
@@ -35,7 +46,7 @@ main {
   width: 100%;
 }
 body {
-  background: white;
+  background: var(--background);
 
   /* Sutract to avoid footer overflow. */
   min-height: calc(100% - var(--padding));
@@ -44,7 +55,7 @@ body {
   margin: var(--padding);
 
   color: var(--text);
-  font-family: monospace;
+  font-family: "Syne Mono", monospace;
   font-size: var(--fontsize);
 }
 footer {
@@ -119,6 +130,7 @@ nav ol li a {
 }
 #menu {
   gap: 0;
+  flex-wrap: wrap;
 }
 menu {
   align-items: center;
@@ -129,6 +141,9 @@ header form {
 }
 
 img {
+  max-width: 100%;
+}
+img:not(.bottle *) {
   max-width: calc(var(--image) - 4 * var(--padding));
 }
 
@@ -148,13 +163,14 @@ form search div {
 }
 form:not(header *) input,
 form:not(header *) select {
-  font-family: monospace;
+  font-family: inherit;
   font-size: var(--fontsize);
   font-weight: bold;
   color: var(--text);
 
   background-color: transparent;
   appearance: none;
+  -webkit-appearance: none;
   border-radius: 0;
   padding: 0;
   border: none;
@@ -165,10 +181,26 @@ form:not(header *) search div input {
 }
 select {
   width: 100%;
-  padding-right: calc(var(--padding) * 2);
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10"><polygon points="0,0 10,0 5,5" fill="rgb(0, 0, 0)"/></svg>');
-  background-repeat: no-repeat;
-  background-position: right calc(var(--padding) / 2) bottom;
+}
+search div:has(select) {
+  position: relative;
+}
+search div:has(select)::after {
+  content: "";
+  position: absolute;
+  right: calc(var(--padding) / 2);
+  transform: translateY(50%);
+
+  width: var(--padding);
+  height: var(--padding);
+
+  background-color: var(--text);
+
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpolygon points='0,0 10,0 5,5' fill='black'/%3E%3C/svg%3E");
+  mask-repeat: no-repeat;
+  mask-position: center;
+
+  pointer-events: none;
 }
 
 .message {
@@ -194,8 +226,18 @@ section {
   width: calc(100% - 2 * var(--padding));
   max-width: calc(10 * var(--image));
 }
+section:not(:first-of-type) {
+  margin-top: calc(3 * var(--padding));
+}
 .product {
-  border: var(--margin) solid rgba(var(--color), 0.2);
+  color: var(--black);
+  background: var(--white);
+  border: var(--margin) solid
+    color-mix(
+      in srgb,
+      rgb(var(--color)) var(--line),
+      white calc(100% - var(--line))
+    );
   border-bottom: none;
 }
 section > div {
@@ -207,6 +249,11 @@ section > div > span {
   flex-direction: column;
   gap: var(--margin);
   width: 100%;
+}
+section > div > .bottle {
+  align-items: center;
+  justify-content: end;
+  width: calc(var(--image) + 2 * var(--padding));
 }
 section > div > span:not(.bottle) {
   padding: var(--padding);
@@ -230,11 +277,6 @@ section .favourite-toggle {
 }
 section div p {
   margin: 0;
-}
-section .bottle,
-section img {
-  max-width: var(--image);
-  align-items: center;
 }
 section div span div:has(canvas) {
   position: relative;
@@ -260,21 +302,34 @@ section div span div:last-of-type {
   background: linear-gradient(
     90deg,
     currentColor var(--fill),
-    var(--gray) var(--fill)
+    var(--star) var(--fill)
   );
 
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+.slim {
+  display: none;
+}
 
 aside {
   display: none;
-  border-bottom: var(--margin) solid rgba(var(--color), 0.2);
+  background: var(--background);
+  border-bottom: var(--margin) solid
+    color-mix(
+      in srgb,
+      rgb(var(--color)) var(--line),
+      white calc(100% - var(--line))
+    );
 }
 aside hr {
   height: var(--margin);
-  background-color: rgba(var(--color), 0.2);
+  background-color: color-mix(
+    in srgb,
+    rgb(var(--color)) var(--line),
+    white calc(100% - var(--line))
+  );
   border: none;
   margin: 0;
 }
@@ -286,25 +341,23 @@ aside table tbody {
 }
 
 .expand {
-  background-color: rgba(var(--color), 0.2);
-  padding-left: calc(var(--padding) + var(--image));
-}
+  display: flex;
+  justify-content: center;
+  padding: var(--margin);
 
-.slim {
-  display: none;
-}
-@media (max-width: 310px) {
-  .slim {
-    display: block;
-  }
-  .wide {
-    display: none;
-  }
-  nav menu {
-    flex-direction: column-reverse;
-    align-items: center;
-    gap: var(--padding) 0;
-  }
+  background: var(--background);
+  border-top: var(--margin) solid
+    color-mix(
+      in srgb,
+      rgb(var(--color)) var(--line),
+      white calc(100% - var(--line))
+    );
+  border-bottom: var(--margin) solid
+    color-mix(
+      in srgb,
+      rgb(var(--color)) var(--line),
+      white calc(100% - var(--line))
+    );
 }
 
 input[type="number"]::-webkit-outer-spin-button,
@@ -322,8 +375,10 @@ input[type="search"]::-webkit-search-results-decoration {
   -webkit-appearance: none;
 }
 
+table {
+  color: var(--text);
+}
 .key-val {
-  line-height: var(--padding);
   align-items: center;
 
   border-collapse: separate;
@@ -333,17 +388,16 @@ input[type="search"]::-webkit-search-results-decoration {
   position: relative;
 }
 .key {
-  color: var(--text);
   white-space: nowrap;
   vertical-align: top;
 }
 .val {
   position: relative;
-  padding-left: calc(0.5 * var(--padding));
   width: 100%;
+  padding-left: calc(0.5 * var(--padding));
 
-  color: var(--text);
   background-color: var(--foreground);
+  word-break: break-word;
 }
 .val::before {
   content: "";
@@ -352,40 +406,125 @@ input[type="search"]::-webkit-search-results-decoration {
   left: calc(-1 * var(--padding));
   width: var(--padding);
   height: 100%;
-  background: rgba(var(--color), 0.2);
+  background: color-mix(
+    in srgb,
+    rgb(var(--color)) var(--line),
+    white calc(100% - var(--line))
+  );
 }
 .fractions {
   border-collapse: separate;
   border-spacing: 0 calc(0.5 * var(--padding));
 }
 .fractions tr .label {
-  min-width: calc(1.5 * var(--image));
+  padding-right: var(--padding);
+  word-wrap: normal;
+  max-width: calc(1.5 * var(--image));
 }
 .fractions tr .value {
-  width: 100%;
   background: linear-gradient(
     to right,
-    rgba(var(--color), 0.2) 0
-      calc(var(--value) * 100% / var(--total) - var(--padding)),
-    rgba(var(--color), 0.6) 0
-      calc(var(--value) * 100% / var(--total) - var(--padding)),
-    rgba(var(--color), 0.6) 0 calc(var(--value) * 100% / var(--total)),
-    var(--foreground) calc(var(--value) * 100% / var(--total)) 100%
+    color-mix(
+        in srgb,
+        rgb(var(--color)) var(--line),
+        white calc(100% - var(--line))
+      )
+      0 calc((var(--value) / var(--total)) * 100% - var(--padding)),
+    color-mix(
+        in srgb,
+        rgb(var(--color)) var(--marker),
+        white calc(100% - var(--marker))
+      )
+      0 calc((var(--value) / var(--total)) * 100% - var(--padding)),
+    color-mix(
+        in srgb,
+        rgb(var(--color)) var(--marker),
+        white calc(100% - var(--marker))
+      )
+      0 calc(var(--value) * 100% / var(--total)),
+    var(--foreground) calc((var(--value) / var(--total)) * 100%) 100%
   );
+}
+.fractions tr .percentage {
+  background: linear-gradient(
+    to right,
+    color-mix(
+        in srgb,
+        rgb(var(--color)) var(--line),
+        white calc(100% - var(--line))
+      )
+      calc(var(--percentage) * 1% - var(--padding)),
+    color-mix(
+        in srgb,
+        rgb(var(--color)) var(--marker),
+        white calc(100% - var(--marker))
+      )
+      calc(var(--percentage) * 1% - var(--padding)),
+    color-mix(
+        in srgb,
+        rgb(var(--color)) var(--marker),
+        white calc(100% - var(--marker))
+      )
+      calc(var(--percentage) * 1%),
+    var(--foreground) calc(var(--percentage) * 1%)
+  );
+}
+
+.fractions td:last-of-type {
+  width: 100%;
   background-size: 100% var(--padding);
   background-repeat: no-repeat;
   background-position: center;
 }
-.fractions tr .percentage {
-  width: 100%;
-  background: linear-gradient(
-    to right,
-    rgba(var(--color), 0.2) calc(var(--percentage) * 1% - var(--padding)),
-    rgba(var(--color), 0.6) calc(var(--percentage) * 1% - var(--padding)),
-    rgba(var(--color), 0.6) calc(var(--percentage) * 1%),
-    var(--foreground) calc(var(--percentage) * 1%)
-  );
-  background-size: 100% var(--padding);
-  background-repeat: no-repeat;
-  background-position: center;
+
+@media (max-width: 450px) {
+  :root {
+    --fontsize: 11px;
+    --padding: 6px;
+
+    --aside: var(--white);
+    --aside-text: var(--text);
+  }
+
+  .wide {
+    display: none;
+  }
+  .slim {
+    display: block;
+  }
+
+  main form {
+    max-width: none;
+  }
+  #menu {
+    gap: var(--padding) 0;
+  }
+
+  section:not(:first-of-type) {
+    margin-top: calc(4 * var(--padding));
+  }
+  .product {
+    width: calc(100% + 2 * var(--padding));
+    max-width: unset;
+
+    border-right: unset;
+    border-left: unset;
+  }
+  .favourite-toggle {
+    margin-right: var(--padding);
+  }
+  section div span div:has(canvas) {
+    height: var(--image);
+  }
+
+  aside {
+    background: var(--aside);
+  }
+  table {
+    color: var(--aside-text);
+  }
+  .val {
+    color: var(--text);
+    background-color: var(--background);
+  }
 }

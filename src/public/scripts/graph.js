@@ -17,15 +17,31 @@ function getCanvasData(index) {
   dates.push("nå");
 
   const section = document.getElementById(index);
-  const color = getComputedStyle(section).getPropertyValue("--color").trim();
-  const colors = { marker: `rgba(${color}, 0.6)`, line: `rgba(${color}, 0.2)` };
 
-  return { canvas, prices, dates, colors };
+  const color = getComputedStyle(section).getPropertyValue("--color").trim();
+  const line = getComputedStyle(section).getPropertyValue("--line").trim();
+  const marker = getComputedStyle(section).getPropertyValue("--marker").trim();
+  const colors = {
+    line: `rgba(${color}, ${line})`,
+    marker: `rgba(${color}, ${marker})`,
+  };
+
+  const textColor = getComputedStyle(section).getPropertyValue("color").trim();
+  const font = getComputedStyle(section).getPropertyValue("font-family").trim();
+  const fontSize = getComputedStyle(section)
+    .getPropertyValue("font-size")
+    .trim();
+  const text = {
+    color: textColor,
+    font: font,
+    size: fontSize,
+  };
+
+  return { canvas, prices, dates, colors, text };
 }
 
-function setupCanvas(canvas) {
+function setupCanvas(dpr, canvas, maxPrice, text) {
   const parent = canvas.parentElement;
-  const dpr = window.devicePixelRatio || 1;
 
   // Get the parent's dimensions
   const rect = parent.getBoundingClientRect();
@@ -40,12 +56,22 @@ function setupCanvas(canvas) {
   const ctx = canvas.getContext("2d");
   ctx.scale(dpr, dpr);
 
-  return ctx;
+  const size = {
+    line: dpr > 1 ? 6 : 10,
+    width: width,
+    height: height,
+    top: 5,
+    right: 10,
+    bottom: 20,
+    left: new String(maxPrice).length * parseInt(text.size.replace("px", "")),
+  };
+
+  return { ctx, size };
 }
 
-function getScales(prices, canvas, margin) {
-  const width = canvas.width - margin.left - margin.right;
-  const height = canvas.height - margin.top - margin.bottom;
+function getScales(prices, size) {
+  const width = size.width - size.left - size.right;
+  const height = size.height - size.top - size.bottom;
   const xScale = width / Math.max(prices.length - 1, 1);
   const yMax = Math.max(...prices);
   const yMin = Math.min(...prices);
@@ -53,64 +79,57 @@ function getScales(prices, canvas, margin) {
   return { xScale, yScale, yMin };
 }
 
-function xPos(i, scales, margin) {
-  return i * scales.xScale + margin.left;
+function xPos(i, scales, size) {
+  return i * scales.xScale + size.left;
 }
-function yPos(value, canvas, scales, margin) {
-  return canvas.height - (value - scales.yMin) * scales.yScale - margin.bottom;
+function yPos(value, scales, size) {
+  return size.height - (value - scales.yMin) * scales.yScale - size.bottom;
 }
 
-function drawLine(ctx, canvas, prices, scales, colors, margin) {
+function drawLine(ctx, prices, scales, colors, size) {
   ctx.beginPath();
-  ctx.moveTo(margin.left, yPos(prices[0], canvas, scales, margin));
+  ctx.moveTo(size.left - size.line / 2, yPos(prices[0], scales, size));
   for (let i = 1; i < prices.length; i++) {
+    ctx.lineTo(xPos(i, scales, size), yPos(prices[i - 1], scales, size)); // Horizontally to new X.
     ctx.lineTo(
-      xPos(i, scales, margin),
-      yPos(prices[i - 1], canvas, scales, margin),
-    ); // Horizontally to new X.
-    ctx.lineTo(
-      xPos(i, scales, margin),
-      yPos(prices[i], canvas, scales, margin),
+      xPos(i, scales, size) + (i === prices.length - 1 ? size.line / 2 : 0),
+      yPos(prices[i], scales, size),
     ); // Vertically to new Y.
   }
   ctx.strokeStyle = colors.line;
-  ctx.lineWidth = 10;
+  ctx.lineWidth = size.line;
   ctx.stroke();
 }
 
-function drawMarkers(ctx, canvas, prices, scales, colors, margin) {
+function drawMarkers(ctx, prices, scales, colors, size) {
   for (let i = 0; i < prices.length; i++) {
     ctx.beginPath();
     ctx.rect(
-      xPos(i, scales, margin) - 5,
-      yPos(prices[i], canvas, scales, margin) - 5,
-      10,
-      10,
+      xPos(i, scales, size) - size.line / 2,
+      yPos(prices[i], scales, size) - size.line / 2,
+      size.line,
+      size.line,
     );
     ctx.fillStyle = colors.marker;
     ctx.fill();
   }
 }
 
-function drawAxes(ctx, canvas, dates, prices, scales, margin) {
-  ctx.fillStyle = "black";
-  ctx.font = "12px monospace";
+function drawAxes(ctx, dates, prices, scales, text, size) {
+  ctx.fillStyle = text.color;
+  ctx.font = text.size + " " + text.font;
 
   let maxLabels;
 
   // X labels
   ctx.textAlign = "center";
-  const plotWidth = canvas.width;
+  const plotWidth = size.width;
   const sampleWidth = ctx.measureText(dates[0]).width + 2;
   maxLabels = Math.floor(plotWidth / sampleWidth) - 1;
   const mod = Math.ceil(dates.length / maxLabels);
   dates.forEach((d, i) => {
     if ((i + 1) % mod === 0) {
-      ctx.fillText(
-        d,
-        xPos(i, scales, margin),
-        canvas.height - margin.bottom + 20,
-      );
+      ctx.fillText(d, xPos(i, scales, size), size.height - size.bottom + 20);
     }
   });
 
@@ -121,22 +140,16 @@ function drawAxes(ctx, canvas, dates, prices, scales, margin) {
   for (let i = 0; i <= (maxLabels > 1 ? maxLabels : 0); i++) {
     const v =
       scales.yMin + ((Math.max(...prices) - scales.yMin) * i) / maxLabels;
-    ctx.fillText(
-      v.toFixed(0),
-      margin.left - 10,
-      yPos(v, canvas, scales, margin),
-    );
+    ctx.fillText(v.toFixed(0), size.left - size.line, yPos(v, scales, size));
   }
 }
 
-function setupHover(canvas, prices, dates, scales, colors, margin) {
+function setupHover(dpr, canvas, prices, dates, scales, colors, text, size) {
   const old = canvas.parentElement.querySelector(".hover-layer");
   if (old) old.remove();
 
   const hover = document.createElement("canvas");
   hover.className = "hover-layer";
-
-  const dpr = window.devicePixelRatio || 1;
 
   // Match the main canvas dimensions exactly
   hover.width = canvas.width;
@@ -159,21 +172,21 @@ function setupHover(canvas, prices, dates, scales, colors, margin) {
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    const idx = Math.floor((x - margin.left) / scales.xScale);
+    const idx = Math.floor((x - size.left) / scales.xScale);
 
     hctx.clearRect(0, 0, hover.width, hover.height);
 
     if (idx < 0 || idx >= prices.length) return;
 
-    hctx.fillStyle = "black";
-    hctx.font = "12px monospace";
-    hctx.fillText(`${prices[idx]} kr (${dates[idx]})`, x + 10, y);
+    hctx.fillStyle = text.color;
+    hctx.font = text.size + " " + text.font;
+    hctx.fillText(`${prices[idx]} kr (${dates[idx]})`, x + size.line, y);
 
     hctx.beginPath();
     hctx.moveTo(x, 0);
     hctx.lineTo(x, rect.height);
     hctx.strokeStyle = colors.line;
-    hctx.lineWidth = 10;
+    hctx.lineWidth = size.line;
     hctx.stroke();
   });
 
@@ -183,22 +196,17 @@ function setupHover(canvas, prices, dates, scales, colors, margin) {
 }
 
 function graphPrice(index) {
-  const { canvas, prices, dates, colors } = getCanvasData(index);
-  const ctx = setupCanvas(canvas);
+  const dpr = window.devicePixelRatio || 1;
 
-  const margin = {
-    top: 20,
-    right: 10,
-    bottom: 20,
-    left: Math.max(...prices) > 10000 ? 60 : 40,
-  };
+  const { canvas, prices, dates, colors, text } = getCanvasData(index);
+  const { ctx, size } = setupCanvas(dpr, canvas, Math.max(...prices), text);
 
-  const scales = getScales(prices, canvas, margin);
+  const scales = getScales(prices, size);
 
-  drawLine(ctx, canvas, prices, scales, colors, margin);
-  drawMarkers(ctx, canvas, prices, scales, colors, margin);
-  drawAxes(ctx, canvas, dates, prices, scales, margin);
-  setupHover(canvas, prices, dates, scales, colors, margin);
+  drawLine(ctx, prices, scales, colors, size);
+  drawMarkers(ctx, prices, scales, colors, size);
+  drawAxes(ctx, dates, prices, scales, text, size);
+  setupHover(dpr, canvas, prices, dates, scales, colors, text, size);
 }
 
 function drawGraphs() {

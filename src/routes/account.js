@@ -154,7 +154,7 @@ const accountRouter = new Elysia()
     },
   )
   .post("/logout", ({ cookie, set }) => {
-    cookie.token.remove(getCookieOptions());
+    cookie.token.remove();
     set.status = 200;
     return { ok: true };
   })

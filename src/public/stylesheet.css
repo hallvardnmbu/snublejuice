@@ -281,7 +281,6 @@ section div p {
 section div span div:has(canvas) {
   position: relative;
   height: calc(1.5 * var(--image));
-  margin-top: auto;
 }
 canvas {
   width: 100%;

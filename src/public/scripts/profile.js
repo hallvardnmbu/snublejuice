@@ -1,4 +1,10 @@
-const _MODALS = ["login", "register", "profile", "notifications", "deletion"];
+const _MODALS = [
+  "profile",
+  "loginForm",
+  "registerForm",
+  "notifyUserForm",
+  "deleteUserForm",
+];
 
 function toggleView(modal) {
   // Close all modals except the one that was clicked.
@@ -8,12 +14,33 @@ function toggleView(modal) {
   }
 
   // Close message.
-  const message = document.getElementById("userMessage");
-  message.style.display = "none";
+  const userMessage = document.getElementById("userMessage");
+  userMessage.style.display = "none";
 
   // Open the clicked modal.
   let element = document.getElementById(modal);
-  element.style.display = element.style.display === "block" ? "none" : "block";
+  element.style.display = element.style.display === "flex" ? "none" : "flex";
+}
+
+async function displayUserMessage(response) {
+  const userMessage = document.getElementById("userMessage");
+  userMessage.style.display = "block";
+
+  const data = await response.json();
+  if (response.ok) {
+    userMessage.textContent = data.message;
+    userMessage.style.background = "rgba(var(--positive), 0.2)";
+    userMessage.style.border = "2px solid rgba(var(--positive), 0.6)";
+
+    // Reload the page after a slight delay (time to read the message).
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
+  } else {
+    userMessage.textContent = data.message;
+    userMessage.style.background = "rgba(var(--negative), 0.2)";
+    userMessage.style.border = "2px solid rgba(var(--negative), 0.6)";
+  }
 }
 
 // LOGIN
@@ -36,27 +63,14 @@ document.getElementById("loginForm").onsubmit = async function (event) {
       credentials: "include",
       body: JSON.stringify(formData),
     });
-
-    const data = await response.json();
-    userMessage.style.display = "block";
-    userMessage.style.backgroundColor = response.ok
-      ? "var(--positive)"
-      : "var(--negative)";
-
-    if (response.ok) {
-      userMessage.textContent = data.message;
-
-      // Reload the page after successful login
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
-    } else {
-      userMessage.textContent = data.message;
-    }
+    await displayUserMessage(response);
   } catch (error) {
-    userMessage.style.display = "block";
-    userMessage.style.backgroundColor = "var(--negative)";
-    userMessage.textContent = "Hmm, noe gikk galt...";
+    await displayUserMessage(
+      new Response(JSON.stringify({ message: "Hmm, noe gikk galt..." }), {
+        ok: false,
+        status: 500,
+      }),
+    );
   }
 };
 
@@ -82,27 +96,14 @@ document.getElementById("registerForm").onsubmit = async function (event) {
       },
       body: JSON.stringify(formData),
     });
-
-    const data = await response.json();
-    userMessage.style.display = "block";
-    userMessage.style.backgroundColor = response.ok
-      ? "var(--positive)"
-      : "var(--negative)";
-
-    if (response.ok) {
-      userMessage.textContent = data.message;
-
-      // Reload the page after successful register
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
-    } else {
-      userMessage.textContent = data.message;
-    }
+    await displayUserMessage(response);
   } catch (error) {
-    userMessage.style.display = "block";
-    userMessage.style.backgroundColor = "var(--negative)";
-    userMessage.textContent = "Hmm, noe gikk galt...";
+    await displayUserMessage(
+      new Response(JSON.stringify({ message: "Hmm, noe gikk galt..." }), {
+        ok: false,
+        status: 500,
+      }),
+    );
   }
 };
 
@@ -126,27 +127,14 @@ document.getElementById("notifyUserForm").onsubmit = async function (event) {
       },
       body: JSON.stringify(formData),
     });
-
-    const data = await response.json();
-    userMessage.style.display = "block";
-    userMessage.style.backgroundColor = response.ok
-      ? "var(--positive)"
-      : "var(--negative)";
-
-    if (response.ok) {
-      userMessage.textContent = data.message;
-
-      // Reload the page after successful register.
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
-    } else {
-      userMessage.textContent = data.message;
-    }
+    await displayUserMessage(response);
   } catch (error) {
-    userMessage.style.display = "block";
-    userMessage.style.backgroundColor = "var(--negative)";
-    userMessage.textContent = "Hmm, noe gikk galt...";
+    await displayUserMessage(
+      new Response(JSON.stringify({ message: "Hmm, noe gikk galt..." }), {
+        ok: false,
+        status: 500,
+      }),
+    );
   }
 };
 
@@ -167,27 +155,14 @@ document.getElementById("deleteUserForm").onsubmit = async function (event) {
       },
       body: JSON.stringify(formData),
     });
-
-    const data = await response.json();
-    userMessage.style.display = "block";
-    userMessage.style.backgroundColor = response.ok
-      ? "var(--positive)"
-      : "var(--negative)";
-
-    if (response.ok) {
-      userMessage.textContent = data.message;
-
-      // Reload the page after successful register.
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
-    } else {
-      userMessage.textContent = data.message;
-    }
+    await displayUserMessage(response);
   } catch (error) {
-    userMessage.style.display = "block";
-    userMessage.style.backgroundColor = "var(--negative)";
-    userMessage.textContent = "Hmm, noe gikk galt...";
+    await displayUserMessage(
+      new Response(JSON.stringify({ message: "Hmm, noe gikk galt..." }), {
+        ok: false,
+        status: 500,
+      }),
+    );
   }
 };
 

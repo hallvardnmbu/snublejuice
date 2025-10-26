@@ -1,16 +1,13 @@
-<div class="pagination" id="<%= placement %>">
-  <div onclick="window.location.href='https://snublejuice.no'" style="cursor: pointer;">Snublejuice.no</div>
-  <img src="images/snublejuice.jpg" alt="Snublejuice.no" onclick="window.location.href='https://snublejuice.no'" style="cursor: pointer;">
+<nav aria-label="Pagination">
+    <ol>
+        <% if (page > 1) { %>
+            <li><a href="#" onclick="changePage(<%= page - 1 %>)" aria-label="Previous Page">←</a></li>
+        <% } %>
 
-  <menu>
-    <% if (page > 1) { %>
-        <li><a href="#" onclick="changePage(<%= page - 1 %>)"><-</a></li>
-    <% } %>
+        <li><b><%= page %> av <%= totalPages %></b></li>
 
-    <span><%= page %> av <%= totalPages %></span>
-
-    <% if (page < totalPages) { %>
-        <li><a href="#" onclick="changePage(<%= page + 1 %>)">-></a></li>
-    <% } %>
-  </menu>
-</div>
+        <% if (page < totalPages) { %>
+            <li><a href="#" onclick="changePage(<%= page + 1 %>)" aria-label="Next Page">→</a></li>
+        <% } %>
+    </ol>
+</nav>

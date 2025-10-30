@@ -11,10 +11,7 @@
   --padding: 10px;
   --image: 100px;
 
-  --white: white;
-  --black: #333333;
-
-  --text: var(--black);
+  --text: #333333;
   --clickable: black;
   --hover: blue;
 
@@ -22,13 +19,24 @@
   --foreground: #faf7f3;
   --star: var(--foreground);
 
-  /*--line: 20%;*/
   --line: 10%;
-  --marker: 60%;
   --negative: 100, 0, 0;
   --positive: 0, 100, 0;
   --neutral: 100, 100, 100;
   --color: var(--neutral);
+}
+[data-theme="dark"] {
+  --text: #cccccc;
+  --clickable: #7a7a7a;
+  --hover: var(--text);
+
+  --background: #333333;
+  --foreground: #444444;
+  --star: var(--foreground);
+
+  --line: 90%;
+  --negative: 64, 0, 0;
+  --positive: 44, 76, 59;
 }
 
 html {

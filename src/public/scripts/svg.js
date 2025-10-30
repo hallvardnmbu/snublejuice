@@ -25,9 +25,9 @@ function setupPath(path, index) {
     width: rect.width,
     height: rect.height,
     top: rect.height / 4 + margin,
-    right: margin,
+    right: 0,
     bottom: 5 * margin,
-    left: margin,
+    left: 0,
   };
 
   return { size };
@@ -54,7 +54,7 @@ function getLine(prices, scales, size) {
   const line = [];
 
   // Starting position.
-  line.push(`M ${size.left} ${size.height - size.bottom / 2}`);
+  line.push(`M ${size.left} ${size.height}`);
   line.push(`L ${size.left} ${yPos(prices[0], scales, size)}`);
 
   for (let i = 1; i < prices.length; i++) {
@@ -67,8 +67,8 @@ function getLine(prices, scales, size) {
     line.push(`L ${xPos(i, scales, size)} ${yPos(prices[i], scales, size)}`);
   }
 
-  line.push(`L ${size.width - size.left} ${size.height - size.bottom / 2}`);
-  line.push(`L 0 ${size.height - size.bottom / 2}`);
+  line.push(`L ${size.width - size.left} ${size.height}`);
+  line.push(`L 0 ${size.height}`);
 
   return line.join(" ");
 }

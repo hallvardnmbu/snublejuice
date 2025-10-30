@@ -7,7 +7,7 @@
 
 :root {
   --fontsize: 12px;
-  --margin: 4px;
+  --margin: 4px; /* Should be even. */
   --padding: 10px;
   --image: 100px;
 
@@ -22,7 +22,8 @@
   --foreground: #faf7f3;
   --star: var(--foreground);
 
-  --line: 20%;
+  /*--line: 20%;*/
+  --line: 10%;
   --marker: 60%;
   --negative: 100, 0, 0;
   --positive: 0, 100, 0;
@@ -141,9 +142,6 @@ header form {
 }
 
 img {
-  max-width: 100%;
-}
-img:not(.bottle *) {
   max-width: calc(var(--image) - 4 * var(--padding));
 }
 
@@ -221,48 +219,31 @@ search div:has(select)::after {
 section {
   display: flex;
   flex-direction: column;
-  margin-top: calc(2 * var(--padding));
+  margin-top: calc(3 * var(--padding));
 
   width: calc(100% - 2 * var(--padding));
   max-width: calc(10 * var(--image));
 }
-section:not(:first-of-type) {
-  margin-top: calc(3 * var(--padding));
+section:first-of-type {
+  margin-top: calc(2 * var(--padding));
 }
 .product {
-  color: var(--black);
-  background: var(--white);
-  border: var(--margin) solid
-    color-mix(
-      in srgb,
-      rgb(var(--color)) var(--line),
-      white calc(100% - var(--line))
-    );
-  border-bottom: none;
+  background: transparent;
+
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
 }
 section > div {
-  display: flex;
-  flex-direction: row;
-}
-section > div > span {
   display: flex;
   flex-direction: column;
   gap: var(--margin);
   width: 100%;
-}
-section > div > .bottle {
-  align-items: center;
-  justify-content: end;
-  width: calc(var(--image) + 2 * var(--padding));
-}
-section > div > span:not(.bottle) {
-  padding: var(--padding);
-}
-section > div > span.bottle p {
-  margin: 0 var(--padding) var(--padding) var(--padding);
+  height: 100%;
+  padding: 0 var(--padding);
 }
 section div h1,
-section > div > span > span {
+section > div > span {
   display: flex;
   flex-direction: row;
   gap: var(--margin);
@@ -278,23 +259,6 @@ section .favourite-toggle {
 section div p {
   margin: 0;
 }
-section div span div:has(canvas) {
-  position: relative;
-  height: calc(1.5 * var(--image));
-  margin-top: auto;
-}
-canvas {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-section div span div:last-of-type {
-  display: flex;
-  flex-direction: row;
-  gap: var(--margin);
-  justify-content: space-between;
-  margin-top: var(--padding);
-}
 .rating {
   text-decoration: none;
 }
@@ -309,55 +273,47 @@ section div span div:last-of-type {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+section > div > span:last-of-type {
+  display: flex;
+  justify-content: center;
+  padding: var(--margin);
+}
 .slim {
   display: none;
 }
 
+section > div > svg {
+  position: absolute;
+  top: 1lh; /* TODO: Figure out the correct dynamic top. */
+  left: 0;
+  width: 100%;
+  z-index: -1;
+}
+section > div > svg path {
+  stroke: none;
+  fill: color-mix(
+    in srgb,
+    rgb(var(--color)) var(--line),
+    white calc(100% - var(--line))
+  );
+}
+
 aside {
   display: none;
-  background: var(--background);
-  border-bottom: var(--margin) solid
+  margin: 0 var(--margin);
+  border: var(--margin) solid
     color-mix(
       in srgb,
       rgb(var(--color)) var(--line),
       white calc(100% - var(--line))
     );
-}
-aside hr {
-  height: var(--margin);
-  background-color: color-mix(
-    in srgb,
-    rgb(var(--color)) var(--line),
-    white calc(100% - var(--line))
-  );
-  border: none;
-  margin: 0;
+  border-top: none;
 }
 aside table {
   margin: var(--padding);
 }
 aside table tbody {
   margin: none;
-}
-
-.expand {
-  display: flex;
-  justify-content: center;
-  padding: var(--margin);
-
-  background: var(--background);
-  border-top: var(--margin) solid
-    color-mix(
-      in srgb,
-      rgb(var(--color)) var(--line),
-      white calc(100% - var(--line))
-    );
-  border-bottom: var(--margin) solid
-    color-mix(
-      in srgb,
-      rgb(var(--color)) var(--line),
-      white calc(100% - var(--line))
-    );
 }
 
 input[type="number"]::-webkit-outer-spin-button,
@@ -513,9 +469,9 @@ table {
   .favourite-toggle {
     margin-right: var(--padding);
   }
-  section div span div:has(canvas) {
+  /*section div span div:has(canvas) {
     height: var(--image);
-  }
+  }*/
 
   aside {
     background: var(--aside);

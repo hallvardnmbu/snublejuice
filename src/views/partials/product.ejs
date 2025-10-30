@@ -29,7 +29,7 @@
         <span>
             <p><%= item.category %></p>
             <% if (item.subcategory) { %>
-                <i><%= item.subcategory %></i>
+                <p><i><%= item.subcategory %></i></p>
             <% } %>
             <p>•</p>
             <p><%= item.alcohol %>% alk.</p>
@@ -46,7 +46,7 @@
         </span>
 
         <% if (storelike) { %>
-        <span style="flex-direction: column;">
+        <span class="list">
             <% const storeRegex = new RegExp(`(^|[^a-zæøåA-ZÆØÅ])${storelike}([^a-zæøåA-ZÆØÅ]|$)`, 'i') %>
             <% const matchingStores = item.stores.filter(store => storeRegex.test(store)) %>
             <% matchingStores.forEach((store, index) => { %>
@@ -56,7 +56,7 @@
         <% } %>
 
         <% if (taxfree && item.taxfree.stores) { %>
-        <span style="flex-direction: column;">
+        <span class="list">
             <% const taxfreeStores = item.taxfree.stores.sort((a,b) => a.localeCompare(b)) %>
             <% taxfreeStores.forEach((store, index) => { %>
             <p>• <%= store %></p>
@@ -93,32 +93,29 @@
             <span><%= item.description.lang %></span>
         <% } %>
 
-        <div>
+        <span>
             <% if (taxfree) { %>
-                <span><a href="<%= item.taxfree.url %>" target="_blank">TAX-FREE</a> <b><%= Math.ceil(item.taxfree.price) %></b></span>
-                <span class="slim"><a href="<%= item.url %>" target="_blank">POLET</a> <b><%= Math.ceil(item.price) %></b></span>
-                <span class="wide"><a href="<%= item.url %>" target="_blank">VINMONOPOLET</a> <b><%= Math.ceil(item.price) %></b></span>
-                <span>DIFFERANSE <b><%= Math.floor(item.taxfree.discount) %>%</b></span>
-                <span class="wide">KR/L <b><%= Math.ceil(item.literprice) %></b></span>
+                <a href="<%= item.taxfree.url %>" target="_blank">TAX-FREE <b><%= Math.ceil(item.taxfree.price) %></b></a>
+                <a href="<%= item.url %>" target="_blank">VINMONOPOLET <b><%= Math.ceil(item.price) %></b></a>
+                <p>DIFFERANSE <b><%= Math.floor(item.taxfree.discount) %>%</b></p>
+                <p>KR/L <b><%= Math.ceil(item.literprice) %></b></p>
             <% } else { %>
-                <span>KR <b><%= Math.ceil(item.price) %></b></span>
+                <p>KR <b><%= Math.ceil(item.price) %></b></p>
 
                 <% if (item.oldprice) { %>
-                    <span>FØR <b><%= Math.ceil(item.oldprice) %></b></span>
-                    <span>ENDRING <b><%= Math.floor(item.discount) %>%</b></span>
+                    <p>FØR <b><%= Math.ceil(item.oldprice) %></b></p>
+                    <p>ENDRING <b><%= Math.floor(item.discount) %>%</b></p>
                 <% } %>
 
-                <span>KR/L <b><%= Math.ceil(item.literprice) %></b></span>
+                <p>KR/L <b><%= Math.ceil(item.literprice) %></b></p>
             <% } %>
-        </div>
-
-        <span><a class="expand" index="<%= index %>">Vis meg mere!</a></span>
+        </span>
 
         <svg class="path" viewBox="0 0 0 0" preserveAspectRatio="none">
             <path
                 id="path-<%= index %>"
                 d=""
-                data-prices='<%= JSON.stringify(taxfree ? item.taxfree.prices : item.prices) %>'
+                data-prices='<%= JSON.stringify(item.prices) %>'
             ></path>
         </svg>
     </div>

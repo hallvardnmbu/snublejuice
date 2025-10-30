@@ -104,7 +104,7 @@ button {
 a:hover,
 button:hover {
   color: var(--hover);
-  cursor: pointer;
+  cursor: default;
 }
 button {
   background-color: transparent;
@@ -225,11 +225,10 @@ section {
   max-width: calc(10 * var(--image));
 }
 section:first-of-type {
-  margin-top: calc(2 * var(--padding));
+  margin-top: var(--padding);
 }
 .product {
-  background: transparent;
-
+  cursor: pointer;
   position: relative;
   overflow: hidden;
   z-index: 1;
@@ -238,25 +237,33 @@ section > div {
   display: flex;
   flex-direction: column;
   gap: var(--margin);
-  width: 100%;
-  height: 100%;
   padding: 0 var(--padding);
 }
-section div h1,
-section > div > span {
+section > div > h1,
+section > div > span:not(.list) {
   display: flex;
   flex-direction: row;
   gap: var(--margin);
-}
-section div h1 {
-  justify-content: space-between;
   align-items: center;
 }
-section .favourite-toggle {
+section > div > .list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--margin);
+  align-items: left;
+}
+section > div > h1,
+section > div > span:last-of-type {
+  justify-content: space-between;
+}
+section > div > span:last-of-type {
+  padding-bottom: var(--padding);
+}
+section > div > h1 > p {
   cursor: pointer;
   font-size: 1.3em;
 }
-section div p {
+section > div p {
   margin: 0;
 }
 .rating {
@@ -273,18 +280,10 @@ section div p {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
-section > div > span:last-of-type {
-  display: flex;
-  justify-content: center;
-  padding: var(--margin);
-}
-.slim {
-  display: none;
-}
 
 section > div > svg {
   position: absolute;
-  top: 1lh; /* TODO: Figure out the correct dynamic top. */
+  top: 0;
   left: 0;
   width: 100%;
   z-index: -1;
@@ -300,7 +299,6 @@ section > div > svg path {
 
 aside {
   display: none;
-  margin: 0 var(--margin);
   border: var(--margin) solid
     color-mix(
       in srgb,
@@ -316,19 +314,15 @@ aside table tbody {
   margin: none;
 }
 
+input[type="number"],
 input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-input[type="number"] {
-  -moz-appearance: textfield;
-}
+input[type="number"]::-webkit-inner-spin-button,
 input[type="search"]::-webkit-search-decoration,
 input[type="search"]::-webkit-search-cancel-button,
 input[type="search"]::-webkit-search-results-button,
 input[type="search"]::-webkit-search-results-decoration {
   -webkit-appearance: none;
+  margin: 0;
 }
 
 table {
@@ -385,19 +379,7 @@ table {
         rgb(var(--color)) var(--line),
         white calc(100% - var(--line))
       )
-      0 calc((var(--value) / var(--total)) * 100% - var(--padding)),
-    color-mix(
-        in srgb,
-        rgb(var(--color)) var(--marker),
-        white calc(100% - var(--marker))
-      )
-      0 calc((var(--value) / var(--total)) * 100% - var(--padding)),
-    color-mix(
-        in srgb,
-        rgb(var(--color)) var(--marker),
-        white calc(100% - var(--marker))
-      )
-      0 calc(var(--value) * 100% / var(--total)),
+      0 calc((var(--value) / var(--total)) * 100%),
     var(--foreground) calc((var(--value) / var(--total)) * 100%) 100%
   );
 }
@@ -409,20 +391,8 @@ table {
         rgb(var(--color)) var(--line),
         white calc(100% - var(--line))
       )
-      calc(var(--percentage) * 1% - var(--padding)),
-    color-mix(
-        in srgb,
-        rgb(var(--color)) var(--marker),
-        white calc(100% - var(--marker))
-      )
-      calc(var(--percentage) * 1% - var(--padding)),
-    color-mix(
-        in srgb,
-        rgb(var(--color)) var(--marker),
-        white calc(100% - var(--marker))
-      )
-      calc(var(--percentage) * 1%),
-    var(--foreground) calc(var(--percentage) * 1%)
+      0 calc(var(--percentage) * 1%),
+    var(--foreground) calc(var(--percentage) * 1%) 100%
   );
 }
 
@@ -431,56 +401,4 @@ table {
   background-size: 100% var(--padding);
   background-repeat: no-repeat;
   background-position: center;
-}
-
-@media (max-width: 450px) {
-  :root {
-    --fontsize: 11px;
-    --padding: 6px;
-
-    --aside: var(--white);
-    --aside-text: var(--text);
-  }
-
-  .wide {
-    display: none;
-  }
-  .slim {
-    display: block;
-  }
-
-  main form {
-    max-width: none;
-  }
-  #menu {
-    gap: var(--padding) 0;
-  }
-
-  section:not(:first-of-type) {
-    margin-top: calc(4 * var(--padding));
-  }
-  .product {
-    width: calc(100% + 2 * var(--padding));
-    max-width: unset;
-
-    border-right: unset;
-    border-left: unset;
-  }
-  .favourite-toggle {
-    margin-right: var(--padding);
-  }
-  /*section div span div:has(canvas) {
-    height: var(--image);
-  }*/
-
-  aside {
-    background: var(--aside);
-  }
-  table {
-    color: var(--aside-text);
-  }
-  .val {
-    color: var(--text);
-    background-color: var(--background);
-  }
 }

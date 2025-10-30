@@ -11,11 +11,11 @@
   },
   "dependencies": {
     "@elysiajs/html": "^1.4.0",
-    "@elysiajs/static": "^1.4.0",
-    "axios": "^1.12.2",
+    "@elysiajs/static": "^1.4.4",
+    "axios": "^1.13.1",
     "bcryptjs": "^2.4.3",
     "ejs": "^3.1.10",
-    "elysia": "^1.4.10",
+    "elysia": "^1.4.13",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.20.0"
   }

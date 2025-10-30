@@ -64,7 +64,7 @@ body {
   margin: var(--padding);
 
   color: var(--text);
-  font-family: "Syne Mono", monospace;
+  font-family: "Syne Mono";
   font-size: var(--fontsize);
 }
 footer {
@@ -107,7 +107,7 @@ button {
   gap: var(--margin);
 
   color: var(--clickable);
-  text-decoration: underline 1px;
+  text-decoration: underline;
 }
 a:hover,
 button:hover {
@@ -232,6 +232,9 @@ section {
   width: calc(100% - 2 * var(--padding));
   max-width: calc(10 * var(--image));
 }
+section a {
+  color: var(--text) !important;
+}
 section:first-of-type {
   margin-top: var(--padding);
 }
@@ -249,7 +252,7 @@ section > div {
 }
 section > div > h1,
 section > div > span:not(.list) {
-  display: flex;
+  display: inline-flex;
   flex-direction: row;
   gap: var(--margin);
   align-items: center;
@@ -260,17 +263,25 @@ section > div > .list {
   gap: var(--margin);
   align-items: left;
 }
-section > div > h1,
 section > div > span:last-of-type {
-  justify-content: space-between;
-}
-section > div > span:last-of-type {
+  gap: var(--padding);
   padding-bottom: var(--padding);
 }
 section > div > h1 > p {
   cursor: pointer;
-  font-size: 1.3em;
+  font-size: 1.2rem;
+  display: inline-block;
 }
+@media (min-width: 450px) {
+  section > div > h1 > p:hover {
+    font-size: 0;
+  }
+  section > div > h1 > p:hover::before {
+    content: "★";
+    font-size: 1.2rem;
+  }
+}
+
 section > div p {
   margin: 0;
 }

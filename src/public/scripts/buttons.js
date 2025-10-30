@@ -100,6 +100,7 @@ document
   });
 
 // Toggle favourite.
+const mediaQuery = window.matchMedia("(min-width: 450px)");
 document.querySelectorAll(".favourite-toggle").forEach((star) => {
   star.addEventListener("click", async function (event) {
     event.stopPropagation();
@@ -118,26 +119,20 @@ document.querySelectorAll(".favourite-toggle").forEach((star) => {
     // Toggle star.
     this.innerText = this.innerText === "☆" ? "★" : "☆";
   });
-
-  // Hover events
-  star.addEventListener("mouseenter", function () {
-    this.innerText = this.innerText === "☆" ? "★" : "☆";
-  });
-  star.addEventListener("mouseleave", function () {
-    this.innerText = this.innerText === "☆" ? "★" : "☆";
-  });
 });
 
+// Detailed view.
 document.addEventListener("DOMContentLoaded", function () {
-  // Detailed view.
-  const expands = document.querySelectorAll(".expand");
-  expands.forEach((expand) => {
-    expand.addEventListener("click", function () {
+  const sections = document.querySelectorAll(".product");
+  sections.forEach((section) => {
+    section.addEventListener("click", function (event) {
+      if (event.target.closest("button") || event.target.closest("a")) {
+        return; // Don't toggle the aside if a button or link was clicked
+      }
+
       const itemIndex = this.getAttribute("index");
       const aside = document.getElementById(itemIndex).querySelector("aside");
       aside.style.display = aside.style.display === "block" ? "none" : "block";
-      expand.innerText =
-        aside.style.display === "block" ? "OK, gjem det." : "Vis meg mere!";
     });
   });
 });

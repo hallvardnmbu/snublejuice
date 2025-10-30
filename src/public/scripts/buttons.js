@@ -100,6 +100,7 @@ document
   });
 
 // Toggle favourite.
+const mediaQuery = window.matchMedia("(min-width: 450px)");
 document.querySelectorAll(".favourite-toggle").forEach((star) => {
   star.addEventListener("click", async function (event) {
     event.stopPropagation();
@@ -116,14 +117,6 @@ document.querySelectorAll(".favourite-toggle").forEach((star) => {
     });
 
     // Toggle star.
-    this.innerText = this.innerText === "☆" ? "★" : "☆";
-  });
-
-  // Hover events
-  star.addEventListener("mouseenter", function () {
-    this.innerText = this.innerText === "☆" ? "★" : "☆";
-  });
-  star.addEventListener("mouseleave", function () {
     this.innerText = this.innerText === "☆" ? "★" : "☆";
   });
 });

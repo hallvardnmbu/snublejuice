@@ -266,6 +266,8 @@ section > div > .list {
 section > div > span:last-of-type {
   gap: var(--padding);
   padding-bottom: var(--padding);
+  flex-direction: row-reverse;
+  justify-content: right;
 }
 section > div > h1 > p {
   cursor: pointer;
@@ -317,6 +319,7 @@ section > div > svg path {
 }
 
 aside {
+  margin-top: calc(-1 * var(--margin));
   display: none;
   border: var(--margin) solid
     color-mix(
@@ -325,6 +328,8 @@ aside {
       white calc(100% - var(--line))
     );
   border-top: none;
+  border-bottom-left-radius: var(--padding);
+  border-bottom-right-radius: var(--padding);
 }
 aside table {
   margin: var(--padding);
@@ -363,22 +368,23 @@ table {
 .val {
   position: relative;
   width: 100%;
-  padding-left: calc(0.5 * var(--padding));
+  padding-left: calc(var(--padding) + var(--margin));
 
-  background-color: var(--foreground);
   word-break: break-word;
-}
-.val::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: calc(-1 * var(--padding));
-  width: var(--padding);
-  height: 100%;
-  background: color-mix(
-    in srgb,
-    rgb(var(--color)) var(--line),
-    white calc(100% - var(--line))
+
+  overflow: hidden;
+  height: 1em;
+  border-radius: var(--margin);
+
+  background: linear-gradient(
+    to right,
+    color-mix(
+        in srgb,
+        rgb(var(--color)) var(--line),
+        white calc(100% - var(--line))
+      )
+      var(--padding),
+    var(--foreground) var(--padding)
   );
 }
 .fractions {
@@ -391,6 +397,10 @@ table {
   max-width: calc(1.5 * var(--image));
 }
 .fractions tr .value {
+  padding: 0;
+  overflow: hidden;
+  height: 1em;
+  border-radius: var(--margin);
   background: linear-gradient(
     to right,
     color-mix(
@@ -403,6 +413,10 @@ table {
   );
 }
 .fractions tr .percentage {
+  padding: 0;
+  overflow: hidden;
+  height: 1em;
+  border-radius: var(--margin);
   background: linear-gradient(
     to right,
     color-mix(

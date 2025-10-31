@@ -57,12 +57,6 @@
                 <td class="val"><%= item.colour %></td>
                 </tr>
             <% } %>
-            <% if (item.selection) { %>
-                <tr>
-                <td class="key">Vareutvalg &nbsp;</td>
-                <td class="val"><%= item.selection %></td>
-                </tr>
-            <% } %>
             <% if (item.pair && item.pair.length > 0) { %>
                 <tr>
                 <td class="key">Passer til &nbsp;</td>
@@ -107,7 +101,7 @@
                     %>
                         <tr>
                         <td class="label"><%= parts[0] %>&nbsp;</td>
-                        <td class="value" style="--value: <%= parseInt(values[0]) %>; --total: <%= parseInt(values[1]) %>;"></td>
+                        <td><div class="value" style="--value: <%= parseInt(values[0]) %>; --total: <%= parseInt(values[1]) %>;"></div></td>
                         </tr>
                     <% }); %>
                 <% } %>
@@ -145,7 +139,7 @@
                         if (result) { %>
                         <tr>
                         <td class="label"><%= result.grape %>&nbsp;</td>
-                        <td class="percentage" style="--percentage: <%= result.percentage %>;"></td>
+                        <td><div class="percentage" style="--percentage: <%= result.percentage %>;"></div></td>
                         </tr>
                         <% } %>
                     <% }); %>

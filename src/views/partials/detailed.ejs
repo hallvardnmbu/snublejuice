@@ -11,7 +11,7 @@
 
             <% if (item.rating && (item.rating.value !== undefined && item.rating.value !== null)) { %>
                 <tr>
-                <td class="key">Rating</td>
+                <td class="key">Rating &nbsp;</td>
                 <td class="val">Vurdert <%= item.rating.value %> av 5 hos
                     <% if (item.rating.url) { %>
                     <a href="<%= item.rating.url %>"
@@ -35,25 +35,25 @@
             <% } %>
             <% if (item.smell) { %>
                 <tr>
-                <td class="key">Lukt</td>
+                <td class="key">Lukt &nbsp;</td>
                 <td class="val"><%= item.smell %></td>
                 </tr>
             <% } %>
             <% if (item.taste) { %>
                 <tr>
-                <td class="key">Smak</td>
+                <td class="key">Smak &nbsp;</td>
                 <td class="val"><%= item.taste %></td>
                 </tr>
             <% } %>
             <% if (item.storage) { %>
                 <tr>
-                <td class="key">Lagring</td>
+                <td class="key">Lagring &nbsp;</td>
                 <td class="val"><%= item.storage %></td>
                 </tr>
             <% } %>
             <% if (item.colour) { %>
                 <tr>
-                <td class="key">Farge</td>
+                <td class="key">Farge &nbsp;</td>
                 <td class="val"><%= item.colour %></td>
                 </tr>
             <% } %>
@@ -69,13 +69,13 @@
             <% } %>
             <% if (item.method) { %>
                 <tr>
-                <td class="key">Metode</td>
+                <td class="key">Metode &nbsp;</td>
                 <td class="val"><%= item.method %></td>
                 </tr>
             <% } %>
             <% if (item.year) { %>
                 <tr>
-                <td class="key">Årgang</td>
+                <td class="key">Årgang &nbsp;</td>
                 <td class="val"><%= item.year %></td>
                 </tr>
             <% } %>

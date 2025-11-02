@@ -245,6 +245,7 @@ section:first-of-type {
   z-index: 1;
 }
 section > div {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--margin);
@@ -271,7 +272,7 @@ section > div > span:last-of-type {
 }
 section > div > h1 > p {
   cursor: pointer;
-  font-size: 1.2rem;
+  font-size: calc(1.2 * var(--fontsize));
   display: inline-block;
 }
 @media (min-width: 450px) {
@@ -307,7 +308,9 @@ section > div > svg {
   top: 0;
   left: 0;
   width: 100%;
+  height: 100%;
   z-index: -1;
+  overflow: visible;
 }
 section > div > svg path {
   stroke: none;
@@ -319,7 +322,6 @@ section > div > svg path {
 }
 
 aside {
-  margin-top: calc(-1 * var(--margin));
   display: none;
   border: var(--margin) solid
     color-mix(
@@ -332,7 +334,7 @@ aside {
   border-bottom-right-radius: var(--padding);
 }
 aside table {
-  margin: var(--padding);
+  margin: 0 var(--padding);
 }
 aside table tbody {
   margin: none;

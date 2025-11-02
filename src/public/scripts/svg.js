@@ -12,6 +12,7 @@ function setupPath(path, index) {
   const svg = path.ownerSVGElement;
   const rect = svg.parentElement.getBoundingClientRect();
   svg.setAttribute("viewBox", `0 0 ${rect.width} ${rect.height}`);
+  svg.setAttribute("preserveAspectRatio", "none");
 
   const section = document.getElementById(index);
   const margin = parseInt(
@@ -51,24 +52,62 @@ function yPos(value, scales, size) {
 }
 
 function getLine(prices, scales, size) {
+  let x, y_old, y;
+  const r = 4;
   const line = [];
 
   // Starting position.
+  y = yPos(prices[0], scales, size);
   line.push(`M ${size.left} ${size.height}`);
-  line.push(`L ${size.left} ${yPos(prices[0], scales, size)}`);
+  line.push(`L ${size.left} ${y + r}`);
+  line.push(`Q ${size.left} ${y} ${size.left + r} ${y}`);
 
   for (let i = 1; i < prices.length; i++) {
-    // Horizontally to new X.
-    line.push(
-      `L ${xPos(i, scales, size)} ${yPos(prices[i - 1], scales, size)}`,
-    );
+    x = xPos(i, scales, size);
+    y_old = yPos(prices[i - 1], scales, size);
+    y = yPos(prices[i], scales, size);
 
-    // Vertically to new Y.
-    line.push(`L ${xPos(i, scales, size)} ${yPos(prices[i], scales, size)}`);
+    if (y === y_old) {
+      line.push(`H ${x}`);
+      line.push(`V ${y}`);
+      continue;
+    }
+
+    const dy = Math.abs(y - y_old);
+
+    if (dy < 2 * r) {
+      // When y-difference is small, use a single smooth S-curve.
+      const actualR = dy / 2;
+      line.push(`L ${x - r} ${y_old}`);
+      line.push(
+        `C ${x - r} ${y_old} ${x} ${y_old} ${x} ${y_old + (y > y_old ? actualR : -actualR)}`,
+      );
+      line.push(
+        `C ${x} ${y - (y > y_old ? actualR : -actualR)} ${x} ${y} ${x + r} ${y}`,
+      );
+    } else {
+      // When y-difference is large enough, use separate curves.
+      line.push(`L ${x - r} ${y_old}`);
+      if (y < y_old) {
+        // Increase in price:
+        line.push(`Q ${x} ${y_old} ${x} ${y_old - r}`);
+        line.push(`V ${y + r}`);
+        line.push(`Q ${x} ${y} ${x + r} ${y}`);
+      } else {
+        // Decrease in price:
+        line.push(`Q ${x} ${y_old} ${x} ${y_old + r}`);
+        line.push(`V ${y - r}`);
+        line.push(`Q ${x} ${y} ${x + r} ${y}`);
+      }
+    }
   }
 
-  line.push(`L ${size.width - size.left} ${size.height}`);
-  line.push(`L 0 ${size.height}`);
+  x = xPos(prices.length - 1, scales, size);
+  y = yPos(prices[prices.length - 1], scales, size);
+  line.push(`L ${x - r} ${y}`);
+  line.push(`Q ${x} ${y} ${x} ${y + r}`);
+  line.push(`L ${x} ${size.height}`);
+  line.push(`L ${size.left} ${size.height}`);
 
   return line.join(" ");
 }

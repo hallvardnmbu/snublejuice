@@ -35,8 +35,8 @@
   --star: var(--foreground);
 
   --line: 90%;
-  --negative: 64, 0, 0;
-  --positive: 44, 76, 59;
+  --negative: 33, 0, 0;
+  --positive: 22, 39, 30;
 }
 
 html {
@@ -333,50 +333,42 @@ aside {
   border-bottom-left-radius: var(--padding);
   border-bottom-right-radius: var(--padding);
 }
+
 aside table {
-  margin: 0 var(--padding);
-}
-aside table tbody {
-  margin: none;
-}
-
-input[type="number"],
-input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button,
-input[type="search"]::-webkit-search-decoration,
-input[type="search"]::-webkit-search-cancel-button,
-input[type="search"]::-webkit-search-results-button,
-input[type="search"]::-webkit-search-results-decoration {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-table {
+  display: block;
   color: var(--text);
 }
-.key-val {
-  align-items: center;
+aside table tbody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--padding);
 
-  border-collapse: separate;
-  border-spacing: 0 var(--padding);
+  margin: var(--padding);
 }
-.key-val tr {
-  position: relative;
+aside table tbody tr {
+  display: flex;
+  flex-direction: row;
 }
-.key {
-  white-space: nowrap;
-  vertical-align: top;
+aside table tbody tr td {
+  display: flex;
+  width: auto;
 }
-.val {
-  position: relative;
+aside table tbody tr td:first-of-type {
+  width: calc(1.2 * var(--image));
+
+  word-wrap: anywhere;
+}
+aside table tbody tr td:last-of-type {
+  align-items: center;
   width: 100%;
+  border-radius: var(--margin);
+}
+
+aside .metadata tbody tr td:last-of-type {
+  margin-left: calc(2 * var(--margin));
   padding-left: calc(var(--padding) + var(--margin));
 
   word-break: break-word;
-
-  overflow: hidden;
-  height: 1em;
-  border-radius: var(--margin);
 
   background: linear-gradient(
     to right,
@@ -389,36 +381,14 @@ table {
     var(--foreground) var(--padding)
   );
 }
-.fractions {
-  border-collapse: separate;
-  border-spacing: 0 calc(0.5 * var(--padding));
-}
-.fractions tr .label {
-  padding-right: var(--padding);
-  word-wrap: normal;
-  max-width: calc(1.5 * var(--image));
-}
-.fractions tr .value {
-  padding: 0;
-  overflow: hidden;
-  height: 1em;
-  border-radius: var(--margin);
-  background: linear-gradient(
-    to right,
-    color-mix(
-        in srgb,
-        rgb(var(--color)) var(--line),
-        white calc(100% - var(--line))
-      )
-      0 calc((var(--value) / var(--total)) * 100%),
-    var(--foreground) calc((var(--value) / var(--total)) * 100%) 100%
-  );
-}
-.fractions tr .percentage {
-  padding: 0;
-  overflow: hidden;
-  height: 1em;
-  border-radius: var(--margin);
+aside .fractions tbody tr td:last-of-type {
+  margin-left: var(--margin);
+
+  /* height < 1rem for better visual alignment. */
+  height: 0.8rem;
+  align-self: center;
+  white-space: nowrap;
+
   background: linear-gradient(
     to right,
     color-mix(
@@ -431,9 +401,13 @@ table {
   );
 }
 
-.fractions td:last-of-type {
-  width: 100%;
-  background-size: 100% var(--padding);
-  background-repeat: no-repeat;
-  background-position: center;
+input[type="number"],
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button,
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+  margin: 0;
 }

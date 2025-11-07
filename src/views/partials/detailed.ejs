@@ -1,82 +1,82 @@
 <aside>
 
-    <table class="key-val">
+    <table class="metadata">
         <tbody>
             <% if (item.description.lang) { %>
                 <tr>
-                <td class="key">Beskrivelse &nbsp;</td>
-                <td class="val"><%= item.description.lang %></td>
+                    <td>Beskrivelse</td>
+                    <td><%= item.description.lang %></td>
                 </tr>
             <% } %>
 
             <% if (item.rating && (item.rating.value !== undefined && item.rating.value !== null)) { %>
                 <tr>
-                <td class="key">Rating &nbsp;</td>
-                <td class="val">Vurdert <%= item.rating.value %> av 5 hos
-                    <% if (item.rating.url) { %>
-                    <a href="<%= item.rating.url %>"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onclick="event.stopPropagation()">vivino</a>.
-                    <% } else { %>
-                    vivino.
-                    <% } %>
-                    <% if (item.rating.updated) { %>
-                    Oppdatert <%= (typeof item.rating.updated === 'string' ? new Date(item.rating.updated) : item.rating.updated).toLocaleString('nb-NO', { dateStyle: 'long' }) %>.
-                    <% } %>
-                </td>
+                    <td>Rating</td>
+                    <td>Vurdert <%= item.rating.value %> av 5 hos
+                        <% if (item.rating.url) { %>
+                        <a href="<%= item.rating.url %>"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onclick="event.stopPropagation()">vivino</a>.
+                        <% } else { %>
+                        vivino.
+                        <% } %>
+                        <% if (item.rating.updated) { %>
+                        Oppdatert <%= (typeof item.rating.updated === 'string' ? new Date(item.rating.updated) : item.rating.updated).toLocaleString('nb-NO', { dateStyle: 'long' }) %>.
+                        <% } %>
+                    </td>
                 </tr>
             <% } %>
             <% if (taxfree && item.taxfree.stores) { %>
                 <tr>
-                <td class="key">Flyplasser &nbsp;</td>
-                <td class="val"><%= item.taxfree.stores.sort((a,b) => a.localeCompare(b)).join(' + ') %></td>
+                    <td>Flyplasser</td>
+                    <td><%= item.taxfree.stores.sort((a,b) => a.localeCompare(b)).join(' + ') %></td>
                 </tr>
             <% } %>
             <% if (item.smell) { %>
                 <tr>
-                <td class="key">Lukt &nbsp;</td>
-                <td class="val"><%= item.smell %></td>
+                    <td>Lukt</td>
+                    <td><%= item.smell %></td>
                 </tr>
             <% } %>
             <% if (item.taste) { %>
                 <tr>
-                <td class="key">Smak &nbsp;</td>
-                <td class="val"><%= item.taste %></td>
+                    <td>Smak</td>
+                    <td><%= item.taste %></td>
                 </tr>
             <% } %>
             <% if (item.storage) { %>
                 <tr>
-                <td class="key">Lagring &nbsp;</td>
-                <td class="val"><%= item.storage %></td>
+                    <td>Lagring</td>
+                    <td><%= item.storage %></td>
                 </tr>
             <% } %>
             <% if (item.colour) { %>
                 <tr>
-                <td class="key">Farge &nbsp;</td>
-                <td class="val"><%= item.colour %></td>
+                    <td>Farge</td>
+                    <td><%= item.colour %></td>
                 </tr>
             <% } %>
             <% if (item.pair && item.pair.length > 0) { %>
                 <tr>
-                <td class="key">Passer til &nbsp;</td>
-                <td class="val"><%=
-                    item.pair.map(function(pair) {
-                    return pair.trim();
-                    }).join(' & ')
-                    %></td>
+                    <td>Passer til</td>
+                    <td><%=
+                        item.pair.map(function(pair) {
+                        return pair.trim();
+                        }).join(' & ')
+                        %></td>
                 </tr>
             <% } %>
             <% if (item.method) { %>
                 <tr>
-                <td class="key">Metode &nbsp;</td>
-                <td class="val"><%= item.method %></td>
+                    <td>Metode</td>
+                    <td><%= item.method %></td>
                 </tr>
             <% } %>
             <% if (item.year) { %>
                 <tr>
-                <td class="key">Årgang &nbsp;</td>
-                <td class="val"><%= item.year %></td>
+                    <td>Årgang</td>
+                    <td><%= item.year %></td>
                 </tr>
             <% } %>
         </tbody>
@@ -92,28 +92,23 @@
             <tbody>
                 <% if (item.characteristics && Array.isArray(item.characteristics) && item.characteristics.length > 0) { %>
                     <tr>
-                        <td><b>EGENSKAPER</b><td>
-                        <td><td>
+                        <th>EGENSKAPER<th>
                     </tr>
                     <% item.characteristics.forEach(function(character) {
                         var parts = character.split(', ');
                         var values = parts[1].split(' av ');
                     %>
                         <tr>
-                        <td class="label"><%= parts[0] %>&nbsp;</td>
-                        <td><div class="value" style="--value: <%= parseInt(values[0]) %>; --total: <%= parseInt(values[1]) %>;"></div></td>
+                        <td class="label"><%= parts[0] %></td>
+                        <td class="percentage" style="--percentage: <%= Math.round(100 * parseInt(values[0]) / parseInt(values[1])) %>;"></td>
                         </tr>
                     <% }); %>
                 <% } %>
 
                 <% if (item.ingredients && Array.isArray(item.ingredients) && item.ingredients.length > 0) { %>
+                    <tr></tr>
                     <tr>
-                        <td>&nbsp;<td>
-                        <td><td>
-                    </tr>
-                    <tr>
-                        <td><b>INGREDIENSER</b><td>
-                        <td><td>
+                        <th>INGREDIENSER<th>
                     </tr>
                     <% item.ingredients.forEach(function(ingredient) {
                         const patterns = [
@@ -138,8 +133,8 @@
                         }
                         if (result) { %>
                         <tr>
-                        <td class="label"><%= result.grape %>&nbsp;</td>
-                        <td><div class="percentage" style="--percentage: <%= result.percentage %>;"></div></td>
+                        <td class="label"><%= result.grape %></td>
+                        <td class="percentage" style="--percentage: <%= result.percentage %>;"></td>
                         </tr>
                         <% } %>
                     <% }); %>

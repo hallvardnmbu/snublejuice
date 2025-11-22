@@ -272,7 +272,7 @@ section > div > span:last-of-type {
 }
 section > div > h1 > p {
   cursor: pointer;
-  font-size: calc(1.2 * var(--fontsize));
+  font-size: 0.9rem;
   display: inline-block;
 }
 @media (min-width: 450px) {
@@ -281,7 +281,7 @@ section > div > h1 > p {
   }
   section > div > h1 > p:hover::before {
     content: "★";
-    font-size: 1.2rem;
+    font-size: 0.9rem;
   }
 }
 

@@ -20,7 +20,7 @@ import {
 } from "./src/database/operations.js";
 
 const _PRODUCTION = process.env.NODE_ENV.trim() === "production";
-const port = 8080;
+const port = process.env.PORT || 8080;
 const _RATINGS = false;
 
 const collections = await databaseConnection();
@@ -48,6 +48,27 @@ const app = new Elysia()
     return render("src/views/error.ejs", {
       message: query.message || "Noe gikk galt.",
     });
+  })
+  .get("/image/:index", async ({ params: { index } }) => {
+    // Sanitize index to allow only alphanumeric characters
+    if (!/^[a-zA-Z0-9]+$/.test(index)) {
+      return new Response("Invalid index", { status: 400 });
+    }
+
+    const imageDir = process.env.IMAGE_DIR;
+    if (!imageDir) {
+      console.error("IMAGE_DIR environment variable is not set.");
+      return new Response("Image configuration error", { status: 500 });
+    }
+
+    const filePath = path.join(imageDir, `${index}.png`);
+    const file = Bun.file(filePath);
+
+    if (await file.exists()) {
+      return new Response(file);
+    } else {
+      return new Response("Image not found", { status: 404 });
+    }
   })
   .get("/", async (context) => {
     const {

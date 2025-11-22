@@ -248,7 +248,10 @@ section > div {
   gap: var(--margin);
 }
 section > div > img {
+  margin-top: auto;
   width: 100%;
+  height: auto;
+  max-height: calc(2 * var(--image));
 }
 section > div > div {
   position: relative;
@@ -290,6 +293,11 @@ section > div > div > h1 > p {
   section > div > div > h1 > p:hover::before {
     content: "★";
     font-size: 0.9rem;
+  }
+}
+@media (max-width: 450px) {
+  :root {
+    --image: 80px;
   }
 }
 

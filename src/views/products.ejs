@@ -49,6 +49,9 @@
                 <% } %>
             </div>
 
+            <span>Den fargede bakgrunnen til hvert produkt tilsvarer prishistorikken!</span>
+            <span>Trykk på et produkt for å se mere informasjon.</span>
+
             <% data.forEach((item, index) => { %>
                 <%- include('partials/product', { index, item, user, storelike, taxfree: subdomain === "taxfree" }) %>
             <% }) %>

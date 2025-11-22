@@ -235,9 +235,6 @@ section {
 section a {
   color: var(--text);
 }
-section:first-of-type {
-  margin-top: var(--padding);
-}
 .product {
   cursor: pointer;
   position: relative;
@@ -247,45 +244,56 @@ section:first-of-type {
 section > div {
   position: relative;
   display: flex;
+  flex-direction: row;
+  gap: var(--margin);
+}
+section > div > img {
+  width: 100%;
+}
+section > div > div {
+  position: relative;
+  display: flex;
   flex-direction: column;
   gap: var(--margin);
   padding: 0 var(--padding);
+  width: 100%;
 }
-section > div > h1,
-section > div > span:not(.list) {
+section > div > div > h1,
+section > div > div > span:not(.list) {
   display: inline-flex;
   flex-direction: row;
   gap: var(--margin);
   align-items: center;
 }
-section > div > .list {
+section > div > div > .list {
   display: flex;
   flex-direction: column;
   gap: var(--margin);
   align-items: left;
 }
-section > div > span:last-of-type {
+section > div > div > span:last-of-type {
+  margin-top: auto;
   gap: var(--padding);
   padding-bottom: var(--padding);
   flex-direction: row-reverse;
   justify-content: right;
 }
-section > div > h1 > p {
+section > div > div > h1 > p {
   cursor: pointer;
   font-size: 0.9rem;
   display: inline-block;
 }
 @media (min-width: 450px) {
-  section > div > h1 > p:hover {
+  section > div > div > h1 > p:hover {
     font-size: 0;
   }
-  section > div > h1 > p:hover::before {
+  section > div > div > h1 > p:hover::before {
     content: "★";
     font-size: 0.9rem;
   }
 }
 
-section > div p {
+section > div > div p {
   margin: 0;
 }
 .rating {
@@ -303,7 +311,7 @@ section > div p {
   -webkit-text-fill-color: transparent;
 }
 
-section > div > svg {
+section > div > div > svg {
   position: absolute;
   top: 0;
   left: 0;
@@ -312,7 +320,7 @@ section > div > svg {
   z-index: -1;
   overflow: visible;
 }
-section > div > svg path {
+section > div > div > svg path {
   stroke: none;
   fill: color-mix(
     in srgb,
@@ -323,6 +331,7 @@ section > div > svg path {
 
 aside {
   display: none;
+  margin-left: calc(var(--image) - 4 * var(--padding) + var(--margin));
   border: var(--margin) solid
     color-mix(
       in srgb,

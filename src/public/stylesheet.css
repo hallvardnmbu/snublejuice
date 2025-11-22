@@ -275,11 +275,13 @@ section > div > div > .list {
   align-items: left;
 }
 section > div > div > span:last-of-type {
-  margin-top: auto;
   gap: var(--padding);
   padding-bottom: var(--padding);
   flex-direction: row-reverse;
   justify-content: right;
+}
+section > div > div > h1 {
+  margin-top: auto;
 }
 section > div > div > h1 > p {
   cursor: pointer;

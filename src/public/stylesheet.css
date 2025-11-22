@@ -233,7 +233,7 @@ section {
   max-width: calc(10 * var(--image));
 }
 section a {
-  color: var(--text) !important;
+  color: var(--text);
 }
 section:first-of-type {
   margin-top: var(--padding);

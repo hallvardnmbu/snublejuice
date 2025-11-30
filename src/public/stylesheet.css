@@ -104,9 +104,7 @@ h3 {
 a,
 a:visited,
 button {
-  display: inline-flex;
-  flex-direction: row;
-  gap: var(--margin);
+  display: inline;
 
   color: var(--clickable);
   text-decoration: underline;
@@ -318,6 +316,9 @@ section > div > div p {
   margin: 0;
 }
 .rating {
+  display: inline-flex;
+  flex-direction: row;
+  gap: var(--margin);
   text-decoration: none;
 }
 .star {
@@ -380,13 +381,16 @@ aside table tbody tr {
   flex-direction: row;
 }
 aside table tbody tr td {
-  display: flex;
   width: auto;
 }
 aside table tbody tr td:first-of-type {
   width: calc(1.2 * var(--image));
 
   word-wrap: anywhere;
+  hyphens: auto;
+  -ms-hyphens: auto;
+  -moz-hyphens: auto;
+  -webkit-hyphens: auto;
 }
 aside table tbody tr td:last-of-type {
   align-items: center;
@@ -399,6 +403,10 @@ aside .metadata tbody tr td:last-of-type {
   padding-left: calc(var(--padding) + var(--margin));
 
   word-break: break-word;
+  hyphens: auto;
+  -ms-hyphens: auto;
+  -moz-hyphens: auto;
+  -webkit-hyphens: auto;
 
   background: linear-gradient(
     to right,

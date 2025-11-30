@@ -29,7 +29,7 @@
             <% } %>
             <% if (taxfree && item.taxfree.stores) { %>
                 <tr>
-                    <td>Flyplasser</td>
+                    <td>Lager</td>
                     <td><%= item.taxfree.stores.sort((a,b) => a.localeCompare(b)).join(' + ') %></td>
                 </tr>
             <% } %>

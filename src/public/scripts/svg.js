@@ -12,7 +12,6 @@ function setupPath(path, index) {
   const svg = path.ownerSVGElement;
   const rect = svg.parentElement.getBoundingClientRect();
   svg.setAttribute("viewBox", `0 0 ${rect.width} ${rect.height}`);
-  svg.setAttribute("preserveAspectRatio", "none");
 
   const section = document.getElementById(index);
   const margin = parseInt(
@@ -112,6 +111,59 @@ function getLine(prices, scales, size) {
   return line.join(" ");
 }
 
+function addYAxisLabels(svg, prices, scales, size) {
+  let values = new Set([
+    Math.max(...prices),
+    Math.min(...prices),
+    prices.at(-1),
+    prices.length > 1 ? prices.at(-2) : prices[0],
+  ]);
+  values = Array.from(values).sort((a, b) => a > b);
+
+  svg.querySelectorAll(".ylabel").forEach((label) => label.remove());
+
+  const attributes = {
+    class: "ylabel",
+    "dominant-baseline": "middle",
+    "text-anchor": "start",
+  };
+
+  const x = size.width - size.right + 5; // Start just outside the drawing area
+  const fragment = document.createDocumentFragment();
+
+  const threshold =
+    values.length > 2
+      ? (Math.max(...values) - Math.min(...values)) / values.length
+      : null;
+  const labels = values.map((price) => ({
+    value: price,
+    y: yPos(price, scales, size),
+  }));
+  let previous = null;
+
+  for (const price of labels) {
+    // Skip values that are relatively close.
+    if (previous && threshold && price.value - previous < threshold) continue;
+    previous = price.value;
+
+    const label = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "text",
+    );
+
+    label.textContent = price.value;
+    label.setAttribute("x", x);
+    label.setAttribute("y", price.y);
+    for (const [key, value] of Object.entries(attributes)) {
+      label.setAttribute(key, value);
+    }
+
+    fragment.appendChild(label);
+  }
+
+  svg.appendChild(fragment);
+}
+
 function graphSvg(index) {
   const { path, prices } = getPathData(index);
   const { size } = setupPath(path, index);
@@ -119,6 +171,9 @@ function graphSvg(index) {
 
   const line = getLine(prices, scales, size);
   path.setAttribute("d", line);
+
+  const svg = path.ownerSVGElement;
+  addYAxisLabels(svg, prices, scales, size);
 }
 
 function drawPaths() {

@@ -63,7 +63,7 @@ body {
   min-height: calc(100% - var(--padding));
 
   gap: var(--padding);
-  margin: var(--padding);
+  margin: var(--padding) var(--margin);
 
   color: var(--text);
   font-family: "Syne Mono";
@@ -73,11 +73,8 @@ footer {
   flex-direction: row;
   gap: var(--padding);
   justify-content: space-between;
-  width: 100%;
-
-  margin-top: auto;
-  /* Always have var(--padding) space below. */
-  margin-bottom: var(--padding);
+  width: calc(100% - 2 * var(--padding));
+  margin: auto var(--padding) var(--padding) var(--padding);
 }
 
 h1,
@@ -231,7 +228,7 @@ section {
   flex-direction: column;
   margin-top: calc(3 * var(--padding));
 
-  width: calc(100% - 2 * var(--padding));
+  width: 100%;
   max-width: calc(10 * var(--image));
 }
 section a {
@@ -242,6 +239,9 @@ section a {
   position: relative;
   overflow: hidden;
   z-index: 1;
+}
+.product > * {
+  margin-right: calc(10 * var(--margin));
 }
 section > div {
   position: relative;
@@ -335,10 +335,9 @@ section > div > div p {
 
 section > div > div > svg {
   position: absolute;
-  top: 0;
+  bottom: 0;
   left: 0;
   width: 100%;
-  height: 100%;
   z-index: -1;
   overflow: visible;
 }
@@ -349,6 +348,12 @@ section > div > div > svg path {
     rgb(var(--color)) var(--line),
     white calc(100% - var(--line))
   );
+}
+.ylabel {
+  fill: color-mix(in srgb, rgb(var(--color)) 40%, white 60%);
+}
+[data-theme="dark"] .ylabel {
+  fill: color-mix(in srgb, rgb(var(--color)) 60%, white 40%);
 }
 
 aside {

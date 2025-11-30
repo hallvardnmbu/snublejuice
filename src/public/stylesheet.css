@@ -35,8 +35,10 @@
   --star: var(--foreground);
 
   --line: 90%;
-  --negative: 33, 0, 0;
-  --positive: 22, 39, 30;
+  --negative: 59, 0, 0;
+  --positive: 31, 55, 43;
+  --neutral: 49, 49, 49;
+  --color: var(--neutral);
 }
 
 html {

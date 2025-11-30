@@ -12,7 +12,7 @@
     %>;"
 >
     <div>
-        <img src="/image/<%= item.index %>" onerror="this.src='/images/bottle.png';this.style.scale='80%'">
+        <img src="/image/<%= item.index %>" onerror="this.className='fallback'; this.src='/images/bottle.png'">
 
         <div>
             <h1>

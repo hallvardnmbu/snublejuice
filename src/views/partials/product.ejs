@@ -58,7 +58,7 @@
             </span>
             <% } %>
 
-            <% if (taxfree && item.taxfree.stores) { %>
+            <% if (taxfree && taxfreeStore && item.taxfree.stores) { %>
             <span class="list">
                 <% const taxfreeStores = item.taxfree.stores.sort((a,b) => a.localeCompare(b)) %>
                 <% taxfreeStores.forEach((store, index) => { %>
@@ -100,8 +100,7 @@
                 <% if (taxfree) { %>
                     <a href="<%= item.taxfree.url %>" target="_blank">TAX-FREE <b><%= Math.ceil(item.taxfree.price) %></b></a>
                     <a href="<%= item.url %>" target="_blank">POL <b><%= Math.ceil(item.price) %></b></a>
-                    <p>DIFFERANSE <b><%= Math.floor(item.taxfree.discount) %>%</b></p>
-                    <p>KR/L <b><%= Math.ceil(item.literprice) %></b></p>
+                    <p>DIFF <b><%= Math.floor(item.taxfree.discount) %>%</b></p>
                 <% } else { %>
                     <p>KR <b><%= Math.ceil(item.price) %></b></p>
 

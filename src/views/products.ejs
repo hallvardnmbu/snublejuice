@@ -40,6 +40,10 @@
                 <% if (new Date().getDate() <= 5) { %>
                     <span>[!] NY MÅNED; NYE TILBUD [!]</span>
                 <% } %>
+
+                <span>Den fargede bakgrunnen til hvert produkt tilsvarer prishistorikken!</span>
+                <span>Trykk på et produkt for å se mere informasjon.</span>
+
                 <div id="messageStock" style="display: none;">
                     <span>N.b.: Faktisk lagerbeholdning kan avvike. Oppdateres med jevne mellomrom.</span>
                 </div>
@@ -47,9 +51,6 @@
                 <% if (message) { %>
                     <span><%= message %></span>
                 <% } %>
-
-                <span>Den fargede bakgrunnen til hvert produkt tilsvarer prishistorikken!</span>
-                <span>Trykk på et produkt for å se mere informasjon.</span>
             </div>
 
             <% data.forEach((item, index) => { %>

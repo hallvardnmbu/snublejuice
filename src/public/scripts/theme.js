@@ -4,7 +4,6 @@ const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
 
 // Function to set theme
 function setTheme(theme) {
-  console.log(theme);
   document.documentElement.setAttribute(
     "data-theme",
     theme === "Mørkt" ? "dark" : "light",

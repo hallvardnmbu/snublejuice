@@ -57,8 +57,7 @@ const app = new Elysia()
 
     const imageDir = process.env.IMAGE_DIR;
     if (!imageDir) {
-      console.error("IMAGE_DIR environment variable is not set.");
-      return new Response("Image configuration error", { status: 500 });
+      return new Response("No image database found", { status: 500 });
     }
 
     const filePath = path.join(imageDir, `${index}.png`);
@@ -67,7 +66,7 @@ const app = new Elysia()
     if (await file.exists()) {
       return new Response(file);
     } else {
-      return new Response("Image not found", { status: 404 });
+      return new Response("Image not found", { status: 204 });
     }
   })
   .get("/", async (context) => {

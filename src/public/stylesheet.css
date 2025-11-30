@@ -257,6 +257,13 @@ section > div > img {
   height: auto;
   max-height: calc(2 * var(--image));
 }
+section > div > img.fallback {
+  align-items: baseline;
+}
+[data-theme="dark"] section > div > img:not(.fallback) {
+  filter: drop-shadow(0 0 calc(var(--margin) / 2) var(--text));
+  -webkit-filter: drop-shadow(0 0 calc(var(--margin) / 2) var(--text));
+}
 section > div > div {
   position: relative;
   display: flex;

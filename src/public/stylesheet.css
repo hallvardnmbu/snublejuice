@@ -212,8 +212,10 @@ search div:has(select)::after {
 .message {
   display: flex;
   flex-direction: column;
+  gap: var(--padding);
+
   align-items: center;
-  gap: var(--margin);
+  text-align: center;
 
   width: calc(100% - 2 * var(--padding));
   max-width: calc(4 * var(--image));

@@ -47,10 +47,10 @@
                 <% if (message) { %>
                     <span><%= message %></span>
                 <% } %>
-            </div>
 
-            <span>Den fargede bakgrunnen til hvert produkt tilsvarer prishistorikken!</span>
-            <span>Trykk på et produkt for å se mere informasjon.</span>
+                <span>Den fargede bakgrunnen til hvert produkt tilsvarer prishistorikken!</span>
+                <span>Trykk på et produkt for å se mere informasjon.</span>
+            </div>
 
             <% data.forEach((item, index) => { %>
                 <%- include('partials/product', { index, item, user, storelike, taxfree: subdomain === "taxfree" }) %>

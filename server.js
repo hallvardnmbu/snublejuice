@@ -44,9 +44,9 @@ const app = new Elysia()
   .derive(authenticate)
   .group("/account", (app) => app.use(accountRouter))
   .group("/data", (app) => app.use(dataRouter))
-  .get("/error", async ({ query, render }) => {
+  .get("/error", async ({ query, render, user }) => {
     return render("src/views/error.ejs", {
-      message: query.message || "Noe gikk galt.",
+      user: user,
     });
   })
   .get("/image/:index", async ({ params: { index } }) => {
@@ -123,10 +123,7 @@ const app = new Elysia()
     }
 
     if (!meta.stock.prices[subdomain]) {
-      return Response.redirect(
-        `/error?message=Prisene er ikke oppdatert.`,
-        302,
-      );
+      return Response.redirect(`/error`, 302);
     }
 
     const page = parseInt(query.page) || 1;
@@ -236,7 +233,7 @@ const app = new Elysia()
       });
     } catch (err) {
       console.error(err);
-      return Response.redirect(`/error?message=Noe gikk galt.`, 302);
+      return Response.redirect(`/error`, 302);
     }
   });
 

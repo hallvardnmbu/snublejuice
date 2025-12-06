@@ -4,6 +4,7 @@ import { staticPlugin } from "@elysiajs/static";
 import { spawn } from "bun";
 import path from "path";
 
+import lekApp from "./src/other/lek/app.js";
 import ordApp from "./src/other/ord/app.js";
 import elektronApp from "./src/other/elektron/app.js";
 import dilettantApp from "./src/other/dilettant/app.js";
@@ -249,6 +250,9 @@ if (_PRODUCTION) {
     ratingProcess.unref && ratingProcess.unref();
   }
 
+  // LEK APPLICATION (lek.snublejuice.no)
+  hostApps["lek.snublejuice.no"] = lekApp;
+
   // ORD APPLICATION (dagsord.no)
   hostApps["dagsord.no"] = ordApp;
   hostApps["www.dagsord.no"] = ordApp;
@@ -266,6 +270,7 @@ if (_PRODUCTION) {
   hostApps["vinmonopolet.snublejuice.no"] = app;
   hostApps["taxfree.snublejuice.no"] = app;
 } else {
+  hostApps["lek.localhost"] = lekApp;
   hostApps["dagsord.localhost"] = ordApp;
   hostApps["elektron.localhost"] = elektronApp;
   hostApps["dilettant.localhost"] = dilettantApp;
@@ -279,6 +284,18 @@ const mainServer = new Elysia()
   .all("*", async ({ request }) => {
     let hostname = request.headers.get("host") || "";
     hostname = hostname.split(":")[0];
+
+    // Redirect snublejus to snublejuice.
+    if (hostname.includes("snublejus.no")) {
+      const url = new URL(request.url);
+      url.hostname = hostname.replace("snublejus.no", "snublejuice.no");
+      return new Response(null, {
+        status: 308,
+        headers: {
+          Location: url.toString(),
+        },
+      });
+    }
 
     const targetApp = hostApps[hostname];
 
@@ -295,6 +312,7 @@ if (!_PRODUCTION) {
   console.log(`http://localhost:${port}`);
   console.log(`http://vinmonopolet.localhost:${port}`);
   console.log(`http://taxfree.localhost:${port}`);
+  console.log(`http://lek.localhost:${port}`);
   console.log(`http://dagsord.localhost:${port}`);
   console.log(`http://elektron.localhost:${port}`);
   console.log(`http://dilettant.localhost:${port}`);

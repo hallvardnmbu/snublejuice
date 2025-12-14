@@ -118,6 +118,24 @@ server {
 	}
 }
 
+# lek.snublejuice.no
+server {
+	listen 80;
+	server_name lek.snublejuice.no;
+
+	location / {
+		proxy_pass http://localhost:8080;
+		proxy_http_version 1.1;
+		proxy_set_header Upgrade $http_upgrade;
+		proxy_set_header Connection 'upgrade';
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header X-Forwarded-Proto $scheme;
+		proxy_cache_bypass $http_upgrade;
+	}
+}
+
 # dagsord.no
 server {
 	listen 80;
@@ -267,6 +285,7 @@ sudo certbot --nginx -d snublejuice.no
 sudo certbot --nginx -d www.snublejuice.no
 sudo certbot --nginx -d vinmonopolet.snublejuice.no
 sudo certbot --nginx -d taxfree.snublejuice.no
+sudo certbot --nginx -d lek.snublejuice.no
 sudo certbot --nginx -d dagsord.no
 sudo certbot --nginx -d www.dagsord.no
 sudo certbot --nginx -d elektron.dagsord.no

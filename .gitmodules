@@ -7,3 +7,6 @@
 [submodule "src/other/dilettant"]
 	path = src/other/dilettant
 	url = https://github.com/hallvardnmbu/dilettant
+[submodule "src/other/lek"]
+	path = src/other/lek
+	url = https://github.com/hallvardnmbu/lek.git

@@ -231,6 +231,9 @@ section {
   width: 100%;
   max-width: calc(10 * var(--image));
 }
+section.landing {
+  max-width: 80%;
+}
 section a {
   color: var(--text);
 }

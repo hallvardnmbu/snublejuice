@@ -19,3 +19,5 @@ backups/.venv
 backups/uv.lock
 backups/.ruff_cache
 backups/.python-version
+
+**/target/

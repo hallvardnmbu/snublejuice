@@ -78,7 +78,12 @@ const app = new Elysia()
       collections: appCollections,
       user: authenticatedUser,
     } = context;
+
     const hostname = request.headers.get("host") || "";
+
+    if (hostname.startsWith("snake")) {
+      return Bun.file("src/other/snake/index.html");
+    }
 
     let subdomain = hostname.startsWith("taxfree")
       ? "taxfree"
@@ -269,6 +274,7 @@ if (_PRODUCTION) {
   hostApps["www.snublejuice.no"] = app;
   hostApps["vinmonopolet.snublejuice.no"] = app;
   hostApps["taxfree.snublejuice.no"] = app;
+  hostApps["snake.snublejuice.no"] = app;
 } else {
   hostApps["lek.localhost"] = lekApp;
   hostApps["dagsord.localhost"] = ordApp;
@@ -278,6 +284,7 @@ if (_PRODUCTION) {
   hostApps["localhost"] = app;
   hostApps["vinmonopolet.localhost"] = app;
   hostApps["taxfree.localhost"] = app;
+  hostApps["snake.localhost"] = app;
 }
 
 const mainServer = new Elysia()
@@ -316,4 +323,5 @@ if (!_PRODUCTION) {
   console.log(`http://dagsord.localhost:${port}`);
   console.log(`http://elektron.localhost:${port}`);
   console.log(`http://dilettant.localhost:${port}`);
+  console.log(`http://snake.localhost:${port}`);
 }

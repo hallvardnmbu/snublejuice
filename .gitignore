@@ -14,10 +14,6 @@ bun.lock
 bun.lockb
 jsconfig.json
 
-backups/backup/
-backups/.venv
-backups/uv.lock
-backups/.ruff_cache
-backups/.python-version
-
 **/target/
+
+*db*

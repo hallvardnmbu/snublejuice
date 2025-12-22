@@ -1,76 +1,117 @@
-use axum::{
-    Json, Router,
-    extract::{Path, State},
-    http::StatusCode,
-    routing::get,
+use sqlx::{
+    FromRow, Row, SqlitePool,
+    sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions},
 };
-use mongodb::{Client, Collection, bson::doc};
-use serde::{Deserialize, Serialize};
+use std::str::FromStr;
+
+#[derive(Debug)]
+#[allow(dead_code)]
+struct Product {
+    id: i64,
+    name: String,
+    url: String,
+    description: Option<String>,
+    price: Option<f64>,
+    prices: Option<Vec<f64>>,
+    stores: Option<Vec<String>>,
+}
+
+// Manually implement FromRow to handle the weird JSON/BLOB data
+impl<'r> FromRow<'r, sqlx::sqlite::SqliteRow> for Product {
+    fn from_row(row: &'r sqlx::sqlite::SqliteRow) -> Result<Self, sqlx::Error> {
+        let id: i64 = row.try_get("id")?;
+        let name: String = row.try_get("name")?;
+        let url: String = row.try_get("url")?;
+        let description: Option<String> = row.try_get("description")?;
+        let price: Option<f64> = row.try_get("price")?;
+
+        // Handle 'prices'
+        let prices_json: Option<String> = row.try_get("prices")?;
+        let prices = match prices_json {
+            Some(s) if s == "null" => None,
+            Some(s) => serde_json::from_str(&s).ok(), // Ignore parse errors for robustness
+            None => None,
+        };
+
+        // Handle 'stores'
+        let stores_json: Option<String> = row.try_get("stores")?;
+        let stores = match stores_json {
+            Some(s) if s == "null" => None,
+            Some(s) => serde_json::from_str(&s).ok(),
+            None => None,
+        };
+
+        Ok(Product {
+            id,
+            name,
+            url,
+            description,
+            price,
+            prices,
+            stores,
+        })
+    }
+}
 
 #[tokio::main]
-async fn main() {
-    let connection_string = format!(
-        "mongodb+srv://{}:{}@snublejuice.faktu.mongodb.net/?retryWrites=true&w=majority&appName=snublejuice",
-        std::env::var("MONGO_USR").unwrap(),
-        std::env::var("MONGO_PWD").unwrap(),
-    );
-    let client = Client::with_uri_str(connection_string).await.unwrap();
+async fn main() -> Result<(), sqlx::Error> {
+    let db_url = std::env::var("DATABASE").unwrap_or("sqlite:snublejuice.db".to_string());
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
-    axum::serve(listener, app(client)).await.unwrap();
+    // Configure connection options (enable WAL for concurrency)
+    let connection_options = SqliteConnectOptions::from_str(&db_url)?
+        .create_if_missing(true)
+        .journal_mode(SqliteJournalMode::Wal);
+
+    let pool = SqlitePoolOptions::new()
+        .max_connections(5)
+        .connect_with(connection_options)
+        .await?;
+
+    println!("Connected to database: {} (WAL mode enabled)", db_url);
+
+    // Example 1: List some products
+    println!("--- Recent Products ---");
+    let products = sqlx::query_as::<_, Product>(
+        "SELECT id, name, url, description, price, CAST(prices AS TEXT) as prices, CAST(stores AS TEXT) as stores FROM products LIMIT 3"
+    )
+    .fetch_all(&pool)
+    .await?;
+
+    for p in products {
+        println!("- {}", p.name);
+        if let Some(stores) = &p.stores {
+            println!("  Stores: {} stores", stores.len());
+        }
+    }
+
+    // Example 2: Search with FTS5
+    let search_term = "Baron";
+    println!("\n--- Search Results for '{}' ---", search_term);
+    let found = search_products(&pool, search_term).await?;
+
+    for p in found {
+        println!("- {} (Price: {:?})", p.name, p.price);
+        if let Some(prices) = &p.prices {
+            println!("  History: {} prices", prices.len());
+        }
+    }
+
+    Ok(())
 }
 
-fn app(client: Client) -> Router {
-    let products: Collection<Product> = client.database("snublejuice").collection("products");
-    let users: Collection<User> = client.database("snublejuice").collection("users");
+// Search function using FTS5
+async fn search_products(pool: &SqlitePool, query: &str) -> Result<Vec<Product>, sqlx::Error> {
+    let sql = r#"
+        SELECT p.id, p.name, p.url, p.description, p.price, CAST(p.prices AS TEXT) as prices, CAST(p.stores AS TEXT) as stores
+        FROM products p
+        JOIN products_fts ON p.id = products_fts.rowid
+        WHERE products_fts MATCH ?
+        ORDER BY rank
+        LIMIT 10
+    "#;
 
-    Router::new()
-        .route("/product/{index}", get(product))
-        .with_state(products)
-        .route("/users/{email}", get(user))
-        .with_state(users)
-}
-
-async fn product(
-    State(products): State<Collection<Product>>,
-    Path(index): Path<u32>,
-) -> Result<Json<Option<Product>>, (StatusCode, String)> {
-    let result = products
-        .find_one(doc! { "index": index })
+    sqlx::query_as::<_, Product>(sql)
+        .bind(query)
+        .fetch_all(pool)
         .await
-        .map_err(internal_error)?;
-
-    Ok(Json(result))
-}
-
-async fn user(
-    State(users): State<Collection<User>>,
-    Path(email): Path<String>,
-) -> Result<Json<Option<User>>, (StatusCode, String)> {
-    let result = users
-        .find_one(doc! { "email": email })
-        .await
-        .map_err(internal_error)?;
-
-    Ok(Json(result))
-}
-
-fn internal_error<E>(err: E) -> (StatusCode, String)
-where
-    E: std::error::Error,
-{
-    (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct Product {
-    index: u32,
-    name: String,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct User {
-    email: String,
-    username: String,
-    favourites: Vec<u32>,
 }

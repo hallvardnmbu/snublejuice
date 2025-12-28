@@ -4,6 +4,10 @@ use sqlx::{
 };
 use std::str::FromStr;
 
+pub fn database() {
+    println!("Hello from database!");
+}
+
 #[derive(Debug)]
 #[allow(dead_code)]
 struct Product {
@@ -54,7 +58,7 @@ impl<'r> FromRow<'r, sqlx::sqlite::SqliteRow> for Product {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), sqlx::Error> {
+pub async fn process() -> Result<(), sqlx::Error> {
     let db_url = std::env::var("DATABASE").unwrap_or("sqlite:snublejuice.db".to_string());
 
     // Configure connection options (enable WAL for concurrency)

@@ -2,16 +2,18 @@ import { Elysia, t } from "elysia";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
+const _PRODUCTION = process.env.ENVIRONMENT.trim() === "production";
+
 // Helper for cookie options
 function getCookieOptions() {
   const options = {
     httpOnly: true,
-    secure: process.env.NODE_ENV.trim() === "production",
+    secure: _PRODUCTION,
     sameSite: "lax",
     maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
     path: "/",
   };
-  if (process.env.NODE_ENV.trim() === "production") {
+  if (_PRODUCTION) {
     options.domain = ".snublejuice.no";
   }
   return options;

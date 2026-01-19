@@ -2,13 +2,6 @@
 
     <table class="metadata">
         <tbody>
-            <% if (item.description.lang) { %>
-                <tr>
-                    <td>Beskrivelse</td>
-                    <td><%= item.description.lang %></td>
-                </tr>
-            <% } %>
-
             <% if (item.rating && (item.rating.value !== undefined && item.rating.value !== null)) { %>
                 <tr>
                     <td>Rating</td>

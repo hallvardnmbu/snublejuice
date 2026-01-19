@@ -1,7 +1,14 @@
 import { renderFile } from "ejs";
 import { Elysia } from "elysia";
 import { staticPlugin } from "@elysiajs/static";
+import { dirname, join } from "path";
 import path from "path";
+
+let __dirname = dirname(new URL(import.meta.url).pathname);
+__dirname =
+  __dirname.startsWith("/") && __dirname.includes(":")
+    ? __dirname.replace(/^\/([A-Z]):/, "$1:\\").replace(/\//g, "\\")
+    : __dirname;
 
 import accountRouter, { authenticate } from "./src/routes/account.js";
 import dataRouter from "./src/routes/data.js";
@@ -14,7 +21,7 @@ import {
   load,
 } from "./src/database/operations.js";
 
-const _PRODUCTION = process.env.NODE_ENV.trim() === "production";
+const _PRODUCTION = process.env.ENVIRONMENT.trim() === "production";
 const collections = await databaseConnection();
 
 // Helper function to render EJS templates
@@ -27,7 +34,7 @@ async function render(filePath, data) {
 const snublejuice = new Elysia()
   .use(
     staticPlugin({
-      assets: "src/public",
+      assets: join(__dirname, "src/public"),
       prefix: "/",
     }),
   )
@@ -37,7 +44,7 @@ const snublejuice = new Elysia()
   .group("/account", (app) => app.use(accountRouter))
   .group("/data", (app) => app.use(dataRouter))
   .get("/error", async ({ query, render, user }) => {
-    return render("src/views/error.ejs", {
+    return render(join(__dirname, "src/views/error.ejs"), {
       user: user,
     });
   })
@@ -73,7 +80,7 @@ const snublejuice = new Elysia()
     const hostname = request.headers.get("host") || "";
 
     if (hostname.startsWith("snake")) {
-      return Bun.file("src/other/snake.html");
+      return Bun.file(join(__dirname, "src/other/snake.html"));
     }
 
     let subdomain = hostname.startsWith("taxfree")
@@ -110,7 +117,7 @@ const snublejuice = new Elysia()
     let meta = await getMetadata(appCollections.metadata);
 
     if (subdomain === "landing") {
-      return render("src/views/landing.ejs", {
+      return render(join(__dirname, "src/views/landing.ejs"), {
         user: user,
         visitors: {
           vinmonopolet: meta.visitors.fresh.month[month]?.vinmonopolet || 0,
@@ -199,7 +206,7 @@ const snublejuice = new Elysia()
         fresh: true,
       });
 
-      return render("src/views/products.ejs", {
+      return render(join(__dirname, "src/views/products.ejs"), {
         visitors: meta.visitors.fresh.month[month]?.[subdomain] || 0,
         subdomain: subdomain,
         user: user,

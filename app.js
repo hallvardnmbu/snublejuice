@@ -1,13 +1,7 @@
 import { renderFile } from "ejs";
 import { Elysia } from "elysia";
 import { staticPlugin } from "@elysiajs/static";
-import { spawn } from "bun";
 import path from "path";
-
-import lekApp from "./src/other/lek/app.js";
-import ordApp from "./src/other/ord/app.js";
-import elektronApp from "./src/other/elektron/app.js";
-import dilettantApp from "./src/other/dilettant/app.js";
 
 import accountRouter, { authenticate } from "./src/routes/account.js";
 import dataRouter from "./src/routes/data.js";
@@ -21,9 +15,6 @@ import {
 } from "./src/database/operations.js";
 
 const _PRODUCTION = process.env.NODE_ENV.trim() === "production";
-const port = process.env.PORT || 8080;
-const _RATINGS = false;
-
 const collections = await databaseConnection();
 
 // Helper function to render EJS templates
@@ -33,7 +24,7 @@ async function render(filePath, data) {
   });
 }
 
-const app = new Elysia()
+const snublejuice = new Elysia()
   .use(
     staticPlugin({
       assets: "src/public",
@@ -82,7 +73,7 @@ const app = new Elysia()
     const hostname = request.headers.get("host") || "";
 
     if (hostname.startsWith("snake")) {
-      return Bun.file("src/other/snake/index.html");
+      return Bun.file("src/other/snake.html");
     }
 
     let subdomain = hostname.startsWith("taxfree")
@@ -243,85 +234,11 @@ const app = new Elysia()
     }
   });
 
-const hostApps = {};
-if (_PRODUCTION) {
-  // Start the Vivino rating script as a detached background process
-  if (_RATINGS) {
-    const ratingScript = path.resolve("fetch/vivino/rating.mjs");
-    const ratingProcess = spawn({
-      cmd: ["bun", ratingScript],
-      stdio: ["ignore", "inherit", "inherit"],
-    });
-    ratingProcess.unref && ratingProcess.unref();
-  }
+export default snublejuice;
 
-  // LEK APPLICATION (lek.snublejuice.no)
-  hostApps["lek.snublejuice.no"] = lekApp;
-
-  // ORD APPLICATION (dagsord.no)
-  hostApps["dagsord.no"] = ordApp;
-  hostApps["www.dagsord.no"] = ordApp;
-
-  // ELEKTRON APPLICATION (elektron.dagsord.no)
-  hostApps["elektron.dagsord.no"] = elektronApp;
-
-  // DILETTANT APPLICATION (dilettant.no)
-  hostApps["dilettant.no"] = dilettantApp;
-  hostApps["www.dilettant.no"] = dilettantApp;
-
-  // SNUBLEJUICE APPLICATION (snublejuice.no)
-  hostApps["snublejuice.no"] = app;
-  hostApps["www.snublejuice.no"] = app;
-  hostApps["vinmonopolet.snublejuice.no"] = app;
-  hostApps["taxfree.snublejuice.no"] = app;
-  hostApps["snake.snublejuice.no"] = app;
-} else {
-  hostApps["lek.localhost"] = lekApp;
-  hostApps["dagsord.localhost"] = ordApp;
-  hostApps["elektron.localhost"] = elektronApp;
-  hostApps["dilettant.localhost"] = dilettantApp;
-
-  hostApps["localhost"] = app;
-  hostApps["vinmonopolet.localhost"] = app;
-  hostApps["taxfree.localhost"] = app;
-  hostApps["snake.localhost"] = app;
-}
-
-const mainServer = new Elysia()
-  .all("*", async ({ request }) => {
-    let hostname = request.headers.get("host") || "";
-    hostname = hostname.split(":")[0];
-
-    // Redirect snublejus to snublejuice.
-    if (hostname.includes("snublejus.no")) {
-      const url = new URL(request.url);
-      url.hostname = hostname.replace("snublejus.no", "snublejuice.no");
-      return new Response(null, {
-        status: 308,
-        headers: {
-          Location: url.toString(),
-        },
-      });
-    }
-
-    const targetApp = hostApps[hostname];
-
-    if (targetApp) {
-      return await targetApp.handle(request);
-    }
-
-    return new Response("No vhost match", { status: 404 });
-  })
-  .listen(port);
-
-console.log(`Server running at http://localhost:${port}`);
-if (!_PRODUCTION) {
-  console.log(`http://localhost:${port}`);
-  console.log(`http://vinmonopolet.localhost:${port}`);
-  console.log(`http://taxfree.localhost:${port}`);
-  console.log(`http://lek.localhost:${port}`);
-  console.log(`http://dagsord.localhost:${port}`);
-  console.log(`http://elektron.localhost:${port}`);
-  console.log(`http://dilettant.localhost:${port}`);
-  console.log(`http://snake.localhost:${port}`);
+if (import.meta.main) {
+  snublejuice.listen(3000);
+  console.log(
+    `Running at http://${snublejuice.server?.hostname}:${snublejuice.server?.port}`,
+  );
 }

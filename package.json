@@ -1,13 +1,13 @@
 {
   "name": "snublejuice",
-  "module": "server.js",
+  "module": "app.js",
   "type": "module",
   "devDependencies": {
     "@types/bun": "latest"
   },
   "scripts": {
-    "start": "bun server.js",
-    "dev": "bun --watch server.js"
+    "start": "bun app.js",
+    "dev": "bun --watch app.js"
   },
   "dependencies": {
     "@elysiajs/html": "^1.4.0",

@@ -14,9 +14,6 @@
                         <% } else { %>
                         vivino.
                         <% } %>
-                        <% if (item.rating.updated) { %>
-                        Oppdatert <%= (typeof item.rating.updated === 'string' ? new Date(item.rating.updated) : item.rating.updated).toLocaleString('nb-NO', { dateStyle: 'long' }) %>.
-                        <% } %>
                     </td>
                 </tr>
             <% } %>

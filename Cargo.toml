@@ -5,8 +5,3 @@ members = [
     "crates/server"
 ]
 resolver = "3"
-
-# [package]
-# name = "snublejuice"
-# version = "0.1.0"
-# edition = "2024"

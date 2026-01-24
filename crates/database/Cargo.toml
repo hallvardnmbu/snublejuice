@@ -1,11 +1,14 @@
 [package]
 name = "database"
+description = "Interactions with the database."
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-axum = "0.8.7"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0"
 sqlx = { version = "0.8", features = [ "runtime-tokio", "sqlite", "derive", "json" ] }
 tokio = { version = "1.20.0", features = [ "rt-multi-thread", "macros" ]}
+
+[dev-dependencies]
+tokio = { version = "1.20.0", features = ["full"] }

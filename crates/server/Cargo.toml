@@ -1,8 +1,15 @@
 [package]
 name = "server"
+description = "Main entrypoint combining the crates."
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+axum = "0.8.7"
+tokio = { version = "1", features = ["full"] }
+sqlx = { version = "0.8", features = [ "runtime-tokio", "sqlite" ] }
+
 database = { path = "../database"}
 routes = { path = "../routes"}
+dotenv = "0.15.0"
+tower-http = { version = "0.6.8", features = ["cors"] }

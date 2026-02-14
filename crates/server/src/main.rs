@@ -1,6 +1,7 @@
 // use std::net::SocketAddr;
 
 use database;
+use routes;
 
 static _DATABASE_KEY: &str = "MONGODB";
 static _DATABASE_NAME: &str = "snublejuice";

@@ -15,7 +15,6 @@ pub async fn get_database(key: &str, db: &str) -> Result<Database, String> {
             options.server_api = Some(server_api);
 
             let client = Client::with_options(options).expect("Unable to create the client.");
-
             let database = client.database(db);
 
             Ok(database)

@@ -16,6 +16,6 @@ jsconfig.json
 
 **/target/
 
-*db*
+**/db/
 
 legacy

@@ -1,4 +1,4 @@
-import { renderFile } from "ejs";
+import ejs from "ejs";
 import { Elysia } from "elysia";
 import { staticPlugin } from "@elysiajs/static";
 import { dirname, join } from "path";
@@ -26,7 +26,7 @@ const collections = await databaseConnection();
 
 // Helper function to render EJS templates
 async function render(filePath, data) {
-  return new Response(await renderFile(filePath, data), {
+  return new Response(await ejs.renderFile(filePath, data), {
     headers: { "Content-Type": "text/html; charset=utf8" },
   });
 }
@@ -45,6 +45,11 @@ const snublejuice = new Elysia()
   .group("/data", (app) => app.use(dataRouter))
   .get("/error", async ({ query, render, user }) => {
     return render(join(__dirname, "src/views/error.ejs"), {
+      user: user,
+    });
+  })
+  .get("/maintenance", async ({ query, render, user }) => {
+    return render(join(__dirname, "src/views/maintenance.ejs"), {
       user: user,
     });
   })
@@ -69,6 +74,8 @@ const snublejuice = new Elysia()
     }
   })
   .get("/", async (context) => {
+    return Response.redirect(`/maintenance`, 307);
+
     const {
       request,
       query,
@@ -127,7 +134,7 @@ const snublejuice = new Elysia()
     }
 
     if (!meta.stock.prices[subdomain]) {
-      return Response.redirect(`/error`, 302);
+      return Response.redirect(`/error`, 307);
     }
 
     const page = parseInt(query.page) || 1;
@@ -237,7 +244,7 @@ const snublejuice = new Elysia()
       });
     } catch (err) {
       console.error(err);
-      return Response.redirect(`/error`, 302);
+      return Response.redirect(`/error`, 307);
     }
   });
 

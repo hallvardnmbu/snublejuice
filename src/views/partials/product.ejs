@@ -67,10 +67,10 @@
             </span>
             <% } %>
 
-            <% if (item.rating && (item.rating.value !== undefined && item.rating.value !== null)) { %>
+            <% if (item.vivino && (item.vivino.rating !== undefined && item.vivino.rating !== null)) { %>
             <span>
-                <% if (item.rating.url) { %>
-                    <a href="<%= item.rating.url %>"
+                <% if (item.vivino.url) { %>
+                    <a href="<%= item.vivino.url %>"
                         class="rating"
                         target="_blank"
                         rel="noopener noreferrer"
@@ -79,21 +79,21 @@
 
                 <% for (let i = 0; i < 5; i++) { %>
                     <p class="star" style="--fill: <%=
-                        i < Math.floor(item.rating.value) ? 100 :
-                        i === Math.floor(item.rating.value) ? (item.rating.value - Math.floor(item.rating.value)) * 100 : 0
+                        i < Math.floor(item.vivino.rating) ? 100 :
+                        i === Math.floor(item.vivino.rating) ? (item.vivino.rating - Math.floor(item.vivino.rating)) * 100 : 0
                     %>%">★</p>
                 <% } %>
 
-                <p><b><%= item.rating.value %></b> av <b>5</b></p>
+                <p><b><%= item.vivino.rating %></b> av <b>5</b></p>
 
-                <% if (item.rating.url) { %>
+                <% if (item.vivino.url) { %>
                     </a>
                 <% } %>
             </span>
             <% } %>
 
             <% if (item.description) { %>
-                <span><%= item.description.lang %></span>
+                <span><%= item.description %></span>
             <% } %>
 
             <span>

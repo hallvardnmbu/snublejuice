@@ -2,12 +2,12 @@
 
     <table class="metadata">
         <tbody>
-            <% if (item.rating && (item.rating.value !== undefined && item.rating.value !== null)) { %>
+            <% if (item.vivino && (item.vivino.rating !== undefined && item.vivino.rating !== null)) { %>
                 <tr>
                     <td>Rating</td>
-                    <td>Vurdert <%= item.rating.value %> av 5 hos
-                        <% if (item.rating.url) { %>
-                        <a href="<%= item.rating.url %>"
+                    <td>Vurdert <%= item.vivino.rating %> av 5 hos
+                        <% if (item.vivino.url) { %>
+                        <a href="<%= item.vivino.url %>"
                             target="_blank"
                             rel="noopener noreferrer"
                             onclick="event.stopPropagation()">vivino</a>.

@@ -48,11 +48,6 @@ const snublejuice = new Elysia()
       user: user,
     });
   })
-  .get("/maintenance", async ({ query, render, user }) => {
-    return render(join(__dirname, "src/views/maintenance.ejs"), {
-      user: user,
-    });
-  })
   .get("/image/:index", async ({ params: { index } }) => {
     // Sanitize index to allow only alphanumeric characters
     if (!/^[a-zA-Z0-9]+$/.test(index)) {
@@ -74,8 +69,6 @@ const snublejuice = new Elysia()
     }
   })
   .get("/", async (context) => {
-    return Response.redirect(`/maintenance`, 307);
-
     const {
       request,
       query,

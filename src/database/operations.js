@@ -59,7 +59,6 @@ export async function load({
 
   // Show orderable and instores products:
   orderable = true,
-  instores = false,
 
   // Array parameters:
   store = { vinmonopolet: null, taxfree: null },
@@ -136,10 +135,9 @@ export async function load({
 
   let matchStage = {
     // Only include updated products.
-    ...(!taxfree ? { updated: true } : { "taxfree.updated": true }),
-
-    // If favourites are specified, disregard the buyable parameter.
-    ...(!favourites && !taxfree ? { buyable: true } : {}),
+    ...(!taxfree
+      ? { updated: true }
+      : { "taxfree.stores": { $exists: true, $ne: null } }),
 
     // Match the specified parameters if they are not null.
     ...(category && !search ? { category: category } : {}),
@@ -157,9 +155,6 @@ export async function load({
   if (!store.vinmonopolet && !storelike && !search && !favourites && !taxfree) {
     if (orderable) {
       matchStage["orderable"] = true;
-    }
-    if (instores) {
-      matchStage["instores"] = true;
     }
   }
 
@@ -203,7 +198,7 @@ export async function load({
 
     matchStage[sort] = { ...matchStage[sort], $exists: true, $ne: null };
     if (sort === "rating") {
-      matchStage["rating.value"] = { $exists: true, $ne: null };
+      matchStage["vivino.rating"] = { $exists: true, $ne: null };
     }
   }
 

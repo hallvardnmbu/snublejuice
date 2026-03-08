@@ -1,5 +1,5 @@
 [workspace]
-members = [
+members = ["crates/core",
     "crates/database",
     "crates/routes",
     "crates/server"

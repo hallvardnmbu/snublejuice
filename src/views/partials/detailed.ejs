@@ -2,17 +2,17 @@
 
     <table class="metadata">
         <tbody>
-            <% if (item.vivino && (item.vivino.rating !== undefined && item.vivino.rating !== null)) { %>
+            <% if (item.aperitif && (item.aperitif.points !== undefined && item.aperitif.points !== null)) { %>
                 <tr>
                     <td>Rating</td>
-                    <td>Vurdert <%= item.vivino.rating %> av 5 hos
-                        <% if (item.vivino.url) { %>
-                        <a href="<%= item.vivino.url %>"
+                    <td>Vurdert <%= item.aperitif.points %> av 100 hos
+                        <% if (item.aperitif.url) { %>
+                        <a href="<%= item.aperitif.url %>"
                             target="_blank"
                             rel="noopener noreferrer"
-                            onclick="event.stopPropagation()">vivino</a>.
+                            onclick="event.stopPropagation()">aperitif</a>.
                         <% } else { %>
-                        vivino.
+                        aperitif.
                         <% } %>
                     </td>
                 </tr>

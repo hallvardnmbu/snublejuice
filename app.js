@@ -138,7 +138,7 @@ const snublejuice = new Elysia()
       subdomain === "taxfree" && sort !== "alcohol"
         ? `taxfree.${sort}`
         : sort === "rating"
-          ? "vivino.rating"
+          ? "aperitif.points"
           : sort;
     const ascending = !(query.ascending === "false");
 

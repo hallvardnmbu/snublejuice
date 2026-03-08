@@ -67,26 +67,27 @@
             </span>
             <% } %>
 
-            <% if (item.vivino && (item.vivino.rating !== undefined && item.vivino.rating !== null)) { %>
+            <% if (item.aperitif && (item.aperitif.points !== undefined && item.aperitif.points !== null)) { %>
             <span>
-                <% if (item.vivino.url) { %>
-                    <a href="<%= item.vivino.url %>"
+                <% if (item.aperitif.url) { %>
+                    <a href="<%= item.aperitif.url %>"
                         class="rating"
                         target="_blank"
                         rel="noopener noreferrer"
                         onclick="event.stopPropagation()">
                 <% } %>
 
+                <% const points = item.aperitif.points / 20; %>
                 <% for (let i = 0; i < 5; i++) { %>
                     <p class="star" style="--fill: <%=
-                        i < Math.floor(item.vivino.rating) ? 100 :
-                        i === Math.floor(item.vivino.rating) ? (item.vivino.rating - Math.floor(item.vivino.rating)) * 100 : 0
+                        i < Math.floor(points) ? 100 :
+                        i === Math.floor(points) ? (points - Math.floor(points)) * 100 : 0
                     %>%">★</p>
                 <% } %>
 
-                <p><b><%= item.vivino.rating %></b> av <b>5</b></p>
+                <p><b><%= item.aperitif.points %></b> av <b>100</b></p>
 
-                <% if (item.vivino.url) { %>
+                <% if (item.aperitif.url) { %>
                     </a>
                 <% } %>
             </span>

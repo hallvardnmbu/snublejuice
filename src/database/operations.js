@@ -197,9 +197,6 @@ export async function load({
     }
 
     matchStage[sort] = { ...matchStage[sort], $exists: true, $ne: null };
-    if (sort === "rating") {
-      matchStage["vivino.rating"] = { $exists: true, $ne: null };
-    }
   }
 
   pipeline.push({ $match: matchStage });

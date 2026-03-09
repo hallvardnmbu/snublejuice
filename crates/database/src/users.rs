@@ -9,12 +9,9 @@ pub async fn get_user(db: Database, username: &str) -> Option<User> {
             Ok(user) => return Some(user),
             Err(error) => {
                 println!("Unable to deserialize user: {:?}", error);
+                return None;
             }
         },
-        Err(error) => {
-            println!("No results found: {:?}", error);
-        }
+        Err(_) => return None,
     }
-
-    None
 }

@@ -8,7 +8,7 @@ pub async fn get_user(State(state): State<Database>) -> Result<Json<Option<User>
     // TODO: Parse header for parameters.
     let username: &str = "";
 
-    let user: Option<User> = database::users::get_user(state, username).await;
+    let user: Option<User> = database::users::get_user(&state, username).await;
 
     Ok(Json(user))
 }

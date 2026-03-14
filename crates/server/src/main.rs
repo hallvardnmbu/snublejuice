@@ -13,6 +13,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let app = routes::router().with_state(db);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], _PORT));
+
     println!("http://snublejuice.localhost:{}", _PORT);
     println!("http://vinmonopolet.snublejuice.localhost:{}", _PORT);
     println!("http://taxfree.snublejuice.localhost:{}", _PORT);

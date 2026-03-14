@@ -12,6 +12,8 @@ pub enum AppError {
     NotFound,
     #[error("Internal server error")]
     InternalServerError,
+    #[error("Invalid request: {0}")]
+    BadRequest(String),
 }
 
 impl IntoResponse for AppError {
@@ -21,6 +23,7 @@ impl IntoResponse for AppError {
                 (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error")
             }
             AppError::NotFound => (StatusCode::NOT_FOUND, "Not found"),
+            AppError::BadRequest(ref msg) => (StatusCode::BAD_REQUEST, msg.as_str()),
         };
 
         let body = axum::Json(serde_json::json!({

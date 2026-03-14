@@ -13,7 +13,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let app = routes::router().with_state(db);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], _PORT));
-    println!("listening on http://{}", addr);
+    println!("http://snublejuice.localhost:{}", _PORT);
+    println!("http://vinmonopolet.snublejuice.localhost:{}", _PORT);
+    println!("http://taxfree.snublejuice.localhost:{}", _PORT);
 
     let listener = tokio::net::TcpListener::bind(addr).await?;
     serve(listener, app).await?;

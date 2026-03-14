@@ -3,7 +3,7 @@ use mongodb::{
     bson::{Document, doc, from_bson},
 };
 
-pub async fn get_distinct(db: Database, field: &str, is_taxfree: bool) -> Vec<String> {
+pub async fn get_distinct(db: &Database, field: &str, is_taxfree: bool) -> Vec<String> {
     let mut filter = doc! { field: { "$exists": true } };
     if is_taxfree {
         filter.insert("taxfree", doc! { "$exists": true, "$ne": null });

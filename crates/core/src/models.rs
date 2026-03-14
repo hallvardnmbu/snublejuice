@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+pub const PRODUCTS_PER_PAGE: u64 = 15;
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Aperitif {
     pub url: String,

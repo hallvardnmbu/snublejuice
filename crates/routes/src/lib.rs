@@ -3,7 +3,7 @@ use mongodb::Database;
 
 pub mod metadata;
 pub mod products;
-pub(crate) mod subdomain;
+pub mod subdomain;
 pub mod users;
 
 pub fn router() -> Router<Database> {

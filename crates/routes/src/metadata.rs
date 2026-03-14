@@ -11,7 +11,7 @@ pub async fn get_stores(
     let taxfree = subdomain.is_taxfree();
     let field: &str = if taxfree { "taxfree.stores" } else { "stores" };
 
-    let stores: Vec<String> = database::metadata::get_distinct(state, field, taxfree).await;
+    let stores: Vec<String> = database::metadata::get_distinct(&state, field, taxfree).await;
 
     Ok(Json(stores))
 }
@@ -21,7 +21,7 @@ pub async fn get_countries(
     subdomain: Subdomain,
 ) -> Result<Json<Vec<String>>, AppError> {
     let countries: Vec<String> =
-        database::metadata::get_distinct(state, &"country", subdomain.is_taxfree()).await;
+        database::metadata::get_distinct(&state, &"country", subdomain.is_taxfree()).await;
 
     Ok(Json(countries))
 }

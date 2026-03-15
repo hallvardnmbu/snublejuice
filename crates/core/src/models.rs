@@ -1,6 +1,8 @@
+use mongodb::bson::{DateTime, oid::ObjectId};
 use serde::{Deserialize, Serialize};
 
 pub const PRODUCTS_PER_PAGE: u64 = 15;
+pub const ONE_MONTH: u64 = 60 * 60 * 24 * 30;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Aperitif {
@@ -51,8 +53,18 @@ pub struct Product {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct User {
+    #[serde(rename = "_id")]
+    pub user_id: ObjectId,
     pub username: String,
+    pub password: String,
     pub email: String,
     pub favourites: Vec<usize>,
     pub notify: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Session {
+    pub user_id: ObjectId,
+    pub session_id: String,
+    pub expires_at: DateTime,
 }

@@ -15,7 +15,3 @@ bun.lockb
 jsconfig.json
 
 **/target/
-
-**/db/
-
-legacy

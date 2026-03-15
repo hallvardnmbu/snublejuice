@@ -23,7 +23,8 @@ pub fn router(state: AppState) -> Router {
 
     Router::<AppState>::new()
         .merge(protected)
-        .route("/login", post(users::login))
+        .route("/login", post(authentication::auth::login))
+        .route("/signup", post(authentication::auth::signup))
         .route("/products", get(products::get_products))
         .route("/stores", get(metadata::get_stores))
         .route("/countries", get(metadata::get_countries))

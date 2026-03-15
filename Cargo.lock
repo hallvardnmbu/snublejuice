@@ -1589,6 +1589,7 @@ version = "0.1.0"
 dependencies = [
  "authentication",
  "axum",
+ "axum-extra",
  "core",
  "database",
  "mongodb",

@@ -8,6 +8,7 @@ use mongodb::{
 };
 use serde::Deserialize;
 
+use crate::subdomain::Subdomain;
 use core::models::{PRODUCTS_PER_PAGE, Product};
 use core::{errors::AppError, state::AppState};
 
@@ -31,9 +32,13 @@ impl Parameters {
         self.page.unwrap_or(1).max(1) as u64
     }
 
-    pub fn to_filter(&self) -> Document {
+    pub fn to_filter(&self, subdomain: &Subdomain) -> Document {
         let mut filter = doc! {};
         filter.insert("orderable", true);
+
+        if subdomain.is_taxfree() {
+            filter.insert("taxfree", doc! { "$exists": true, "$ne": mongodb::bson::Bson::Null });
+        }
 
         // TODO: Parse additional filters?
         // if let Some(search) = &self.search { ... }
@@ -52,11 +57,12 @@ impl Parameters {
 
 pub async fn get_products(
     State(state): State<AppState>,
+    subdomain: Subdomain,
     Query(parameters): Query<Parameters>,
 ) -> Result<Json<Vec<Product>>, AppError> {
     let products = database::products::get_products(
         &state.db,
-        parameters.to_filter(),
+        parameters.to_filter(&subdomain),
         parameters.to_options(),
     )
     .await;

@@ -3,14 +3,13 @@ use axum::{
     extract::{Query, State},
 };
 use mongodb::{
-    Database,
     bson::{Document, doc},
     options::FindOptions,
 };
 use serde::Deserialize;
 
-use core::errors::AppError;
 use core::models::{PRODUCTS_PER_PAGE, Product};
+use core::{errors::AppError, state::AppState};
 
 #[derive(Deserialize, Debug)]
 pub struct Parameters {
@@ -52,12 +51,15 @@ impl Parameters {
 }
 
 pub async fn get_products(
-    State(state): State<Database>,
+    State(state): State<AppState>,
     Query(parameters): Query<Parameters>,
 ) -> Result<Json<Vec<Product>>, AppError> {
-    let products =
-        database::products::get_products(&state, parameters.to_filter(), parameters.to_options())
-            .await;
+    let products = database::products::get_products(
+        &state.db,
+        parameters.to_filter(),
+        parameters.to_options(),
+    )
+    .await;
 
     Ok(Json(products))
 }

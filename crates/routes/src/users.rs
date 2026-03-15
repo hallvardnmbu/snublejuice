@@ -1,14 +1,19 @@
 use axum::{Json, extract::State};
-use mongodb::Database;
 
-use core::errors::AppError;
-use core::models::User;
+use core::{errors::AppError, models::User, state::AppState};
 
-pub async fn get_user(State(state): State<Database>) -> Result<Json<Option<User>>, AppError> {
-    // TODO: Parse header for parameters.
-    let username: &str = "";
+pub async fn get_user(State(_state): State<AppState>) -> Result<Json<Option<User>>, AppError> {
+    Err(AppError::InternalServerError)
+}
 
-    let user: Option<User> = database::users::get_user(&state, username).await;
+pub async fn login(State(_state): State<AppState>) -> Result<Json<Option<User>>, AppError> {
+    Err(AppError::InternalServerError)
+}
 
-    Ok(Json(user))
+pub async fn logout(State(_state): State<AppState>) -> Result<Json<Option<User>>, AppError> {
+    Err(AppError::InternalServerError)
+}
+
+pub async fn favourites(State(_state): State<AppState>) -> Result<Json<Option<User>>, AppError> {
+    Err(AppError::InternalServerError)
 }

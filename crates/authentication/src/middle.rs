@@ -3,7 +3,7 @@ use axum::{
     http::request::Parts,
 };
 use axum_extra::extract::cookie::CookieJar;
-use bcrypt::verify;
+use bcrypt::{DEFAULT_COST, hash, verify};
 use mongodb::{Database, bson::oid::ObjectId};
 use tokio::spawn;
 
@@ -28,15 +28,18 @@ where
             .await
             .map_err(|_| AppError::InternalServerError)?;
 
+        // Check for the session cookie.
         let session_id = jar
             .get("session_id")
             .map(|c| c.value().to_string())
-            .ok_or(AppError::Unauthorized)?; // No cookie = Unauthorized
+            .ok_or(AppError::Unauthorized)?;
 
+        // Check the session cookie validity.
         let session = users::get_user_by_session_id(&db, &session_id)
             .await
-            .map_err(|_| AppError::Unauthorized)?; // Invalid session = Unauthorized
+            .map_err(|_| AppError::Unauthorized)?;
 
+        // Slide the expiration date forward.
         let db_clone = db.clone();
         spawn(async move {
             let _ = users::update_expiration(db_clone, session_id).await;
@@ -48,6 +51,10 @@ where
     }
 }
 
-pub fn verify_password(password: &str, hash: &str) -> bool {
-    verify(password, hash).unwrap_or(false)
+pub fn verify_password(password: &str, hashed: &str) -> bool {
+    verify(password, hashed).unwrap_or(false)
+}
+
+pub fn hash_password(password: &str) -> Result<String, bcrypt::BcryptError> {
+    hash(password, DEFAULT_COST)
 }

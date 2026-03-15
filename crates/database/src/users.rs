@@ -18,6 +18,12 @@ pub async fn get_user_by_name(db: &Database, username: &str) -> Option<User> {
     }
 }
 
+pub async fn create_user(db: &Database, user: User) -> Result<(), AppError> {
+    let collection = db.collection::<User>("users");
+    collection.insert_one(user).await?;
+    Ok(())
+}
+
 pub async fn get_user_by_id(db: &Database, user_id: &ObjectId) -> Option<User> {
     let collection: Collection<User> = db.collection("users");
 
@@ -34,12 +40,10 @@ pub async fn favourites(db: &Database, user_id: &ObjectId) -> Result<Vec<usize>,
     }
 }
 
-pub async fn logout(db: &Database, session_id: &str) -> Result<(), AppError> {
+pub async fn logout(db: &Database, user_id: &ObjectId) -> Result<(), AppError> {
     let collection = db.collection::<Session>("sessions");
 
-    collection
-        .delete_one(doc! { "session_id": session_id })
-        .await?;
+    collection.delete_one(doc! { "user_id": user_id }).await?;
 
     Ok(())
 }

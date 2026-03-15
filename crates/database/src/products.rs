@@ -1,6 +1,6 @@
 use core::models::{PRODUCTS_PER_PAGE, Product};
 use futures::StreamExt;
-use mongodb::{Collection, Database, bson::Document, options::FindOptions}; // Need this for cursor.next()
+use mongodb::{Collection, Database, bson::Document, options::FindOptions};
 
 pub async fn get_products(db: &Database, filter: Document, options: FindOptions) -> Vec<Product> {
     let collection: Collection<Product> = db.collection("products");

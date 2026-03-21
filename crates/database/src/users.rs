@@ -20,6 +20,7 @@ pub async fn get_user_by_name(db: &Database, username: &str) -> Option<User> {
 
 pub async fn create_user(db: &Database, user: User) -> Result<(), AppError> {
     let collection = db.collection::<User>("users");
+
     collection.insert_one(user).await?;
     Ok(())
 }
@@ -44,7 +45,6 @@ pub async fn logout(db: &Database, user_id: &ObjectId) -> Result<(), AppError> {
     let collection = db.collection::<Session>("sessions");
 
     collection.delete_one(doc! { "user_id": user_id }).await?;
-
     Ok(())
 }
 
@@ -63,11 +63,11 @@ pub async fn get_user_by_session_id(db: &Database, session_id: &str) -> Result<S
 pub async fn update_expiration(db: Database, session_id: String) -> Result<(), AppError> {
     let collection = db.collection::<Session>("sessions");
 
-    let expires_at = DateTime::from_system_time(SystemTime::now() + Duration::from_secs(ONE_MONTH));
+    let expiration = DateTime::from_system_time(SystemTime::now() + Duration::from_secs(ONE_MONTH));
     collection
         .update_one(
             doc! { "session_id": &session_id },
-            doc! { "$set": { "expires_at": expires_at }},
+            doc! { "$set": { "expiration": expiration }},
         )
         .await?;
 
@@ -78,6 +78,5 @@ pub async fn store_session(db: &Database, session: Session) -> Result<(), AppErr
     let collection = db.collection::<Session>("sessions");
 
     collection.insert_one(session).await?;
-
     Ok(())
 }

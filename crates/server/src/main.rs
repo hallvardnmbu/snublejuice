@@ -1,8 +1,7 @@
 use axum::serve;
-use std::env;
 use std::net::SocketAddr;
 
-use core::{errors::AppError, state::AppState};
+use core::state::AppState;
 use database;
 use routes;
 
@@ -13,10 +12,7 @@ static _PORT: u16 = 3000;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let db = database::connect::get_database(_DATABASE_KEY, _DATABASE_NAME).await?;
-    let app = routes::router(AppState {
-        db: db,
-        jwt_secret: env::var("JWT_KEY").map_err(|_| AppError::InternalServerError)?,
-    });
+    let app = routes::router(AppState { db: db });
 
     let addr = SocketAddr::from(([0, 0, 0, 0], _PORT));
 

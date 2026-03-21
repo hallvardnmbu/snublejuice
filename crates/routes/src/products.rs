@@ -37,7 +37,10 @@ impl Parameters {
         filter.insert("orderable", true);
 
         if subdomain.is_taxfree() {
-            filter.insert("taxfree", doc! { "$exists": true, "$ne": mongodb::bson::Bson::Null });
+            filter.insert(
+                "taxfree",
+                doc! { "$exists": true, "$ne": mongodb::bson::Bson::Null },
+            );
         }
 
         // TODO: Parse additional filters?

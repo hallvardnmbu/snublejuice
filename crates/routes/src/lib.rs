@@ -16,7 +16,7 @@ pub fn router(state: AppState) -> Router {
         .route("/me", get(users::get_user))
         .route("/logout", post(users::logout))
         .route("/favourites", get(users::favourites))
-        .route_layer(middleware::from_extractor_with_state::<
+        .layer(middleware::from_extractor_with_state::<
             Authenticate,
             AppState,
         >(state.clone()));

@@ -1,23 +1,16 @@
 use axum::{Json, extract::State};
 use axum_extra::extract::cookie::{Cookie, CookieJar, SameSite};
-use mongodb::bson::{DateTime, doc};
-use serde::Deserialize;
+use mongodb::bson::DateTime;
 use std::time::{Duration, SystemTime};
 use uuid::Uuid;
 
 use crate::middle;
 use core::{
     errors::AppError,
-    models::{ONE_MONTH, Session, User},
+    models::{LoginRequest, ONE_MONTH, Session, SignupRequest, User},
     state::AppState,
 };
 use database::users;
-
-#[derive(Deserialize)]
-pub struct LoginRequest {
-    pub username: String,
-    pub password: String,
-}
 
 pub async fn login(
     State(state): State<AppState>,
@@ -35,11 +28,11 @@ pub async fn login(
 
     let session_id = Uuid::new_v4().to_string();
 
-    let expires_at = DateTime::from_system_time(SystemTime::now() + Duration::from_secs(ONE_MONTH));
+    let expiration = DateTime::from_system_time(SystemTime::now() + Duration::from_secs(ONE_MONTH));
     let session = Session {
         user_id: user.user_id,
         session_id: session_id.clone(),
-        expires_at: expires_at,
+        expiration: expiration,
     };
     users::store_session(&state.db, session).await?;
 
@@ -51,13 +44,6 @@ pub async fn login(
         .build();
 
     Ok((jar.add(cookie), Json("ok")))
-}
-
-#[derive(Deserialize)]
-pub struct SignupRequest {
-    pub username: String,
-    pub password: String,
-    pub email: String,
 }
 
 pub async fn signup(
@@ -89,11 +75,11 @@ pub async fn signup(
     users::create_user(&state.db, new_user).await?;
 
     let session_id = Uuid::new_v4().to_string();
-    let expires_at = DateTime::from_system_time(SystemTime::now() + Duration::from_secs(ONE_MONTH));
+    let expiration = DateTime::from_system_time(SystemTime::now() + Duration::from_secs(ONE_MONTH));
     let session = Session {
         user_id,
         session_id: session_id.clone(),
-        expires_at,
+        expiration,
     };
     users::store_session(&state.db, session).await?;
 

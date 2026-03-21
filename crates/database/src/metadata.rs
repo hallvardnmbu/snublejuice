@@ -4,12 +4,13 @@ use mongodb::{
 };
 
 pub async fn get_distinct(db: &Database, field: &str, is_taxfree: bool) -> Vec<String> {
+    let collection: Collection<Document> = db.collection("products");
+
     let mut filter = doc! { field: { "$exists": true } };
     if is_taxfree {
         filter.insert("taxfree", doc! { "$exists": true, "$ne": null });
     }
 
-    let collection: Collection<Document> = db.collection("products");
     match collection.distinct(field, filter).await {
         Ok(cursor) => cursor
             .into_iter()

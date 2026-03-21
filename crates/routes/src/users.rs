@@ -19,7 +19,6 @@ pub async fn logout(
     auth: Authenticate,
 ) -> Result<Json<String>, AppError> {
     users::logout(&state.db, &auth.id).await?;
-
     Ok(Json("ok".to_string()))
 }
 

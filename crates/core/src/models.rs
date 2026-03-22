@@ -68,16 +68,3 @@ pub struct Session {
     pub session_id: String,
     pub expiration: DateTime,
 }
-
-#[derive(Deserialize)]
-pub struct LoginRequest {
-    pub username: String,
-    pub password: String,
-}
-
-#[derive(Deserialize)]
-pub struct SignupRequest {
-    pub username: String,
-    pub password: String,
-    pub email: String,
-}

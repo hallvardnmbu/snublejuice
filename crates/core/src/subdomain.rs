@@ -1,6 +1,6 @@
 use axum::{extract::FromRequestParts, http::request::Parts};
 
-use core::errors::AppError;
+use crate::errors::AppError;
 
 pub enum Subdomain {
     Landing,

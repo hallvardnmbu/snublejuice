@@ -1,0 +1,107 @@
+<form action="/" method="get" id="filter">
+    <input type="hidden" name="page" value="{{ page }}">
+    <input type="hidden" name="ascending" value="{{ ascending }}">
+    <input type="hidden" name="favourites" value="{{ favourites }}">
+
+    <input type="hidden" name="cprice" value="{{ cprice }}">
+    <input type="hidden" name="cvolume" value="{{ cvolume }}">
+    <input type="hidden" name="calcohol" value="{{ calcohol }}">
+    <input type="hidden" name="cyear" value="{{ cyear }}">
+
+    <search id="filters">
+        <button type="submit" style="display: none"></button>
+
+        <div>
+            <button id="toggleSort">{{ 'stigende' if ascending else 'synkende' }}</button>
+
+            <select name="sort" id="sort" onchange="applyFilters(true, false)">
+                <option value="discount" {{ 'selected' if sort == 'discount' else '' }}>Tilbud</option>
+                <option value="rating" {{ 'selected' if sort == 'rating' else '' }}>Rating</option>
+                <option value="price" {{ 'selected' if sort == 'price' else '' }}>Pris</option>
+                <option value="literprice" {{ 'selected' if sort == 'literprice' else '' }}>Literpris</option>
+                <option value="alcoholprice" {{ 'selected' if sort == 'alcoholprice' else '' }}>Alkoholpris</option>
+                <option value="alcohol" {{ 'selected' if sort == 'alcohol' else '' }}>Alkoholprosent</option>
+            </select>
+        </div>
+
+        <div>
+            <select name="category" id="category" onchange="applyFilters(true, false)">
+                <option value="null" {{ 'selected' if category == 'null' else '' }}>Alle kategorier</option>
+                <option value="aromatisert" {{ 'selected' if category == 'aromatisert' else '' }}>Aromatisert vin</option>
+                <option value="brennevin" {{ 'selected' if category == 'brennevin' else '' }}>Brennevin</option>
+                <option value="fruktvin" {{ 'selected' if category == 'fruktvin' else '' }}>Fruktvin</option>
+                <option value="hvitvin" {{ 'selected' if category == 'hvitvin' else '' }}>Hvitvin</option>
+                <option value="mjød" {{ 'selected' if category == 'mjød' else '' }}>Mjød</option>
+                <option value="musserende" {{ 'selected' if category == 'musserende' else '' }}>Musserende vin</option>
+                <option value="perlende" {{ 'selected' if category == 'perlende' else '' }}>Perlende vin</option>
+                <option value="rosévin" {{ 'selected' if category == 'rosévin' else '' }}>Rosévin</option>
+                <option value="rødvin" {{ 'selected' if category == 'rødvin' else '' }}>Rødvin</option>
+                <option value="sake" {{ 'selected' if category == 'sake' else '' }}>Sake</option>
+                <option value="sider" {{ 'selected' if category == 'sider' else '' }}>Sider</option>
+                <option value="sterkvin" {{ 'selected' if category == 'sterkvin' else '' }}>Sterkvin</option>
+                <option value="øl" {{ 'selected' if category == 'øl' else '' }}>Øl</option>
+            </select>
+        </div>
+
+        {% if favourites or taxfree %}
+        <input type="hidden" id="stores-search-vinmonopolet" name="storelike" value="">
+        {% else %}
+        <input type="search" id="stores-search-vinmonopolet" name="storelike" value="{{ storelike | default('') }}" placeholder="Butikk eller by ...">
+        {% endif %}
+
+        {% if taxfree %}
+        <div>
+            <select name="store-taxfree" id="stores-taxfree" onchange="applyFilters(true, false)">
+                <!-- Options will be dynamically populated by `public/scripts/stores.js`. -->
+            </select>
+        </div>
+        {% else %}
+        <input type="hidden" name="store-taxfree" id="stores-taxfree" value="">
+        {% endif %}
+
+        <input type="search" id="nsearch" name="search" value="{{ search | default('') }}" placeholder="Navnesøk ...">
+    </search>
+
+    <menu>
+        <button id="clearFilters">Nullstill</button>
+        <button id="toggleAdvanced">Flere</button>
+    </menu>
+
+    <search id="advanced" style="display: none;">
+        {% if favourites or taxfree %}
+        <input type="hidden" name="store-vinmonopolet" id="stores-vinmonopolet" value="">
+        {% else %}
+        <div>
+            <select name="store-vinmonopolet" id="stores-vinmonopolet" onchange="applyFilters(true, false)">
+                <!-- Options will be dynamically populated by `public/scripts/stores.js`. -->
+            </select>
+        </div>
+        {% endif %}
+
+        <div>
+            <select name="country" id="country" onchange="applyFilters(true, false)">
+            <!-- Options will be dynamically populated by `public/scripts/countries.js`. -->
+            </select>
+        </div>
+
+        <div>
+            <button id="togglePrice">{{ 'lik' if cprice else 'under' }}</button>
+            <input type="number" id="price" name="price" min="0" step="1" value="{{ price | default('') }}" placeholder="pris">
+        </div>
+
+        <div>
+            <button id="toggleVolume">{{ 'lik' if cvolume else 'over' }}</button>
+            <input type="number" id="volume" name="volume" min="0" step="1" value="{{ volume | default('') }}" placeholder="volum i cL">
+        </div>
+
+        <div>
+            <button id="toggleAlcohol">{{ 'lik' if calcohol else 'over' }}</button>
+            <input type="number" id="alcohol" name="alcohol" min="0" step="0.5" value="{{ alcohol | default('') }}" placeholder="alkoholprosent">
+        </div>
+
+        <div>
+            <button id="toggleYear">{{ 'lik' if cyear else 'før' }}</button>
+            <input type="number" id="year" name="year" min="1900" step="10" value="{{ year | default('') }}" placeholder="årgang">
+        </div>
+    </search>
+</form>

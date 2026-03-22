@@ -1,7 +1,6 @@
 use axum::{Json, extract::State};
 
-use crate::subdomain::Subdomain;
-use core::{errors::AppError, state::AppState};
+use core::{errors::AppError, state::AppState, subdomain::Subdomain};
 
 pub async fn get_stores(
     State(state): State<AppState>,

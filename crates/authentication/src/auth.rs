@@ -7,7 +7,8 @@ use uuid::Uuid;
 use crate::middle;
 use core::{
     errors::AppError,
-    models::{LoginRequest, ONE_MONTH, Session, SignupRequest, User},
+    models::{ONE_MONTH, Session, User},
+    query::{LoginRequest, SignupRequest},
     state::AppState,
 };
 use database::users;

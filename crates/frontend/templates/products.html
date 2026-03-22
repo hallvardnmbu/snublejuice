@@ -23,23 +23,18 @@
             property="og:description"
             content="Vinmonopolets prisendring, prishistorikk og sammenlikning med tax-free."
         />
-        <meta
-            name="description"
-            content="Vinmonopolets prisendring, prishistorikk og sammenlikning med tax-free."
-        />
+        <meta name="description" content="Vinmonopolets prisendring, prishistorikk og sammenlikning med tax-free." />
     </head>
 
     <body>
         <header>
-            {% with favourites=favourites, landing=false %} {% include
-            "partials/account.html" %} {% endwith %}
+            {% with favourites=favourites, landing=false %} {% include "partials/account.html" %} {% endwith %}
         </header>
 
         <main>
-            {% with favourites=favourites, taxfree=(subdomain == "taxfree") %}{%
-            include "partials/forms.html" %}{% endwith %} {% with
-            placement="top" %}{% include "partials/pagination.html" %}{% endwith
-            %} {% if data|length == 0 %}
+            {% with favourites=favourites, taxfree=(subdomain == "taxfree") %}{% include "partials/forms.html" %}{%
+            endwith %} {% with placement="top" %}{% include "partials/pagination.html" %}{% endwith %} {% if data|length
+            == 0 %}
             <span>Ingen resultater finnes for valgt kominasjon.</span>
             {% else %}
             <div class="message">
@@ -47,17 +42,11 @@
                 <span>[!] NY MÅNED; NYE TILBUD [!]</span>
                 {% endif %}
 
-                <span
-                    >Den fargede bakgrunnen til hvert produkt tilsvarer
-                    prishistorikken!</span
-                >
+                <span>Den fargede bakgrunnen til hvert produkt tilsvarer prishistorikken!</span>
                 <span>Trykk på et produkt for å se mere informasjon.</span>
 
                 <div id="messageStock" style="display: none">
-                    <span
-                        >N.b.: Faktisk lagerbeholdning kan avvike. Oppdateres
-                        med jevne mellomrom.</span
-                    >
+                    <span>N.b.: Faktisk lagerbeholdning kan avvike. Oppdateres med jevne mellomrom.</span>
                 </div>
 
                 {% if message %}
@@ -65,16 +54,12 @@
                 {% endif %}
             </div>
 
-            {% for item in data %} {% with index=loop.index0, taxfree=(subdomain
-            == "taxfree") %} {% include "partials/product.html" %} {% endwith %}
-            {% endfor %} {% endif %} {% with placement="bottom" %}{% include
+            {% for item in data %} {% with index=loop.index0, taxfree=(subdomain == "taxfree") %} {% include
+            "partials/product.html" %} {% endwith %} {% endfor %} {% endif %} {% with placement="bottom" %}{% include
             "partials/pagination.html" %}{% endwith %}
         </main>
 
-        <footer>
-            {% with landing=false %}{% include "partials/footer.html" %}{%
-            endwith %}
-        </footer>
+        <footer>{% with landing=false %}{% include "partials/footer.html" %}{% endwith %}</footer>
 
         <script src="/public/scripts/svg.js"></script>
         <script src="/public/scripts/buttons.js"></script>

@@ -18,9 +18,7 @@
             {% endif %} {% if taxfree and item.taxfree.stores %}
             <tr>
                 <td>Lager</td>
-                <td>
-                    {{ item.taxfree.stores | sort | join(' + ') }}
-                </td>
+                <td>{{ item.taxfree.stores | sort | join(' + ') }}</td>
             </tr>
             {% endif %} {% if item.smell %}
             <tr>
@@ -45,9 +43,7 @@
             {% endif %} {% if item.pair and item.pair | length > 0 %}
             <tr>
                 <td>Passer til</td>
-                <td>
-                    {{ item.pair | join(' & ') }}
-                </td>
+                <td>{{ item.pair | join(' & ') }}</td>
             </tr>
             {% endif %} {% if item.method %}
             <tr>
@@ -63,7 +59,8 @@
         </tbody>
     </table>
 
-    {% if (item.characteristics and item.characteristics | length > 0) or (item.ingredients and item.ingredients | length > 0) %}
+    {% if (item.characteristics and item.characteristics | length > 0) or (item.ingredients and item.ingredients |
+    length > 0) %}
     <table class="fractions">
         <tbody>
             {% if item.characteristics and item.characteristics | length > 0 %}
@@ -90,10 +87,7 @@
             {% for ingredient in item.ingredients %}
             <tr>
                 <td class="label">{{ ingredient.grape }}</td>
-                <td
-                    class="percentage"
-                    style="--percentage: {{ ingredient.percentage }}%"
-                ></td>
+                <td class="percentage" style="--percentage: {{ ingredient.percentage }}%"></td>
             </tr>
             {% endfor %} {% endif %}
         </tbody>

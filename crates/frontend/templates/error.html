@@ -18,10 +18,7 @@
             property="og:description"
             content="Vinmonopolets prisendring, prishistorikk og sammenlikning med tax-free."
         />
-        <meta
-            name="description"
-            content="Vinmonopolets prisendring, prishistorikk og sammenlikning med tax-free."
-        />
+        <meta name="description" content="Vinmonopolets prisendring, prishistorikk og sammenlikning med tax-free." />
 
         <meta
             name="keywords"
@@ -30,38 +27,19 @@
     </head>
 
     <body>
-        <header>
-            {% with favourites=false, landing=true %} {% include
-            "partials/account.html" %} {% endwith %}
-        </header>
+        <header>{% with favourites=false, landing=true %} {% include "partials/account.html" %} {% endwith %}</header>
 
         <main>
             <div class="message">
                 <span>Prisene er ikke oppdatert. Kom tilbake senere.</span>
-                <span
-                    >For å få et pip når prisene er her, kan du lage bruker og
-                    huke av for varsling ;-)</span
-                >
+                <span>For å få et pip når prisene er her, kan du lage bruker og huke av for varsling ;-)</span>
             </div>
 
-            <div
-                style="
-                    display: flex;
-                    justify-content: center;
-                    margin-top: var(--margin);
-                "
-            >
-                <img
-                    src="/public/images/snublejuice.png"
-                    alt="Snublejuice.no"
-                    style="width: 70%"
-                />
+            <div style="display: flex; justify-content: center; margin-top: var(--margin)">
+                <img src="/public/images/snublejuice.png" alt="Snublejuice.no" style="width: 70%" />
             </div>
         </main>
 
-        <footer>
-            {% with landing=true %}{% include "partials/footer.html" %}{%
-            endwith %}
-        </footer>
+        <footer>{% with landing=true %}{% include "partials/footer.html" %}{% endwith %}</footer>
     </body>
 </html>

@@ -1,13 +1,20 @@
-// Submit the form.
 function applyFilters(resetPage = true, toggleFavourites = false) {
-  if (resetPage) {
-    document.querySelector('input[name="page"]').value = 1;
-  }
+  const form = document.getElementById("filter");
+  const data = new FormData(form);
+
+  if (resetPage) data.set("page", "1");
   if (toggleFavourites) {
-    const old = document.querySelector('input[name="favourites"]').value;
-    document.querySelector('input[name="favourites"]').value = old === "true" ? "false" : "true";
+    data.set("favourites", data.get("favourites") === "true" ? "false" : "true");
   }
-  document.getElementById("filter").submit();
+
+  const params = new URLSearchParams();
+  for (const [key, value] of data.entries()) {
+    if (value !== "" && value !== "null" && value !== "false") {
+      params.set(key, value);
+    }
+  }
+
+  window.location.href = "/?" + params.toString();
 }
 
 function changePage(newPage) {

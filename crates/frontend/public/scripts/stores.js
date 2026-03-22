@@ -67,10 +67,7 @@ function displayMessage(active = false) {
 window.addEventListener("load", () => {
   const cachedStores = sessionStorage.getItem("stores");
   if (cachedStores) {
-    populateStores(
-      JSON.parse(cachedStores),
-      document.location.hostname.split(".")[0],
-    );
+    populateStores(JSON.parse(cachedStores), document.location.hostname.split(".")[0]);
   } else {
     fetchStores();
   }

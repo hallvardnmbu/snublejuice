@@ -4,10 +4,7 @@ const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
 
 // Function to set theme
 function setTheme(theme) {
-  document.documentElement.setAttribute(
-    "data-theme",
-    theme === "Mørkt" ? "dark" : "light",
-  );
+  document.documentElement.setAttribute("data-theme", theme === "Mørkt" ? "dark" : "light");
   sessionStorage.setItem("theme", theme);
   themeToggle.innerHTML = theme === "Mørkt" ? "Lyst" : "Mørkt";
 }

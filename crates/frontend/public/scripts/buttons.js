@@ -5,8 +5,7 @@ function applyFilters(resetPage = true, toggleFavourites = false) {
   }
   if (toggleFavourites) {
     const old = document.querySelector('input[name="favourites"]').value;
-    document.querySelector('input[name="favourites"]').value =
-      old === "true" ? "false" : "true";
+    document.querySelector('input[name="favourites"]').value = old === "true" ? "false" : "true";
   }
   document.getElementById("filter").submit();
 }
@@ -46,10 +45,7 @@ document.getElementById("clearFilters").onclick = function (event) {
   event.preventDefault();
   sessionStorage.clear();
   window.location.href =
-    "/?fresh=false" +
-    (document.querySelector('input[name="favourites"]').value === "true"
-      ? "&favourites=true"
-      : "");
+    "/?fresh=false" + (document.querySelector('input[name="favourites"]').value === "true" ? "&favourites=true" : "");
 };
 
 // Toggle advanced visibility.
@@ -60,8 +56,7 @@ document.getElementById("toggleAdvanced").onclick = function (event) {
   section.style.display = section.style.display === "flex" ? "none" : "flex";
 
   // Set the button text based on visibility.
-  document.getElementById("toggleAdvanced").innerHTML =
-    section.style.display === "flex" ? "Færre" : "Flere";
+  document.getElementById("toggleAdvanced").innerHTML = section.style.display === "flex" ? "Færre" : "Flere";
 
   // Save the visibility state to session storage.
   sessionStorage.setItem("advanced", section.style.display === "flex");
@@ -72,9 +67,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const element = document.getElementById("advanced");
   const isVisible = sessionStorage.getItem("advanced") === "true";
   element.style.display = isVisible ? "flex" : "none";
-  document.getElementById("toggleAdvanced").innerHTML = isVisible
-    ? "Færre"
-    : "Flere";
+  document.getElementById("toggleAdvanced").innerHTML = isVisible ? "Færre" : "Flere";
 });
 
 // Price, volume, alcohol and search change.
@@ -93,11 +86,9 @@ document.getElementById("year").addEventListener("change", function () {
 document.getElementById("nsearch").addEventListener("change", function () {
   applyFilters(true, false);
 });
-document
-  .getElementById("stores-search-vinmonopolet")
-  .addEventListener("change", function () {
-    applyFilters(true, false);
-  });
+document.getElementById("stores-search-vinmonopolet").addEventListener("change", function () {
+  applyFilters(true, false);
+});
 
 // Toggle favourite.
 const mediaQuery = window.matchMedia("(min-width: 450px)");

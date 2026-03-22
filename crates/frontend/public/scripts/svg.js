@@ -14,12 +14,7 @@ function setupPath(path, index) {
   svg.setAttribute("viewBox", `0 0 ${rect.width} ${rect.height}`);
 
   const section = document.getElementById(index);
-  const margin = parseInt(
-    getComputedStyle(section)
-      .getPropertyValue("--margin")
-      .replace("px", "")
-      .trim(),
-  );
+  const margin = parseInt(getComputedStyle(section).getPropertyValue("--margin").replace("px", "").trim());
 
   const size = {
     width: rect.width,
@@ -78,12 +73,8 @@ function getLine(prices, scales, size) {
       // When y-difference is small, use a single smooth S-curve.
       const actualR = dy / 2;
       line.push(`L ${x - r} ${y_old}`);
-      line.push(
-        `C ${x - r} ${y_old} ${x} ${y_old} ${x} ${y_old + (y > y_old ? actualR : -actualR)}`,
-      );
-      line.push(
-        `C ${x} ${y - (y > y_old ? actualR : -actualR)} ${x} ${y} ${x + r} ${y}`,
-      );
+      line.push(`C ${x - r} ${y_old} ${x} ${y_old} ${x} ${y_old + (y > y_old ? actualR : -actualR)}`);
+      line.push(`C ${x} ${y - (y > y_old ? actualR : -actualR)} ${x} ${y} ${x + r} ${y}`);
     } else {
       // When y-difference is large enough, use separate curves.
       line.push(`L ${x - r} ${y_old}`);
@@ -131,10 +122,7 @@ function addYAxisLabels(svg, prices, scales, size) {
   const x = size.width - size.right + 5; // Start just outside the drawing area
   const fragment = document.createDocumentFragment();
 
-  const threshold =
-    values.length > 2
-      ? (Math.max(...values) - Math.min(...values)) / values.length
-      : null;
+  const threshold = values.length > 2 ? (Math.max(...values) - Math.min(...values)) / values.length : null;
   const labels = values.map((price) => ({
     value: price,
     y: yPos(price, scales, size),
@@ -146,10 +134,7 @@ function addYAxisLabels(svg, prices, scales, size) {
     if (previous && threshold && price.value - previous < threshold) continue;
     previous = price.value;
 
-    const label = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "text",
-    );
+    const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
 
     label.textContent = price.value;
     label.setAttribute("x", x);

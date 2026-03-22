@@ -627,6 +627,7 @@ dependencies = [
 name = "frontend"
 version = "0.1.0"
 dependencies = [
+ "authentication",
  "axum",
  "core",
  "database",

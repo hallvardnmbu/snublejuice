@@ -1,7 +1,7 @@
 use minijinja::{Environment, context, path_loader};
 use std::sync::OnceLock;
 
-use core::models::Product;
+use core::models::{Product, User};
 
 static ENV: OnceLock<Environment<'static>> = OnceLock::new();
 
@@ -21,12 +21,12 @@ pub fn render_landing() -> String {
     tmpl.render(context! {}).unwrap()
 }
 
-pub fn render_products(data: &Vec<Product>, is_taxfree: bool, favourites: Vec<usize>) -> String {
+pub fn render_products(data: &Vec<Product>, is_taxfree: bool, user: Option<User>) -> String {
     let tmpl = get_env().get_template("products.html").unwrap();
     tmpl.render(context! {
         data,
         is_taxfree,
-        favourites,
+        user,
         landing => false,
     })
     .unwrap()

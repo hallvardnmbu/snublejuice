@@ -16,6 +16,8 @@ pub enum AppError {
     BadRequest(String),
     #[error("Unauthorized")]
     Unauthorized,
+    #[error("Not implementd")]
+    NotImplemented,
 }
 
 impl IntoResponse for AppError {
@@ -27,6 +29,7 @@ impl IntoResponse for AppError {
             AppError::NotFound => (StatusCode::NOT_FOUND, "Not found"),
             AppError::BadRequest(ref msg) => (StatusCode::BAD_REQUEST, msg.as_str()),
             AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "Unauthorized"),
+            AppError::NotImplemented => (StatusCode::NOT_IMPLEMENTED, "Not implemented"),
         };
 
         let body = axum::Json(serde_json::json!({

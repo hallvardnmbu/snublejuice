@@ -31,6 +31,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f202df86484c868dbad7eaa557ef785d5c66295e41b460ef922eca0723b842c"
 
 [[package]]
+name = "api"
+version = "0.1.0"
+dependencies = [
+ "authentication",
+ "axum",
+ "axum-extra",
+ "core",
+ "database",
+ "mongodb",
+ "serde",
+ "tokio",
+ "tower",
+ "tower-http",
+]
+
+[[package]]
 name = "async-trait"
 version = "0.1.89"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -632,6 +648,7 @@ dependencies = [
  "core",
  "database",
  "minijinja",
+ "tower-http",
 ]
 
 [[package]]
@@ -1627,23 +1644,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "routes"
-version = "0.1.0"
-dependencies = [
- "authentication",
- "axum",
- "axum-extra",
- "core",
- "database",
- "frontend",
- "mongodb",
- "serde",
- "tokio",
- "tower",
- "tower-http",
-]
-
-[[package]]
 name = "rustc_version"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1857,12 +1857,13 @@ dependencies = [
 name = "server"
 version = "0.1.0"
 dependencies = [
+ "api",
  "authentication",
  "axum",
  "core",
  "database",
  "dotenv",
- "routes",
+ "frontend",
  "tokio",
  "tower-http",
 ]

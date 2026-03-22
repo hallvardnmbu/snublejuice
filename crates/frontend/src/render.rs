@@ -2,14 +2,56 @@ use axum::{
     extract::{Query, State},
     response::Html,
 };
+use minijinja::{Environment, context, path_loader};
+use std::sync::OnceLock;
 
 use authentication::middle::MaybeAuthenticate;
-use core::{query::Parameters, state::AppState, subdomain::Subdomain};
+use core::{
+    models::{Product, User},
+    query::Parameters,
+    state::AppState,
+    subdomain::Subdomain,
+};
 use database;
 
-use crate::{render_landing, render_products};
+static ENV: OnceLock<Environment<'static>> = OnceLock::new();
 
-pub async fn landing(
+fn get_env() -> &'static Environment<'static> {
+    ENV.get_or_init(|| {
+        let mut env = Environment::new();
+        env.set_loader(path_loader(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/templates"
+        )));
+        env
+    })
+}
+
+pub fn render_landing() -> String {
+    let tmpl = get_env().get_template("landing.html").unwrap();
+    tmpl.render(context! {}).unwrap()
+}
+
+pub fn render_products(data: &Vec<Product>, is_taxfree: bool, user: Option<User>) -> String {
+    let tmpl = get_env().get_template("products.html").unwrap();
+    tmpl.render(context! {
+        data,
+        is_taxfree,
+        user,
+        landing => false,
+    })
+    .unwrap()
+}
+
+pub fn render_error(message: &str) -> String {
+    let tmpl = get_env().get_template("error.html").unwrap();
+    tmpl.render(context! {
+        message,
+    })
+    .unwrap()
+}
+
+pub async fn site(
     State(state): State<AppState>,
     subdomain: Subdomain,
     Query(parameters): Query<Parameters>,

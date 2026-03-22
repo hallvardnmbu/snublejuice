@@ -1,43 +1,12 @@
-use minijinja::{Environment, context, path_loader};
-use std::sync::OnceLock;
-
-use core::models::{Product, User};
-
-static ENV: OnceLock<Environment<'static>> = OnceLock::new();
-
-fn get_env() -> &'static Environment<'static> {
-    ENV.get_or_init(|| {
-        let mut env = Environment::new();
-        env.set_loader(path_loader(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/templates"
-        )));
-        env
-    })
-}
-
-pub fn render_landing() -> String {
-    let tmpl = get_env().get_template("landing.html").unwrap();
-    tmpl.render(context! {}).unwrap()
-}
-
-pub fn render_products(data: &Vec<Product>, is_taxfree: bool, user: Option<User>) -> String {
-    let tmpl = get_env().get_template("products.html").unwrap();
-    tmpl.render(context! {
-        data,
-        is_taxfree,
-        user,
-        landing => false,
-    })
-    .unwrap()
-}
-
-pub fn render_error(message: &str) -> String {
-    let tmpl = get_env().get_template("error.html").unwrap();
-    tmpl.render(context! {
-        message,
-    })
-    .unwrap()
-}
-
 pub mod render;
+
+use axum::{Router, routing::get};
+use core::state::AppState;
+use tower_http::services::ServeDir;
+
+pub fn router() -> Router<AppState> {
+    Router::new().route("/", get(render::site)).nest_service(
+        "/public",
+        ServeDir::new(concat!(env!("CARGO_MANIFEST_DIR"), "/public")),
+    )
+}

@@ -29,7 +29,7 @@ function populateStores(stores, subdomain) {
   dropdown.appendChild(defaultOption);
 
   // Add new options
-  for (const store of stores[subdomain]) {
+  for (const store of stores) {
     if (!store) continue;
     const option = document.createElement("option");
     option.value = store;

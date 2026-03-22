@@ -8,7 +8,7 @@
 >
     <div>
         <img
-            src="/image/{{ item.index }}"
+            src="/data/image/{{ item.index }}"
             onerror="
                 this.className = 'fallback';
                 this.src = '/public/images/bottle.png';
@@ -18,20 +18,12 @@
         <div>
             <h1>
                 {% if user %}
-                <p
-                    alt="Favoritt"
-                    data-index="{{ item.index }}"
-                    class="favourite-toggle"
-                >
+                <p alt="Favoritt" data-index="{{ item.index }}" class="favourite-toggle">
                     {{ '★' if item.index in user.favourites else '☆' }}
                 </p>
                 {% endif %}
 
-                <a
-                    href="{{ item.taxfree.url if taxfree else item.url }}"
-                    target="_blank"
-                    >{{ item.name }}</a
-                >
+                <a href="{{ item.taxfree.url if taxfree else item.url }}" target="_blank">{{ item.name }}</a>
             </h1>
 
             <span>
@@ -58,15 +50,13 @@
                 <p>• {{ store }}</p>
                 {% endfor %}
             </span>
-            {% endif %} {% if taxfree and taxfreeStore and item.taxfree.stores
-            %}
+            {% endif %} {% if taxfree and taxfreeStore and item.taxfree.stores %}
             <span class="list">
                 {% for store in item.taxfree.stores | sort %}
                 <p>• {{ store }}</p>
                 {% endfor %}
             </span>
-            {% endif %} {% if item.aperitif and item.aperitif.points is defined
-            and item.aperitif.points != null %}
+            {% endif %} {% if item.aperitif and item.aperitif.points is defined and item.aperitif.points != null %}
             <span>
                 {% if item.aperitif.url %}
                 <a
@@ -76,8 +66,7 @@
                     rel="noopener noreferrer"
                     onclick="event.stopPropagation()"
                 >
-                    {% endif %} {% set points = item.aperitif.points / 20 %} {%
-                    for i in range(5) %}
+                    {% endif %} {% set points = item.aperitif.points / 20 %} {% for i in range(5) %}
                     <p
                         class="star"
                         style="
@@ -103,9 +92,7 @@
                 <a href="{{ item.taxfree.url }}" target="_blank"
                     >TAX-FREE <b>{{ (item.taxfree.price | round) | int }}</b></a
                 >
-                <a href="{{ item.url }}" target="_blank"
-                    >POL <b>{{ (item.price | round) | int }}</b></a
-                >
+                <a href="{{ item.url }}" target="_blank">POL <b>{{ (item.price | round) | int }}</b></a>
                 <p>
                     DIFF
                     <b>{{ (item.taxfree.discount | round) | int }}%</b>
@@ -126,15 +113,10 @@
             </span>
 
             <svg class="path" viewBox="0 0 0 0">
-                <path
-                    id="path-{{ index }}"
-                    d=""
-                    data-prices="{{ item.prices }}"
-                ></path>
+                <path id="path-{{ index }}" d="" data-prices="{{ item.prices }}"></path>
             </svg>
         </div>
     </div>
 
-    {% with taxfree=taxfree, item=item, index=index %} {% include
-    "partials/detailed.html" %} {% endwith %}
+    {% with taxfree=taxfree, item=item, index=index %} {% include "partials/detailed.html" %} {% endwith %}
 </section>

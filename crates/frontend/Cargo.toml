@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 core = { path = "../core" }
 database = { path = "../database" }
+authentication = { path = "../authentication" }
 
 axum = "0.8.8"
 minijinja = { version = "2.18.0", features = ["loader"] }

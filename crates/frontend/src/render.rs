@@ -3,6 +3,7 @@ use axum::{
     response::Html,
 };
 
+use authentication::middle::MaybeAuthenticate;
 use core::{query::Parameters, state::AppState, subdomain::Subdomain};
 use database;
 
@@ -12,6 +13,7 @@ pub async fn landing(
     State(state): State<AppState>,
     subdomain: Subdomain,
     Query(parameters): Query<Parameters>,
+    MaybeAuthenticate(user): MaybeAuthenticate,
 ) -> Result<Html<String>, core::errors::AppError> {
     match subdomain {
         Subdomain::Landing => Ok(Html(render_landing())),
@@ -25,7 +27,7 @@ pub async fn landing(
             Ok(Html(render_products(
                 &products,
                 subdomain.is_taxfree(),
-                Vec::new(),
+                user,
             )))
         }
     }

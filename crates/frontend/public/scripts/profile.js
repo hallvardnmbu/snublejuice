@@ -88,7 +88,7 @@ document.getElementById("registerForm").onsubmit = async function (event) {
   };
 
   try {
-    const response = await fetch("/account/register", {
+    const response = await fetch("/account/signup", {
       method: "POST",
       credentials: "include",
       headers: {

@@ -22,10 +22,25 @@ pub async fn logout(
     Ok(Json("ok".to_string()))
 }
 
+pub async fn notification(
+    State(state): State<AppState>,
+    auth: Authenticate,
+) -> Result<Json<String>, AppError> {
+    users::notification(&state.db, &auth.id).await?;
+    Ok(Json("ok".to_string()))
+}
+
 pub async fn favourites(
     State(state): State<AppState>,
     auth: Authenticate,
 ) -> Result<Json<Vec<usize>>, AppError> {
     let favourites: Vec<usize> = users::favourites(&state.db, &auth.id).await?;
     Ok(Json(favourites))
+}
+
+pub async fn delete(
+    State(_state): State<AppState>,
+    _auth: Authenticate,
+) -> Result<Json<String>, AppError> {
+    Err(AppError::NotImplemented)
 }

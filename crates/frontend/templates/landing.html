@@ -148,7 +148,10 @@
     </head>
 
     <body>
-        <header>{% include "partials/account.html" %}</header>
+        <header>
+            {% with user=user %} {% include "partials/account.html" %}{% endwith
+            %}
+        </header>
         <main>
             {% include "partials/subdomains.html" %}
 

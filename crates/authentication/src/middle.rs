@@ -7,11 +7,12 @@ use bcrypt::{DEFAULT_COST, hash, verify};
 use mongodb::{Database, bson::oid::ObjectId};
 use tokio::spawn;
 
-use core::errors::AppError;
+use core::{errors::AppError, models::User};
 use database::users;
 
 pub struct Authenticate {
     pub id: ObjectId,
+    pub user: User,
 }
 
 impl<S> FromRequestParts<S> for Authenticate
@@ -39,6 +40,10 @@ where
             .await
             .map_err(|_| AppError::Unauthorized)?;
 
+        let user = users::get_user_by_id(&db, &session.user_id)
+            .await
+            .ok_or(AppError::Unauthorized)?;
+
         // Slide the expiration date forward.
         let db_clone = db.clone();
         spawn(async move {
@@ -47,6 +52,7 @@ where
 
         Ok(Authenticate {
             id: session.user_id,
+            user,
         })
     }
 }
@@ -57,4 +63,21 @@ pub fn verify_password(password: &str, hashed: &str) -> bool {
 
 pub fn hash_password(password: &str) -> Result<String, bcrypt::BcryptError> {
     hash(password, DEFAULT_COST)
+}
+
+pub struct MaybeAuthenticate(pub Option<User>);
+
+impl<S> FromRequestParts<S> for MaybeAuthenticate
+where
+    Database: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = std::convert::Infallible;
+
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        match Authenticate::from_request_parts(parts, state).await {
+            Ok(auth) => Ok(MaybeAuthenticate(Some(auth.user))),
+            Err(_) => Ok(MaybeAuthenticate(None)),
+        }
+    }
 }

@@ -6,8 +6,9 @@ edition = "2024"
 
 [dependencies]
 database = { path = "../database"}
-routes = { path = "../routes"}
+api = { path = "../api"}
 authentication = { path = "../authentication"}
+frontend = { path = "../frontend"}
 core = { path = "../core" }
 
 axum = { version = "0.8.7", features = ["macros"] }

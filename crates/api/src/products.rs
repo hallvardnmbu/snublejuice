@@ -25,7 +25,7 @@ pub async fn get_products(
     let products = database::products::get_products(
         &state.db,
         parameters.to_filter(&subdomain),
-        parameters.to_options(),
+        parameters.to_options(&subdomain),
     )
     .await;
 

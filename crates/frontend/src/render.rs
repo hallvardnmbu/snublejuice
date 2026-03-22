@@ -2,6 +2,7 @@ use axum::{
     extract::{Query, State},
     response::Html,
 };
+use chrono::{Datelike, Local};
 use minijinja::{Environment, context, path_loader};
 use std::sync::OnceLock;
 
@@ -32,12 +33,23 @@ pub fn render_landing() -> String {
     tmpl.render(context! {}).unwrap()
 }
 
-pub fn render_products(data: &Vec<Product>, is_taxfree: bool, user: Option<User>) -> String {
+pub fn render_products(
+    data: &Vec<Product>,
+    is_taxfree: bool,
+    user: Option<User>,
+    page: i64,
+    max_page: u64,
+) -> String {
     let tmpl = get_env().get_template("products.html").unwrap();
+    let now = Local::now();
+    let current_day = now.day();
     tmpl.render(context! {
         data,
         is_taxfree,
+        current_day,  // TODO
         user,
+        page,
+        max_page,
         landing => false,
     })
     .unwrap()
@@ -66,10 +78,14 @@ pub async fn site(
                 parameters.to_options(),
             )
             .await;
+            let max_page =
+                database::products::get_max_page(&state.db, parameters.to_filter(&subdomain)).await;
             Ok(Html(render_products(
                 &products,
                 subdomain.is_taxfree(),
                 user,
+                parameters.page.unwrap_or(1),
+                max_page,
             )))
         }
     }

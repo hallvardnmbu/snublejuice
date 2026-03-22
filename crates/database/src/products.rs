@@ -22,3 +22,12 @@ pub async fn get_products(db: &Database, filter: Document, options: FindOptions)
 
     documents
 }
+
+pub async fn get_max_page(db: &Database, filter: Document) -> u64 {
+    let collection: Collection<Product> = db.collection("products");
+
+    match collection.count_documents(filter).await {
+        Ok(count) => count,
+        Err(_) => 1,
+    }
+}

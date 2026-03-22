@@ -2,25 +2,15 @@
     <ol>
         {% if page > 1 %}
         <li>
-            <a
-                href="#"
-                onclick="changePage({{ page - 1 }})"
-                aria-label="Previous Page"
-                >←</a
-            >
+            <a href="#" onclick="changePage({{ page - 1 }})" aria-label="Previous Page">←</a>
         </li>
         {% endif %}
 
-        <li><b>{{ page }} av {{ totalPages }}</b></li>
+        <li><b>{{ page }} av {{ max_page }}</b></li>
 
-        {% if page < totalPages %}
+        {% if page < max_page %}
         <li>
-            <a
-                href="#"
-                onclick="changePage({{ page + 1 }})"
-                aria-label="Next Page"
-                >→</a
-            >
+            <a href="#" onclick="changePage({{ page + 1 }})" aria-label="Next Page">→</a>
         </li>
         {% endif %}
     </ol>

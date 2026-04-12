@@ -54,7 +54,7 @@
                 {% endif %}
             </div>
 
-            {% for item in data %} {% with index=loop.index0, taxfree=(subdomain == "taxfree") %} {% include
+            {% for item in data %} {% with item=item, index=loop.index0, taxfree=(subdomain == "taxfree") %} {% include
             "partials/product.html" %} {% endwith %} {% endfor %} {% endif %} {% with placement="bottom" %}{% include
             "partials/pagination.html" %}{% endwith %}
         </main>

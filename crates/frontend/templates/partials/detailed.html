@@ -59,27 +59,20 @@
         </tbody>
     </table>
 
-    {% if (item.characteristics and item.characteristics | length > 0) or (item.ingredients and item.ingredients |
-    length > 0) %}
+    {% if item.characteristics | length > 0 or item.ingredients | length > 0 %}
     <table class="fractions">
         <tbody>
-            {% if item.characteristics and item.characteristics | length > 0 %}
+            {% if item.characteristics | length > 0 %}
             <tr>
                 <th>EGENSKAPER</th>
                 <th></th>
             </tr>
-            {% for character in item.characteristics %}
+            {% for charcteristic in item.characteristics %}
             <tr>
-                <td class="label">{{ character.name }}</td>
-                <td
-                    class="percentage"
-                    style="
-                        --percentage: {{ character.percentage }}%;
-                    "
-                ></td>
+                <td class="label">{{ charcteristic.name }}</td>
+                <td class="percentage" style="--percentage: {{ charcteristic.percentage }}"></td>
             </tr>
-            {% endfor %} {% endif %} {% if item.ingredients and item.ingredients | length > 0 %}
-            <tr></tr>
+            {% endfor %} {% endif %} {% if item.ingredients | length > 0 %}
             <tr>
                 <th>INGREDIENSER</th>
                 <th></th>
@@ -87,7 +80,7 @@
             {% for ingredient in item.ingredients %}
             <tr>
                 <td class="label">{{ ingredient.grape }}</td>
-                <td class="percentage" style="--percentage: {{ ingredient.percentage }}%"></td>
+                <td class="percentage" style="--percentage: {{ ingredient.percentage }}"></td>
             </tr>
             {% endfor %} {% endif %}
         </tbody>

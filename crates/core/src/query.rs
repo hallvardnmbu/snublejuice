@@ -1,28 +1,26 @@
-use mongodb::{
-    bson::{Document, doc},
-    options::FindOptions,
-};
-use serde::Deserialize;
+use mongodb::bson::{Bson, Document, doc};
+use regex;
+use serde::{Deserialize, Serialize};
 
 use crate::models::PRODUCTS_PER_PAGE;
 use crate::subdomain::Subdomain;
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Parameters {
     pub page: Option<i64>,
-    pub favourites: Option<String>,
     pub sort: Option<String>,
-    pub ascending: Option<String>,
+    pub ascending: Option<bool>,
+    pub favourites: Option<bool>,
     pub category: Option<String>,
     pub country: Option<String>,
     pub price: Option<f64>,
-    pub cprice: Option<String>,
+    pub cprice: Option<bool>,
     pub volume: Option<f64>,
-    pub cvolume: Option<String>,
+    pub cvolume: Option<bool>,
     pub alcohol: Option<f64>,
-    pub calcohol: Option<String>,
+    pub calcohol: Option<bool>,
     pub year: Option<i64>,
-    pub cyear: Option<String>,
+    pub cyear: Option<bool>,
     pub search: Option<String>,
     pub storelike: Option<String>,
     #[serde(rename = "store-vinmonopolet")]
@@ -32,132 +30,192 @@ pub struct Parameters {
 }
 
 impl Parameters {
-    pub fn get_page(&self) -> u64 {
-        self.page.unwrap_or(1).max(1) as u64
-    }
-
-    pub fn get_favourites(&self) -> bool {
-        self.favourites.as_deref() == Some("true")
-    }
-
-    pub fn get_sort(&self) -> &str {
-        self.sort.as_deref().unwrap_or("discount")
-    }
-
-    pub fn get_sort_by(&self, subdomain: &Subdomain) -> String {
-        let sort = self.get_sort();
-        if subdomain.is_taxfree() && sort != "alcohol" {
-            format!("taxfree.{}", sort)
-        } else if sort == "rating" {
-            "aperitif.points".to_string()
+    fn get_sort_by(&self, subdomain: &Subdomain) -> String {
+        if let Some(sort) = &self.sort {
+            if subdomain.is_taxfree() && sort != "alcohol" {
+                format!("taxfree.{}", sort)
+            } else if sort == "rating" {
+                "aperitif.points".to_string()
+            } else {
+                sort.clone()
+            }
         } else {
-            sort.to_string()
+            "discount".to_string()
         }
-    }
-
-    pub fn is_ascending(&self) -> bool {
-        // Default true; only false when explicitly "false"
-        self.ascending.as_deref() != Some("false")
-    }
-
-    pub fn get_category(&self) -> Option<&str> {
-        self.category.as_deref()
-    }
-
-    pub fn get_country(&self) -> Option<&str> {
-        match self.country.as_deref() {
-            Some("Alle land") | None => None,
-            Some(c) => Some(c),
-        }
-    }
-
-    fn parse_filter_value<T: std::str::FromStr>(
-        value: Option<T>,
-        exact_flag: Option<&str>,
-    ) -> (Option<T>, bool) {
-        (value, exact_flag == Some("true"))
-    }
-
-    pub fn get_price(&self) -> (Option<f64>, bool) {
-        Self::parse_filter_value(self.price, self.cprice.as_deref())
-    }
-
-    pub fn get_volume(&self) -> (Option<f64>, bool) {
-        Self::parse_filter_value(self.volume, self.cvolume.as_deref())
-    }
-
-    pub fn get_alcohol(&self) -> (Option<f64>, bool) {
-        Self::parse_filter_value(self.alcohol, self.calcohol.as_deref())
-    }
-
-    pub fn get_year(&self) -> (Option<i64>, bool) {
-        Self::parse_filter_value(self.year, self.cyear.as_deref())
-    }
-
-    pub fn get_search(&self) -> Option<&str> {
-        self.search
-            .as_deref()
-            .map(str::trim)
-            .filter(|s| !s.is_empty())
-    }
-
-    pub fn get_storelike(&self) -> Option<&str> {
-        self.storelike
-            .as_deref()
-            .map(str::trim)
-            .filter(|s| !s.is_empty() && *s != "null")
-    }
-
-    pub fn get_store_vinmonopolet(&self, subdomain: &Subdomain) -> Option<&str> {
-        if subdomain.is_taxfree() {
-            return None;
-        }
-        match self.store_vinmonopolet.as_deref() {
-            Some("null") | None => None,
-            Some(s) => Some(s),
-        }
-    }
-
-    pub fn get_store_taxfree(&self, subdomain: &Subdomain) -> Option<&str> {
-        if !subdomain.is_taxfree() {
-            return None;
-        }
-        match self.store_taxfree.as_deref() {
-            Some("null") | None => None,
-            Some(s) => Some(s),
-        }
-    }
-
-    pub fn is_orderable(&self, subdomain: &Subdomain) -> bool {
-        let store = self.get_store_vinmonopolet(subdomain);
-        !store.is_some_and(|s| s != "Spesifikk butikk")
     }
 
     pub fn to_filter(&self, subdomain: &Subdomain) -> Document {
         let mut filter = doc! {};
 
-        if self.is_orderable(subdomain) {
+        let favourites: bool = self.favourites.unwrap_or(false);
+        let taxfree: bool = subdomain.is_taxfree();
+
+        // Only include updated products.
+        if taxfree {
+            filter.insert(
+                "taxfree.stores",
+                doc! { "$exists": true, "$ne": Bson::Null },
+            );
+        } else {
+            filter.insert("updated", true);
+        }
+
+        if let Some(storelike) = &self.storelike {
+            if !favourites && !taxfree {
+                let pattern = format!(
+                    r"(^|[^a-zæøåA-ZÆØÅ]){}([^a-zæøåA-ZÆØÅ]|$)",
+                    regex::escape(storelike)
+                );
+                filter.insert("stores", doc! { "$regex": pattern, "$options": "i" });
+            }
+        }
+
+        if favourites {
+            filter.insert("index", doc! { "$in": favourites });
+        }
+
+        // Early return for searches.
+        if let Some(_) = &self.search {
+            return filter;
+        }
+
+        if let Some(category) = &self.category {
+            filter.insert("category", category);
+        }
+
+        if let Some(country) = &self.country {
+            filter.insert("country", country);
+        }
+
+        // Availability.
+        if let Some(store) = &self.store_vinmonopolet {
+            if self.storelike.is_none() && !taxfree {
+                filter.insert("stores", doc! { "$in": vec![store] });
+            }
+        } else if let Some(store) = &self.store_taxfree {
+            if taxfree {
+                filter.insert("taxfree.stores", doc! { "$in": vec![store] });
+            }
+        } else if self.storelike.is_none() && !favourites && !taxfree {
             filter.insert("orderable", true);
         }
 
-        if subdomain.is_taxfree() {
+        // Numeric filters
+        if let Some(limit) = self.price {
             filter.insert(
-                "taxfree",
-                doc! { "$exists": true, "$ne": mongodb::bson::Bson::Null },
+                "price",
+                if self.cprice == Some(true) {
+                    doc! { "$eq": limit }
+                } else {
+                    doc! { "$lte": limit }
+                },
             );
         }
+
+        if let Some(limit) = self.volume {
+            filter.insert(
+                "volume",
+                if self.cvolume == Some(true) {
+                    doc! { "$eq": limit }
+                } else {
+                    doc! { "$gte": limit }
+                },
+            );
+        }
+
+        if let Some(limit) = self.alcohol {
+            filter.insert(
+                "alcohol",
+                if self.calcohol == Some(true) {
+                    doc! { "$eq": limit, "$exists": true, "$ne": Bson::Null, "$gt": 0 }
+                } else {
+                    doc! { "$gte": limit, "$exists": true, "$ne": Bson::Null, "$gt": 0 }
+                },
+            );
+        } else {
+            // No alcohol filter; still exclude non-alcoholic.
+            filter.insert(
+                "alcohol",
+                doc! { "$exists": true, "$ne": Bson::Null, "$gt": 0 },
+            );
+        }
+
+        if let Some(limit) = self.year {
+            filter.insert(
+                "year",
+                if self.cyear == Some(true) {
+                    doc! { "$eq": limit }
+                } else {
+                    doc! { "$lte": limit }
+                },
+            );
+        }
+
+        // Sort field must exist and be non-null
+        let sort_by = self.get_sort_by(subdomain);
+        filter.insert(sort_by, doc! { "$exists": true, "$ne": Bson::Null });
 
         filter
     }
 
-    pub fn to_options(&self, subdomain: &Subdomain) -> FindOptions {
-        FindOptions::builder()
-            .sort(doc! {
-                self.get_sort_by(subdomain): if self.is_ascending() { 1 } else { -1 }
-            })
-            .skip((self.get_page() - 1) * PRODUCTS_PER_PAGE)
-            .limit(PRODUCTS_PER_PAGE as i64)
-            .build()
+    pub fn to_options(&self, subdomain: &Subdomain) -> Vec<Document> {
+        let mut options = Vec::new();
+
+        options.push(
+            doc! {
+                "$sort": {self.get_sort_by(subdomain): if self.ascending == Some(false) { -1 } else { 1 }}
+            }
+        );
+        options.push(doc! { "$skip": ((self.page.unwrap_or(1) - 1) * PRODUCTS_PER_PAGE) });
+        options.push(doc! { "$limit": PRODUCTS_PER_PAGE });
+
+        options
+    }
+    pub fn to_pipeline(&self, subdomain: &Subdomain) -> Vec<Document> {
+        let mut pipeline: Vec<Document> = Vec::new();
+
+        if let Some(search) = &self.search {
+            pipeline.push(doc! {
+                "$search": {
+                    "index": "name",
+                    "compound": {
+                        "should": [
+                            {
+                                "text": {
+                                    "query": search,
+                                    "path": "name",
+                                    "score": { "boost": { "value": 10 } },
+                                },
+                            },
+                            {
+                                "text": {
+                                    "query": search,
+                                    "path": "name",
+                                    "fuzzy": {
+                                        "maxEdits": 2, // Max single-character edits
+                                        "prefixLength": 1, // Exact beginning of word matches
+                                        "maxExpansions": 1, // Max variations
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                },
+            });
+
+            pipeline.push(doc! { "$match": self.to_filter(subdomain) });
+
+            pipeline.push(doc! { "$skip": ((self.page.unwrap_or(1) - 1) * PRODUCTS_PER_PAGE) });
+            pipeline.push(doc! { "$limit": PRODUCTS_PER_PAGE });
+
+            return pipeline;
+        }
+
+        pipeline.push(doc! { "$match": self.to_filter(subdomain) });
+
+        pipeline.extend(self.to_options(subdomain));
+
+        pipeline
     }
 }
 

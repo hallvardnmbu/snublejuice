@@ -22,12 +22,8 @@ pub async fn get_products(
     subdomain: Subdomain,
     Query(parameters): Query<Parameters>,
 ) -> Result<Json<Vec<Product>>, AppError> {
-    let products = database::products::get_products(
-        &state.db,
-        parameters.to_filter(&subdomain),
-        parameters.to_options(&subdomain),
-    )
-    .await;
+    let products =
+        database::products::get_products(&state.db, parameters.to_pipeline(&subdomain)).await;
 
     Ok(Json(products))
 }

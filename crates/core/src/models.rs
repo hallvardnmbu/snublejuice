@@ -1,7 +1,7 @@
 use mongodb::bson::{DateTime, oid::ObjectId};
 use serde::{Deserialize, Serialize};
 
-pub const PRODUCTS_PER_PAGE: u64 = 15;
+pub const PRODUCTS_PER_PAGE: i64 = 15;
 pub const ONE_MONTH: u64 = 60 * 60 * 24 * 30;
 
 #[derive(Debug, Serialize, Deserialize)]

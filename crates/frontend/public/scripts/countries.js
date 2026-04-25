@@ -1,4 +1,7 @@
-const _DEFAULT = "Alle land";
+const _DEFAULT = {
+  text: "Alle land",
+  value: null,
+};
 
 async function fetchCountries() {
   try {
@@ -19,8 +22,8 @@ function populateCountries(countries) {
 
   // Add default option
   const defaultOption = document.createElement("option");
-  defaultOption.value = _DEFAULT;
-  defaultOption.text = _DEFAULT;
+  defaultOption.value = _DEFAULT.value;
+  defaultOption.text = _DEFAULT.text;
   dropdown.appendChild(defaultOption);
 
   // Add new options
@@ -38,7 +41,7 @@ function populateCountries(countries) {
     dropdown.value = selected;
   } else {
     // Reset to default option if no selected country is found in sessionStorage
-    dropdown.value = _DEFAULT;
+    dropdown.value = _DEFAULT.value;
   }
 
   // Add event listener to save the selected country to local storage

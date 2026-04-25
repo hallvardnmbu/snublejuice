@@ -39,6 +39,7 @@ pub fn render_products(
     user: Option<User>,
     page: i64,
     max_page: u64,
+    parameters: &Parameters,
 ) -> String {
     let tmpl = get_env().get_template("products.html").unwrap();
     let now = Local::now();
@@ -50,6 +51,7 @@ pub fn render_products(
         user,
         page,
         max_page,
+        parameters,
         landing => false,
     })
     .unwrap()
@@ -72,12 +74,9 @@ pub async fn site(
     match subdomain {
         Subdomain::Landing => Ok(Html(render_landing())),
         Subdomain::Vinmonopolet | Subdomain::Taxfree => {
-            let products = database::products::get_products(
-                &state.db,
-                parameters.to_filter(&subdomain),
-                parameters.to_options(&subdomain),
-            )
-            .await;
+            let products =
+                database::products::get_products(&state.db, parameters.to_pipeline(&subdomain))
+                    .await;
             let max_page =
                 database::products::get_max_page(&state.db, parameters.to_filter(&subdomain)).await;
             Ok(Html(render_products(
@@ -86,6 +85,7 @@ pub async fn site(
                 user,
                 parameters.page.unwrap_or(1),
                 max_page,
+                &parameters,
             )))
         }
     }

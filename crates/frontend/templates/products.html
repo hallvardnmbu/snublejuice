@@ -32,9 +32,9 @@
         </header>
 
         <main>
-            {% with favourites=favourites, taxfree=(subdomain == "taxfree") %}{% include "partials/forms.html" %}{%
-            endwith %} {% with placement="top" %}{% include "partials/pagination.html" %}{% endwith %} {% if data|length
-            == 0 %}
+            {% with parameters=parameters, favourites=favourites, taxfree=(subdomain == "taxfree") %}{% include
+            "partials/forms.html" %}{% endwith %} {% with placement="top" %}{% include "partials/pagination.html" %}{%
+            endwith %} {% if data|length == 0 %}
             <span>Ingen resultater finnes for valgt kominasjon.</span>
             {% else %}
             <div class="message">

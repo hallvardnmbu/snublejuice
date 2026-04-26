@@ -1,12 +1,12 @@
 <form action="/" method="get" id="filter">
-    <input type="hidden" name="page" value="{{ page }}">
-    <input type="hidden" name="ascending" value="{{ ascending }}">
-    <input type="hidden" name="favourites" value="{{ favourites }}">
+    <input type="hidden" name="page" value="{{ parameters.page if parameters.page is not none else '' }}">
+    <input type="hidden" name="ascending" value="{{ parameters.ascending if parameters.ascending is not none else '' }}">
+    <input type="hidden" name="favourites" value="{{ parameters.favourites if parameters.favourites is not none else '' }}">
 
-    <input type="hidden" name="cprice" value="{{ cprice }}">
-    <input type="hidden" name="cvolume" value="{{ cvolume }}">
-    <input type="hidden" name="calcohol" value="{{ calcohol }}">
-    <input type="hidden" name="cyear" value="{{ cyear }}">
+    <input type="hidden" name="cprice" value="{{ parameters.cprice if parameters.cprice is not none else '' }}">
+    <input type="hidden" name="cvolume" value="{{ parameters.cvolume if parameters.cvolume is not none else '' }}">
+    <input type="hidden" name="calcohol" value="{{ parameters.calcohol if parameters.calcohol is not none else '' }}">
+    <input type="hidden" name="cyear" value="{{ parameters.cyear if parameters.cyear is not none else '' }}">
 
     <search id="filters">
         <button type="submit" style="display: none"></button>

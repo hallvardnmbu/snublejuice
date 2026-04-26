@@ -34,7 +34,7 @@ pub async fn get_user_by_id(db: &Database, user_id: &ObjectId) -> Option<User> {
     }
 }
 
-pub async fn favourites(db: &Database, user_id: &ObjectId) -> Result<Vec<usize>, AppError> {
+pub async fn favourites(db: &Database, user_id: &ObjectId) -> Result<Vec<i64>, AppError> {
     match get_user_by_id(db, user_id).await {
         Some(user) => return Ok(user.favourites),
         None => return Err(AppError::NotFound),

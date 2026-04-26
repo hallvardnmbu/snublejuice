@@ -2,7 +2,7 @@ use mongodb::bson::{Bson, Document, doc};
 use regex;
 use serde::{Deserialize, Serialize};
 
-use crate::models::PRODUCTS_PER_PAGE;
+use crate::models::{PRODUCTS_PER_PAGE, User};
 use crate::subdomain::Subdomain;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -44,7 +44,7 @@ impl Parameters {
         }
     }
 
-    pub fn to_filter(&self, subdomain: &Subdomain) -> Document {
+    pub fn to_filter(&self, subdomain: &Subdomain, user: &Option<User>) -> Document {
         let mut filter = doc! {};
 
         let favourites: bool = self.favourites.unwrap_or(false);
@@ -70,8 +70,8 @@ impl Parameters {
             }
         }
 
-        if favourites {
-            filter.insert("index", doc! { "$in": favourites });
+        if favourites && let Some(user) = user {
+            filter.insert("index", doc! { "$in": user.favourites.clone() });
         }
 
         // Early return for searches.
@@ -171,7 +171,8 @@ impl Parameters {
 
         options
     }
-    pub fn to_pipeline(&self, subdomain: &Subdomain) -> Vec<Document> {
+
+    pub fn to_pipeline(&self, subdomain: &Subdomain, user: &Option<User>) -> Vec<Document> {
         let mut pipeline: Vec<Document> = Vec::new();
 
         if let Some(search) = &self.search {
@@ -203,7 +204,7 @@ impl Parameters {
                 },
             });
 
-            pipeline.push(doc! { "$match": self.to_filter(subdomain) });
+            pipeline.push(doc! { "$match": self.to_filter(subdomain, user) });
 
             pipeline.push(doc! { "$skip": ((self.page.unwrap_or(1) - 1) * PRODUCTS_PER_PAGE) });
             pipeline.push(doc! { "$limit": PRODUCTS_PER_PAGE });
@@ -211,7 +212,7 @@ impl Parameters {
             return pipeline;
         }
 
-        pipeline.push(doc! { "$match": self.to_filter(subdomain) });
+        pipeline.push(doc! { "$match": self.to_filter(subdomain, user) });
 
         pipeline.extend(self.to_options(subdomain));
 

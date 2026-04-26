@@ -1,31 +1,14 @@
-use axum::{
-    Json,
-    extract::{Path, Query, State},
-    http::header,
-    response::IntoResponse,
-};
+use axum::{extract::Path, http::header, response::IntoResponse};
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::env;
 use std::path::PathBuf;
 use tokio::fs;
 
-use core::models::Product;
-use core::{errors::AppError, query::Parameters, state::AppState, subdomain::Subdomain};
+use core::errors::AppError;
 
 lazy_static! {
     static ref RE_INDEX: Regex = Regex::new(r"^[0-9]+$").unwrap();
-}
-
-pub async fn get_products(
-    State(state): State<AppState>,
-    subdomain: Subdomain,
-    Query(parameters): Query<Parameters>,
-) -> Result<Json<Vec<Product>>, AppError> {
-    let products =
-        database::products::get_products(&state.db, parameters.to_pipeline(&subdomain)).await;
-
-    Ok(Json(products))
 }
 
 pub async fn get_image(Path(index): Path<String>) -> Result<impl IntoResponse, AppError> {

@@ -4,14 +4,14 @@ use serde::{Deserialize, Serialize};
 pub const PRODUCTS_PER_PAGE: i64 = 15;
 pub const ONE_MONTH: u64 = 60 * 60 * 24 * 30;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
     #[serde(rename = "_id")]
     pub user_id: ObjectId,
     pub username: String,
     pub password: String,
     pub email: String,
-    pub favourites: Vec<usize>,
+    pub favourites: Vec<i64>,
     pub notify: bool,
 }
 

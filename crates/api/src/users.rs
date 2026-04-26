@@ -33,8 +33,8 @@ pub async fn notification(
 pub async fn favourites(
     State(state): State<AppState>,
     auth: Authenticate,
-) -> Result<Json<Vec<usize>>, AppError> {
-    let favourites: Vec<usize> = users::favourites(&state.db, &auth.id).await?;
+) -> Result<Json<Vec<i64>>, AppError> {
+    let favourites: Vec<i64> = users::favourites(&state.db, &auth.id).await?;
     Ok(Json(favourites))
 }
 

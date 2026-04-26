@@ -74,11 +74,16 @@ pub async fn site(
     match subdomain {
         Subdomain::Landing => Ok(Html(render_landing())),
         Subdomain::Vinmonopolet | Subdomain::Taxfree => {
-            let products =
-                database::products::get_products(&state.db, parameters.to_pipeline(&subdomain))
-                    .await;
-            let max_page =
-                database::products::get_max_page(&state.db, parameters.to_filter(&subdomain)).await;
+            let products = database::products::get_products(
+                &state.db,
+                parameters.to_pipeline(&subdomain, &user),
+            )
+            .await;
+            let max_page = database::products::get_max_page(
+                &state.db,
+                parameters.to_filter(&subdomain, &user),
+            )
+            .await;
             Ok(Html(render_products(
                 &products,
                 subdomain.is_taxfree(),

@@ -84,3 +84,18 @@ document.getElementById("deleteUserForm").onsubmit = async function (event) {
 async function logout() {
   await tryPost("/account/logout", {});
 }
+
+async function loadFavourites() {
+  try {
+    const response = await axios.get("/account/favourites");
+    const stores = response.data;
+
+    sessionStorage.setItem("favourites", JSON.stringify(stores));
+  } catch (error) {
+    console.error("Error fetching favourites:", error);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadFavourites();
+});

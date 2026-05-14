@@ -64,6 +64,7 @@ pub struct Product {
     pub alcohol: f64,
     pub literprice: f64,
     pub url: String,
+    pub stores: Vec<String>,
     pub category: String,
     pub subcategory: Option<String>,
     pub country: String,

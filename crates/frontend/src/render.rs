@@ -3,7 +3,8 @@ use axum::{
     response::Html,
 };
 use chrono::{Datelike, Local};
-use minijinja::{Environment, context, path_loader};
+use minijinja::{Environment, Value, context, path_loader};
+use regex::Regex;
 use std::sync::OnceLock;
 
 use authentication::middle::MaybeAuthenticate;
@@ -24,6 +25,19 @@ fn get_env() -> &'static Environment<'static> {
             env!("CARGO_MANIFEST_DIR"),
             "/templates"
         )));
+        env.add_filter("storelike_filter", |stores: Value, pattern: &str| {
+            let Ok(re) = Regex::new(&format!(
+                r"(?i)(^|[^a-zæøåA-ZÆØÅ]){}([^a-zæøåA-ZÆØÅ]|$)",
+                regex::escape(pattern)
+            )) else {
+                return Vec::new();
+            };
+            let Ok(iter) = stores.try_iter() else {
+                return Vec::new();
+            };
+            iter.filter(|s| s.as_str().map(|s| re.is_match(s)).unwrap_or(false))
+                .collect::<Vec<_>>()
+        });
         env
     })
 }

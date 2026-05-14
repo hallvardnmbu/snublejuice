@@ -661,6 +661,7 @@ dependencies = [
  "core",
  "database",
  "minijinja",
+ "regex",
  "tower-http",
 ]
 

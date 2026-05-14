@@ -32,6 +32,8 @@
                 <p><i>{{ item.subcategory }}</i></p>
                 {% endif %}
                 <p>•</p>
+                <p>{{ (item.volume | round) | int }} cL</p>
+                <p>•</p>
                 <p>{{ item.alcohol }}% alk.</p>
             </span>
 
@@ -44,9 +46,9 @@
                 {% endif %}
             </span>
 
-            {% if storelike %}
+            {% if parameters.storelike %}
             <span class="list">
-                {% for store in item.matching_stores | default([]) %}
+                {% for store in item.stores | storelike_filter(parameters.storelike) %}
                 <p>• {{ store }}</p>
                 {% endfor %}
             </span>

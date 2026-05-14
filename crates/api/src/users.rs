@@ -52,8 +52,9 @@ pub async fn toggle_favourite(
 }
 
 pub async fn delete(
-    State(_state): State<AppState>,
-    _auth: Authenticate,
+    State(state): State<AppState>,
+    auth: Authenticate,
 ) -> Result<Json<String>, AppError> {
-    Err(AppError::NotImplemented)
+    users::delete_user(&state.db, &auth.id).await?;
+    Ok(Json("ok".to_string()))
 }

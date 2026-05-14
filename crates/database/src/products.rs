@@ -32,7 +32,7 @@ pub async fn get_max_page(db: &Database, filter: Document) -> u64 {
     let collection: Collection<Product> = db.collection("products");
 
     match collection.count_documents(filter).await {
-        Ok(count) => count / PRODUCTS_PER_PAGE as u64,
+        Ok(count) => count / PRODUCTS_PER_PAGE as u64 + 1,
         Err(_) => 1,
     }
 }

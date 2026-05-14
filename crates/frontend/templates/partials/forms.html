@@ -1,6 +1,6 @@
 <form action="/" method="get" id="filter">
     <input type="hidden" name="page" value="{{ parameters.page if parameters.page is not none else '' }}">
-    <input type="hidden" name="ascending" value="{{ parameters.ascending if parameters.ascending is not none else '' }}">
+    <input type="hidden" name="ascending" value="{{ parameters.ascending if parameters.ascending is not none else 'true' }}">
     <input type="hidden" name="favourites" value="{{ parameters.favourites if parameters.favourites is not none else '' }}">
 
     <input type="hidden" name="cprice" value="{{ parameters.cprice if parameters.cprice is not none else '' }}">
@@ -12,7 +12,7 @@
         <button type="submit" style="display: none"></button>
 
         <div>
-            <button id="toggleSort">{{ 'stigende' if parameters.ascending else 'synkende' }}</button>
+            <button id="toggleSort">{{ 'synkende' if parameters.ascending == false else 'stigende' }}</button>
 
             <select name="sort" id="sort" onchange="applyFilters(true, false)">
                 <option value="discount" {{ 'selected' if parameters.sort == 'discount' else '' }}>Tilbud</option>

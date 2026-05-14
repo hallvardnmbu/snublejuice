@@ -60,6 +60,9 @@ impl Parameters {
             filter.insert("updated", true);
         }
 
+        // Must have a price.
+        filter.insert("price", doc! { "$gt": 0.0 });
+
         if let Some(storelike) = &self.storelike {
             if !favourites && !taxfree {
                 let pattern = format!(
@@ -107,7 +110,7 @@ impl Parameters {
                 if self.cprice == Some(true) {
                     doc! { "$eq": limit }
                 } else {
-                    doc! { "$lte": limit }
+                    doc! { "$lte": limit, "$gt": 0.0 }
                 },
             );
         }
@@ -151,9 +154,12 @@ impl Parameters {
             );
         }
 
-        // Sort field must exist and be non-null
+        // Sort field must exist and be non-null (skip if already constrained above).
         let sort_by = self.get_sort_by(subdomain);
-        filter.insert(sort_by, doc! { "$exists": true, "$ne": Bson::Null });
+        if !filter.contains_key(&sort_by) {
+            let is_discount = &sort_by == "discount";
+            filter.insert(sort_by, doc! { "$exists": true, "$ne": Bson::Null, "$gt": if is_discount {-100.0} else {0.0}  });
+        }
 
         filter
     }

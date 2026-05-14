@@ -7,9 +7,10 @@ function applyFilters(resetPage = true, toggleFavourites = false) {
     data.set("favourites", data.get("favourites") === "true" ? "false" : "true");
   }
 
+  const always = new Set(["ascending", "sort"]);
   const params = new URLSearchParams();
   for (const [key, value] of data.entries()) {
-    if (value !== "" && value !== "null" && value !== "false") {
+    if (always.has(key) || (value !== "" && value !== "null" && value !== "false")) {
       params.set(key, value);
     }
   }

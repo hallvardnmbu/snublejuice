@@ -12,3 +12,4 @@ axum = "0.8.8"
 minijinja = { version = "2.18.0", features = ["loader"] }
 tower-http = { workspace = true }
 chrono = "0.4.44"
+regex = "1.12.3"

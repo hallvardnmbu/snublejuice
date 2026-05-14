@@ -18,7 +18,7 @@ pub async fn get_user_by_name(db: &Database, username: &str) -> Option<User> {
     }
 }
 
-pub async fn create_user(db: &Database, user: User) -> Result<(), AppError> {
+pub async fn create_user(db: &Database, user: &User) -> Result<(), AppError> {
     let collection = db.collection::<User>("users");
 
     collection.insert_one(user).await?;
@@ -39,6 +39,44 @@ pub async fn favourites(db: &Database, user_id: &ObjectId) -> Result<Vec<i64>, A
         Some(user) => return Ok(user.favourites),
         None => return Err(AppError::NotFound),
     }
+}
+
+pub async fn toggle_favourite(
+    db: &Database,
+    user_id: &ObjectId,
+    index: &i64,
+) -> Result<(), AppError> {
+    let collection = db.collection::<User>("users");
+
+    match get_user_by_id(db, user_id).await {
+        Some(_) => {
+            collection
+                .update_one(
+                    doc! { "_id": user_id },
+                    vec![doc! {
+                        "$set": {
+                            "favourites": {
+                                "$cond": {
+                                    "if": { "$in": [index, "$favourites"] },
+                                    "then": {
+                                        "$filter": {
+                                            "input": "$favourites",
+                                            "as": "item",
+                                            "cond": { "$ne": ["$$item", index] },
+                                        }
+                                    },
+                                    "else": { "$concatArrays": ["$favourites", [index]] },
+                                }
+                            }
+                        }
+                    }],
+                )
+                .await?;
+        }
+        None => return Err(AppError::NotFound),
+    }
+
+    Ok(())
 }
 
 pub async fn notification(db: &Database, user_id: &ObjectId) -> Result<(), AppError> {

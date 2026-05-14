@@ -73,7 +73,7 @@ pub async fn signup(
         notify: false,
     };
 
-    users::create_user(&state.db, new_user).await?;
+    users::create_user(&state.db, &new_user).await?;
 
     let session_id = Uuid::new_v4().to_string();
     let expiration = DateTime::from_system_time(SystemTime::now() + Duration::from_secs(ONE_MONTH));

@@ -104,7 +104,7 @@ document.querySelectorAll(".favourite-toggle").forEach((star) => {
     event.stopPropagation();
 
     // Send POST request to server.
-    const index = this.dataset.index;
+    const index = parseInt(this.dataset.index, 10);
     await fetch("/account/favourite", {
       method: "POST",
       headers: {
@@ -115,7 +115,7 @@ document.querySelectorAll(".favourite-toggle").forEach((star) => {
     });
 
     // Toggle star.
-    this.innerText = this.innerText === "☆" ? "★" : "☆";
+    this.innerText = this.innerText.trim() === "☆" ? "★" : "☆";
   });
 });
 

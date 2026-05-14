@@ -23,6 +23,11 @@ pub struct Session {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct Index {
+    pub index: i64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Aperitif {
     pub url: String,
     pub points: i32,

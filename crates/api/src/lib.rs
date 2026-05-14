@@ -16,6 +16,7 @@ pub fn router(state: AppState) -> Router<AppState> {
         .route("/account/logout", post(users::logout))
         .route("/account/notification", post(users::notification))
         .route("/account/favourites", get(users::favourites))
+        .route("/account/favourite", post(users::toggle_favourite))
         .route("/account/delete", post(users::delete))
         .layer(middleware::from_extractor_with_state::<
             Authenticate,

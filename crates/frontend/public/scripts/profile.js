@@ -85,6 +85,9 @@ async function logout() {
   await tryPost("/account/logout", {});
 }
 
+window.toggleView = toggleView;
+window.logout = logout;
+
 async function loadFavourites() {
   try {
     const response = await axios.get("/account/favourites");

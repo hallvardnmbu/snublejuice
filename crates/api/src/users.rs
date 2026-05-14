@@ -1,7 +1,11 @@
 use authentication::middle::Authenticate;
 use axum::{Json, extract::State};
 
-use core::{errors::AppError, models::User, state::AppState};
+use core::{
+    errors::AppError,
+    models::{Index, User},
+    state::AppState,
+};
 use database::users;
 
 pub async fn get_user(
@@ -36,6 +40,15 @@ pub async fn favourites(
 ) -> Result<Json<Vec<i64>>, AppError> {
     let favourites: Vec<i64> = users::favourites(&state.db, &auth.id).await?;
     Ok(Json(favourites))
+}
+
+pub async fn toggle_favourite(
+    State(state): State<AppState>,
+    auth: Authenticate,
+    Json(payload): Json<Index>,
+) -> Result<Json<String>, AppError> {
+    users::toggle_favourite(&state.db, &auth.id, &payload.index).await?;
+    Ok(Json("ok".to_string()))
 }
 
 pub async fn delete(

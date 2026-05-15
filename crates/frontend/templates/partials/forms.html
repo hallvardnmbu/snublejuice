@@ -27,19 +27,20 @@
         <div>
             <select name="category" id="category" onchange="applyFilters(true, false)">
                 <option value="null" {{ 'selected' if parameters.category == 'null' else '' }}>Alle kategorier</option>
-                <option value="Aromatisert" {{ 'selected' if parameters.category == 'Aromatisert' else '' }}>Aromatisert vin</option>
-                <option value="Brennevin" {{ 'selected' if parameters.category == 'Brennevin' else '' }}>Brennevin</option>
-                <option value="Fruktvin" {{ 'selected' if parameters.category == 'Fruktvin' else '' }}>Fruktvin</option>
-                <option value="Hvitvin" {{ 'selected' if parameters.category == 'Hvitvin' else '' }}>Hvitvin</option>
-                <option value="Mjød" {{ 'selected' if parameters.category == 'Mjød' else '' }}>Mjød</option>
-                <option value="Musserende" {{ 'selected' if parameters.category == 'Musserende' else '' }}>Musserende vin</option>
-                <option value="Perlende" {{ 'selected' if parameters.category == 'Perlende' else '' }}>Perlende vin</option>
-                <option value="Rosévin" {{ 'selected' if parameters.category == 'Rosévin' else '' }}>Rosévin</option>
-                <option value="Rødvin" {{ 'selected' if parameters.category == 'Rødvin' else '' }}>Rødvin</option>
-                <option value="Sake" {{ 'selected' if parameters.category == 'Sake' else '' }}>Sake</option>
-                <option value="Sider" {{ 'selected' if parameters.category == 'Sider' else '' }}>Sider</option>
-                <option value="Sterkvin" {{ 'selected' if parameters.category == 'Sterkvin' else '' }}>Sterkvin</option>
-                <option value="Øl" {{ 'selected' if parameters.category == 'Øl' else '' }}>Øl</option>
+                <option value="alkoholfritt" {{ 'selected' if parameters.category == 'alkoholfritt' else '' }}>Alkoholfritt</option>
+                <option value="aromatisert" {{ 'selected' if parameters.category == 'aromatisert' else '' }}>Aromatisert vin</option>
+                <option value="brennevin" {{ 'selected' if parameters.category == 'brennevin' else '' }}>Brennevin</option>
+                <option value="fruktvin" {{ 'selected' if parameters.category == 'fruktvin' else '' }}>Fruktvin</option>
+                <option value="hvitvin" {{ 'selected' if parameters.category == 'hvitvin' else '' }}>Hvitvin</option>
+                <option value="mjød" {{ 'selected' if parameters.category == 'mjød' else '' }}>Mjød</option>
+                <option value="musserende" {{ 'selected' if parameters.category == 'musserende' else '' }}>Musserende vin</option>
+                <option value="perlende" {{ 'selected' if parameters.category == 'perlende' else '' }}>Perlende vin</option>
+                <option value="rosévin" {{ 'selected' if parameters.category == 'rosévin' else '' }}>Rosévin</option>
+                <option value="rødvin" {{ 'selected' if parameters.category == 'rødvin' else '' }}>Rødvin</option>
+                <option value="sake" {{ 'selected' if parameters.category == 'sake' else '' }}>Sake</option>
+                <option value="sider" {{ 'selected' if parameters.category == 'sider' else '' }}>Sider</option>
+                <option value="sterkvin" {{ 'selected' if parameters.category == 'sterkvin' else '' }}>Sterkvin</option>
+                <option value="øl" {{ 'selected' if parameters.category == 'øl' else '' }}>Øl</option>
             </select>
         </div>
 

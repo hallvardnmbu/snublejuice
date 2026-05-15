@@ -12,6 +12,14 @@ impl Subdomain {
     pub fn is_taxfree(&self) -> bool {
         matches!(self, Self::Taxfree)
     }
+
+    pub fn name(&self) -> &str {
+        match self {
+            Self::Vinmonopolet => "vinmonopolet",
+            Self::Taxfree => "taxfree",
+            Self::Landing => "landing",
+        }
+    }
 }
 
 impl<S> FromRequestParts<S> for Subdomain

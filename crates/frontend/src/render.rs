@@ -92,6 +92,21 @@ pub async fn site(
     Query(parameters): Query<Parameters>,
     MaybeAuthenticate(user): MaybeAuthenticate,
 ) -> Result<Html<String>, core::errors::AppError> {
+    let is_production = std::env::var("ENVIRONMENT")
+        .map(|e| e == "production")
+        .unwrap_or(false);
+
+    if is_production {
+        let month = chrono::Local::now().format("%Y-%m").to_string();
+        database::metadata::increment_visitor(
+            &state.db,
+            &month,
+            subdomain.name(),
+            parameters.is_empty(),
+        )
+        .await;
+    }
+
     match subdomain {
         Subdomain::Landing => Ok(Html(render_landing())),
         Subdomain::Vinmonopolet | Subdomain::Taxfree => {

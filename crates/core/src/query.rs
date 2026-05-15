@@ -30,6 +30,27 @@ pub struct Parameters {
 }
 
 impl Parameters {
+    pub fn is_empty(&self) -> bool {
+        self.page.is_none()
+            && self.sort.is_none()
+            && self.ascending.is_none()
+            && self.favourites.is_none()
+            && self.category.is_none()
+            && self.country.is_none()
+            && self.price.is_none()
+            && self.cprice.is_none()
+            && self.volume.is_none()
+            && self.cvolume.is_none()
+            && self.alcohol.is_none()
+            && self.calcohol.is_none()
+            && self.year.is_none()
+            && self.cyear.is_none()
+            && self.search.is_none()
+            && self.storelike.is_none()
+            && self.store_vinmonopolet.is_none()
+            && self.store_taxfree.is_none()
+    }
+
     fn get_sort_by(&self, subdomain: &Subdomain) -> String {
         if let Some(sort) = &self.sort {
             if subdomain.is_taxfree() && sort != "alcohol" {
@@ -83,7 +104,9 @@ impl Parameters {
         }
 
         if let Some(category) = &self.category {
-            filter.insert("category", category);
+            if let Some(name) = category_name(category) {
+                filter.insert("category", name);
+            }
         }
 
         if let Some(country) = &self.country {
@@ -223,6 +246,26 @@ impl Parameters {
         pipeline.extend(self.to_options(subdomain));
 
         pipeline
+    }
+}
+
+fn category_name(slug: &str) -> Option<&'static str> {
+    match slug {
+        "alkoholfritt" => Some("Alkoholfritt"),
+        "aromatisert" => Some("Aromatisert vin"),
+        "brennevin" => Some("Brennevin"),
+        "fruktvin" => Some("Fruktvin"),
+        "hvitvin" => Some("Hvitvin"),
+        "mjød" => Some("Mjød"),
+        "musserende" => Some("Musserende vin"),
+        "perlende" => Some("Perlende vin"),
+        "rosévin" => Some("Rosévin"),
+        "rødvin" => Some("Rødvin"),
+        "sake" => Some("Sake"),
+        "sider" => Some("Sider"),
+        "sterkvin" => Some("Sterkvin"),
+        "øl" => Some("Øl"),
+        _ => None,
     }
 }
 

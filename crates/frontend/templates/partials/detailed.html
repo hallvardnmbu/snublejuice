@@ -1,0 +1,89 @@
+<aside>
+    <table class="metadata">
+        <tbody>
+            {% if item.aperitif and item.aperitif.points is defined and item.aperitif.points != null %}
+            <tr>
+                <td>Rating</td>
+                <td>
+                    Vurdert {{ item.aperitif.points }} av 100 hos {% if item.aperitif.url %}
+                    <a
+                        href="{{ item.aperitif.url }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onclick="event.stopPropagation()"
+                        >aperitif</a
+                    >. {% else %} aperitif. {% endif %}
+                </td>
+            </tr>
+            {% endif %} {% if taxfree and item.taxfree.stores %}
+            <tr>
+                <td>Lager</td>
+                <td>{{ item.taxfree.stores | sort | join(' + ') }}</td>
+            </tr>
+            {% endif %} {% if item.smell %}
+            <tr>
+                <td>Lukt</td>
+                <td>{{ item.smell }}</td>
+            </tr>
+            {% endif %} {% if item.taste %}
+            <tr>
+                <td>Smak</td>
+                <td>{{ item.taste }}</td>
+            </tr>
+            {% endif %} {% if item.storage %}
+            <tr>
+                <td>Lagring</td>
+                <td>{{ item.storage }}</td>
+            </tr>
+            {% endif %} {% if item.colour %}
+            <tr>
+                <td>Farge</td>
+                <td>{{ item.colour }}</td>
+            </tr>
+            {% endif %} {% if item.pair and item.pair | length > 0 %}
+            <tr>
+                <td>Passer til</td>
+                <td>{{ item.pair | join(' & ') }}</td>
+            </tr>
+            {% endif %} {% if item.method %}
+            <tr>
+                <td>Metode</td>
+                <td>{{ item.method }}</td>
+            </tr>
+            {% endif %} {% if item.year %}
+            <tr>
+                <td>Årgang</td>
+                <td>{{ item.year }}</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    {% if item.characteristics | length > 0 or item.ingredients | length > 0 %}
+    <table class="fractions">
+        <tbody>
+            {% if item.characteristics | length > 0 %}
+            <tr>
+                <th>EGENSKAPER</th>
+                <th></th>
+            </tr>
+            {% for charcteristic in item.characteristics %}
+            <tr>
+                <td class="label">{{ charcteristic.name }}</td>
+                <td class="percentage" style="--percentage: {{ charcteristic.percentage }}"></td>
+            </tr>
+            {% endfor %} {% endif %} {% if item.ingredients | length > 0 %}
+            <tr>
+                <th>INGREDIENSER</th>
+                <th></th>
+            </tr>
+            {% for ingredient in item.ingredients %}
+            <tr>
+                <td class="label">{{ ingredient.grape }}</td>
+                <td class="percentage" style="--percentage: {{ ingredient.percentage }}"></td>
+            </tr>
+            {% endfor %} {% endif %}
+        </tbody>
+    </table>
+    {% endif %}
+</aside>

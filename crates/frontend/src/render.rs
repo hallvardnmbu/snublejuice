@@ -9,13 +9,14 @@ use rust_embed::RustEmbed;
 use std::sync::OnceLock;
 
 use authentication::middle::MaybeAuthenticate;
-use core::{
+use database;
+use shared::{
+    errors::AppError,
     models::{Product, User},
     query::Parameters,
     state::AppState,
     subdomain::Subdomain,
 };
-use database;
 
 #[derive(RustEmbed)]
 #[folder = "templates/"]
@@ -91,7 +92,7 @@ pub async fn site(
     subdomain: Subdomain,
     Query(parameters): Query<Parameters>,
     MaybeAuthenticate(user): MaybeAuthenticate,
-) -> Result<Html<String>, core::errors::AppError> {
+) -> Result<Html<String>, AppError> {
     let is_production = std::env::var("ENVIRONMENT")
         .map(|e| e == "production")
         .unwrap_or(false);

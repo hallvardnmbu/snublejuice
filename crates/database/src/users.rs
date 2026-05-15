@@ -4,7 +4,7 @@ use mongodb::{
 };
 use std::time::{Duration, SystemTime};
 
-use core::{
+use shared::{
     errors::AppError,
     models::{ONE_MONTH, Session, User},
 };
@@ -119,7 +119,8 @@ pub async fn get_user_by_session_id(db: &Database, session_id: &str) -> Result<S
 pub async fn update_expiration(db: Database, session_id: String) -> Result<(), AppError> {
     let collection = db.collection::<Session>("sessions");
 
-    let expires_after = DateTime::from_system_time(SystemTime::now() + Duration::from_secs(ONE_MONTH));
+    let expires_after =
+        DateTime::from_system_time(SystemTime::now() + Duration::from_secs(ONE_MONTH));
     collection
         .update_one(
             doc! { "session_id": &session_id },

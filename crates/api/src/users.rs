@@ -1,12 +1,12 @@
 use authentication::middle::Authenticate;
 use axum::{Json, extract::State};
 
-use core::{
+use database::users;
+use shared::{
     errors::AppError,
     models::{Index, User},
     state::AppState,
 };
-use database::users;
 
 pub async fn get_user(
     State(state): State<AppState>,

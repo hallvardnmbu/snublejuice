@@ -4,7 +4,7 @@ use axum::{
 };
 
 use authentication::middle::Authenticate;
-use core::state::AppState;
+use shared::state::AppState;
 
 pub mod metadata;
 pub mod products;

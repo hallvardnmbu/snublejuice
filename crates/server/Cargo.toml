@@ -9,7 +9,7 @@ database = { path = "../database"}
 api = { path = "../api"}
 authentication = { path = "../authentication"}
 frontend = { path = "../frontend"}
-core = { path = "../core" }
+shared = { path = "../shared" }
 
 axum = { version = "0.8.7", features = ["macros"] }
 dotenv = "0.15.0"

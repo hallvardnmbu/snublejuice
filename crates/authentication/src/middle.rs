@@ -7,8 +7,8 @@ use bcrypt::{DEFAULT_COST, hash, verify};
 use mongodb::{Database, bson::oid::ObjectId};
 use tokio::spawn;
 
-use core::{errors::AppError, models::User};
 use database::users;
+use shared::{errors::AppError, models::User};
 
 pub struct Authenticate {
     pub id: ObjectId,

@@ -5,13 +5,13 @@ use std::time::{Duration, SystemTime};
 use uuid::Uuid;
 
 use crate::middle;
-use core::{
+use database::users;
+use shared::{
     errors::AppError,
     models::{ONE_MONTH, Session, User},
     query::{LoginRequest, SignupRequest},
     state::AppState,
 };
-use database::users;
 
 pub async fn login(
     State(state): State<AppState>,
@@ -29,7 +29,8 @@ pub async fn login(
 
     let session_id = Uuid::new_v4().to_string();
 
-    let expires_after = DateTime::from_system_time(SystemTime::now() + Duration::from_secs(ONE_MONTH));
+    let expires_after =
+        DateTime::from_system_time(SystemTime::now() + Duration::from_secs(ONE_MONTH));
     let session = Session {
         user_id: user.user_id,
         session_id: session_id.clone(),
@@ -76,7 +77,8 @@ pub async fn signup(
     users::create_user(&state.db, &new_user).await?;
 
     let session_id = Uuid::new_v4().to_string();
-    let expires_after = DateTime::from_system_time(SystemTime::now() + Duration::from_secs(ONE_MONTH));
+    let expires_after =
+        DateTime::from_system_time(SystemTime::now() + Duration::from_secs(ONE_MONTH));
     let session = Session {
         user_id,
         session_id: session_id.clone(),

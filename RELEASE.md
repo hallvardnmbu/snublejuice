@@ -3,8 +3,14 @@
 # Compile and transfer
 
 ```bash
+# Turn off app.
+# snuble -> sudo systemctl stop snublejuice
+
 cargo build --release --target x86_64-unknown-linux-musl
 scp target/x86_64-unknown-linux-musl/release/server {USERNAME}@{IP}:/home/snuble/snublejuice
+
+# Turn on new app.
+# snuble -> sudo systemctl start snublejuice
 ```
 # Refresh the app
 

@@ -4,9 +4,9 @@ use std::net::SocketAddr;
 
 use api;
 use authentication;
-use core::state::AppState;
 use database;
 use frontend;
+use shared::state::AppState;
 
 static _DATABASE_KEY: &str = "MONGODB";
 static _DATABASE_NAME: &str = "snublejuice";

@@ -4,8 +4,10 @@ pub mod middle;
 use std::sync::Arc;
 
 use axum::{Router, routing::post};
-use core::state::AppState;
-use tower_governor::{GovernorLayer, governor::GovernorConfigBuilder, key_extractor::SmartIpKeyExtractor};
+use shared::state::AppState;
+use tower_governor::{
+    GovernorLayer, governor::GovernorConfigBuilder, key_extractor::SmartIpKeyExtractor,
+};
 
 pub fn router() -> Router<AppState> {
     let governor_conf = Arc::new(

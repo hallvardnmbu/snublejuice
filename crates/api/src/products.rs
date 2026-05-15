@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use std::sync::LazyLock;
 use tokio::fs;
 
-use core::errors::AppError;
+use shared::errors::AppError;
 
 static RE_INDEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[0-9]+$").unwrap());
 

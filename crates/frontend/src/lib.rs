@@ -2,8 +2,8 @@ pub mod render;
 
 use axum::{Router, routing::get};
 use axum_embed::ServeEmbed;
-use core::state::AppState;
 use rust_embed::RustEmbed;
+use shared::state::AppState;
 
 #[derive(RustEmbed, Clone)]
 #[folder = "public/"]

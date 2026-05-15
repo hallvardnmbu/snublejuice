@@ -1,9 +1,9 @@
-use core::models::{PRODUCTS_PER_PAGE, Product};
 use futures::StreamExt;
 use mongodb::{
     Collection, Database,
     bson::{Document, from_document},
 };
+use shared::models::{PRODUCTS_PER_PAGE, Product};
 
 pub async fn get_products(db: &Database, pipeline: Vec<Document>) -> Vec<Product> {
     let collection: Collection<Product> = db.collection("products");

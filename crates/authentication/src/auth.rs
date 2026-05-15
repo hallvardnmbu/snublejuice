@@ -29,11 +29,11 @@ pub async fn login(
 
     let session_id = Uuid::new_v4().to_string();
 
-    let expiration = DateTime::from_system_time(SystemTime::now() + Duration::from_secs(ONE_MONTH));
+    let expires_after = DateTime::from_system_time(SystemTime::now() + Duration::from_secs(ONE_MONTH));
     let session = Session {
         user_id: user.user_id,
         session_id: session_id.clone(),
-        expiration: expiration,
+        expires_after,
     };
     users::store_session(&state.db, session).await?;
 
@@ -76,11 +76,11 @@ pub async fn signup(
     users::create_user(&state.db, &new_user).await?;
 
     let session_id = Uuid::new_v4().to_string();
-    let expiration = DateTime::from_system_time(SystemTime::now() + Duration::from_secs(ONE_MONTH));
+    let expires_after = DateTime::from_system_time(SystemTime::now() + Duration::from_secs(ONE_MONTH));
     let session = Session {
         user_id,
         session_id: session_id.clone(),
-        expiration,
+        expires_after,
     };
     users::store_session(&state.db, session).await?;
 

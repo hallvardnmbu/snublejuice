@@ -1,7 +1,7 @@
 # Snublejuice
 
 > [!WARNING]  
-> Overgangen til Rust er ikke helt i mål. Se [snublejuice-javascript](https://github.com/hallvardnmbu/snublejuice-javascript).
+> Se [snublejuice-javascript](https://github.com/hallvardnmbu/snublejuice-javascript) for den ikke-maniske implementasjonen.
 
 Hei. [Hallvard](https://dilettant.no) her.
 

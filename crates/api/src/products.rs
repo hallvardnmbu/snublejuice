@@ -1,15 +1,13 @@
 use axum::{extract::Path, http::header, response::IntoResponse};
-use lazy_static::lazy_static;
 use regex::Regex;
 use std::env;
 use std::path::PathBuf;
+use std::sync::LazyLock;
 use tokio::fs;
 
 use core::errors::AppError;
 
-lazy_static! {
-    static ref RE_INDEX: Regex = Regex::new(r"^[0-9]+$").unwrap();
-}
+static RE_INDEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[0-9]+$").unwrap());
 
 pub async fn get_image(Path(index): Path<String>) -> Result<impl IntoResponse, AppError> {
     if !RE_INDEX.is_match(&index) {

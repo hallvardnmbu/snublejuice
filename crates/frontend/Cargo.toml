@@ -1,0 +1,16 @@
+[package]
+name = "frontend"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+core = { path = "../core" }
+database = { path = "../database" }
+authentication = { path = "../authentication" }
+
+axum = "0.8.8"
+axum-embed = "0.1.0"
+minijinja = { version = "2.18.0" }
+rust-embed = "8"
+chrono = "0.4.44"
+regex = "1.12.3"

@@ -1,0 +1,124 @@
+<section
+    class="product"
+    id="{{ index }}"
+    index="{{ index }}"
+    style='
+        --color: {% if taxfree %}{{ "var(--negative)" if item.taxfree.discount > 0 else "var(--positive)" if item.taxfree.discount < 0 else "var(--neutral)" }}{% else %}{{ "var(--negative)" if item.discount > 0 else "var(--positive)" if item.discount < 0 else "var(--neutral)" }}{% endif %};
+    '
+>
+    <div>
+        <img
+            src="/data/image/{{ item.index }}"
+            onerror="
+                this.className = 'fallback';
+                this.src = '/public/images/bottle.png';
+            "
+        />
+
+        <div>
+            <h1>
+                {% if user %}
+                <p alt="Favoritt" data-index="{{ item.index }}" class="favourite-toggle">
+                    {{ '★' if item.index in user.favourites else '☆' }}
+                </p>
+                {% endif %}
+
+                <a href="{{ item.taxfree.url if taxfree else item.url }}" target="_blank">{{ item.name }}</a>
+            </h1>
+
+            <span>
+                <p>{{ item.category }}</p>
+                {% if item.subcategory %}
+                <p><i>{{ item.subcategory }}</i></p>
+                {% endif %}
+                <p>•</p>
+                <p>{{ (item.volume | round) | int }} cL</p>
+                <p>•</p>
+                <p>{{ item.alcohol }}% alk.</p>
+            </span>
+
+            <span>
+                <p>{{ item.country }}</p>
+                {% if item.district %}
+                <i>{{ item.district }}</i>
+                {% endif %} {% if item.subdistrict %}
+                <p>{{ item.subdistrict }}</p>
+                {% endif %}
+            </span>
+
+            {% if parameters.storelike %}
+            <span class="list">
+                {% for store in item.stores | storelike_filter(parameters.storelike) %}
+                <p>• {{ store }}</p>
+                {% endfor %}
+            </span>
+            {% endif %} {% if taxfree and taxfreeStore and item.taxfree.stores %}
+            <span class="list">
+                {% for store in item.taxfree.stores | sort %}
+                <p>• {{ store }}</p>
+                {% endfor %}
+            </span>
+            {% endif %} {% if item.aperitif and item.aperitif.points is defined and item.aperitif.points != null %}
+            <span>
+                {% if item.aperitif.url %}
+                <a
+                    href="{{ item.aperitif.url }}"
+                    class="rating"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onclick="event.stopPropagation()"
+                >
+                    {% endif %} {% set points = item.aperitif.points / 20 %} {% for i in range(5) %}
+                    <p
+                        class="star"
+                        style="
+                            --fill: {{ 100 if i < (points | int) else ((points - (points | int)) * 100) if i == (points | int) else 0 }}%;
+                        "
+                    >
+                        ★
+                    </p>
+                    {% endfor %}
+
+                    <p><b>{{ item.aperitif.points }}</b> av <b>100</b></p>
+
+                    {% if item.aperitif.url %}
+                </a>
+                {% endif %}
+            </span>
+            {% endif %} {% if item.description %}
+            <span>{{ item.description }}</span>
+            {% endif %}
+
+            <span>
+                {% if taxfree %}
+                <a href="{{ item.taxfree.url }}" target="_blank"
+                    >TAX-FREE <b>{{ (item.taxfree.price | round) | int }}</b></a
+                >
+                <a href="{{ item.url }}" target="_blank">POL <b>{{ (item.price | round) | int }}</b></a>
+                <p>
+                    DIFF
+                    <b>{{ (item.taxfree.discount | round) | int }}%</b>
+                </p>
+                {% else %}
+                <p>KR <b>{{ (item.price | round) | int }}</b></p>
+
+                {% if item.oldprice %}
+                <p>FØR <b>{{ (item.oldprice | round) | int }}</b></p>
+                <p>
+                    ENDRING
+                    <b>{{ (item.discount | round) | int }}%</b>
+                </p>
+                {% endif %}
+
+                <p>KR/L <b>{{ (item.literprice | round) | int }}</b></p>
+                {% endif %}
+            </span>
+
+            <svg class="path" viewBox="0 0 0 0">
+                <path id="path-{{ index }}" d="" data-prices="{{ item.prices }}"></path>
+            </svg>
+        </div>
+    </div>
+
+    {% with taxfree=taxfree, item=item %} {% include "partials/detailed.html" %} {% endwith %}
+</section>

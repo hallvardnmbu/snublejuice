@@ -1,0 +1,20 @@
+[package]
+name = "authentication"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+core = { path = "../core" }
+database = { path = "../database" }
+
+axum = "0.8.8"
+axum-extra = { version = "0.12.5", features = ["cookie"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+bcrypt = "0.19.0"
+uuid = "1.22.0"
+chrono = "0.4.44"
+mongodb = "3.5.1"
+bson = { version = "3.1.0", features = ["chrono-0_4"] }
+tokio = "1.50.0"
+tower_governor = { version = "0.8", features = ["axum"] }

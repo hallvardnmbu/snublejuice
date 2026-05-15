@@ -7,7 +7,8 @@
 # snuble -> sudo systemctl stop snublejuice
 
 cargo build --release --target x86_64-unknown-linux-musl
-scp target/x86_64-unknown-linux-musl/release/server {USERNAME}@{IP}:/home/snuble/snublejuice
+# alias deploy="scp target/x86_64-unknown-linux-musl/release/server {USERNAME}@{IP}:/home/snuble/snublejuice"
+deploy
 
 # Turn on new app.
 # snuble -> sudo systemctl start snublejuice

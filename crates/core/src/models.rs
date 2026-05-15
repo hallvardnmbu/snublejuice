@@ -19,7 +19,8 @@ pub struct User {
 pub struct Session {
     pub user_id: ObjectId,
     pub session_id: String,
-    pub expiration: DateTime,
+    #[serde(rename = "expiresAfter")]
+    pub expires_after: DateTime,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

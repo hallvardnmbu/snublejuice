@@ -3,8 +3,9 @@ use axum::{
     response::Html,
 };
 use chrono::{Datelike, Local};
-use minijinja::{Environment, Value, context, path_loader};
+use minijinja::{Environment, Value, context};
 use regex::Regex;
+use rust_embed::RustEmbed;
 use std::sync::OnceLock;
 
 use authentication::middle::MaybeAuthenticate;
@@ -16,15 +17,21 @@ use core::{
 };
 use database;
 
+#[derive(RustEmbed)]
+#[folder = "templates/"]
+struct Templates;
+
 static ENV: OnceLock<Environment<'static>> = OnceLock::new();
 
 fn get_env() -> &'static Environment<'static> {
     ENV.get_or_init(|| {
         let mut env = Environment::new();
-        env.set_loader(path_loader(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/templates"
-        )));
+        for name in Templates::iter() {
+            let content = Templates::get(&name).unwrap();
+            let source = std::str::from_utf8(content.data.as_ref()).unwrap();
+            env.add_template_owned(name.into_owned(), source.to_owned())
+                .unwrap();
+        }
         env.add_filter("storelike_filter", |stores: Value, pattern: &str| {
             let Ok(re) = Regex::new(&format!(
                 r"(?i)(^|[^a-zæøåA-ZÆØÅ]){}([^a-zæøåA-ZÆØÅ]|$)",

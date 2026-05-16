@@ -4,7 +4,7 @@ use axum::{Json, extract::State};
 use database::users;
 use shared::{
     errors::AppError,
-    models::{Index, User},
+    models::{Index, Notify, User},
     state::AppState,
 };
 
@@ -29,8 +29,9 @@ pub async fn logout(
 pub async fn notification(
     State(state): State<AppState>,
     auth: Authenticate,
+    Json(payload): Json<Notify>,
 ) -> Result<Json<String>, AppError> {
-    users::notification(&state.db, &auth.id).await?;
+    users::notification(&state.db, &auth.id, payload.notify).await?;
     Ok(Json("ok".to_string()))
 }
 

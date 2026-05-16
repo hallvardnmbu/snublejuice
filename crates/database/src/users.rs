@@ -87,7 +87,7 @@ pub async fn notification(db: &Database, user_id: &ObjectId) -> Result<(), AppEr
             collection
                 .update_one(
                     doc! { "_id": &user_id },
-                    doc! { "$set": { "notification": if user.notify { false } else {true} }},
+                    doc! { "$set": { "notify": if user.notify { false } else {true} }},
                 )
                 .await?;
         }

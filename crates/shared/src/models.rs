@@ -29,6 +29,11 @@ pub struct Index {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct Notify {
+    pub notify: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Aperitif {
     pub url: String,
     pub points: i32,

@@ -79,19 +79,18 @@ pub async fn toggle_favourite(
     Ok(())
 }
 
-pub async fn notification(db: &Database, user_id: &ObjectId) -> Result<(), AppError> {
+pub async fn notification(db: &Database, user_id: &ObjectId, notify: bool) -> Result<(), AppError> {
     let collection = db.collection::<User>("users");
 
-    match get_user_by_id(db, user_id).await {
-        Some(user) => {
-            collection
-                .update_one(
-                    doc! { "_id": &user_id },
-                    doc! { "$set": { "notify": if user.notify { false } else {true} }},
-                )
-                .await?;
-        }
-        None => return Err(AppError::NotFound),
+    let result = collection
+        .update_one(
+            doc! { "_id": user_id },
+            doc! { "$set": { "notify": notify } },
+        )
+        .await?;
+
+    if result.matched_count == 0 {
+        return Err(AppError::NotFound);
     }
 
     Ok(())

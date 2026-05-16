@@ -276,8 +276,15 @@ pub struct LoginRequest {
 }
 
 #[derive(Deserialize)]
+pub struct DeleteRequest {
+    pub password: String,
+}
+
+#[derive(Deserialize, Debug)]
 pub struct SignupRequest {
     pub username: String,
     pub password: String,
     pub email: String,
+    #[serde(default)]
+    pub notify: bool,
 }

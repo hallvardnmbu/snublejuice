@@ -20,8 +20,6 @@ async function showError(message) {
   const userMessage = document.getElementById("userMessage");
   userMessage.style.display = "block";
   userMessage.textContent = message;
-  userMessage.style.background = "rgba(var(--negative), 0.2)";
-  userMessage.style.border = "2px solid rgba(var(--negative), 0.6)";
 }
 
 async function tryPost(endpoint, formData) {
@@ -39,7 +37,7 @@ async function tryPost(endpoint, formData) {
     }
     window.location.reload();
   } catch (error) {
-    showError("Hmm, noe gikk galt...");
+    showError(`Hmm, noe gikk galt... ${error.message || error}`);
   }
 }
 

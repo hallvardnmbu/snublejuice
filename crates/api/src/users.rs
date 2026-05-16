@@ -2,9 +2,11 @@ use authentication::middle::Authenticate;
 use axum::{Json, extract::State};
 
 use database::users;
+use authentication::middle::verify_password;
 use shared::{
     errors::AppError,
     models::{Index, Notify, User},
+    query::DeleteRequest,
     state::AppState,
 };
 
@@ -55,7 +57,16 @@ pub async fn toggle_favourite(
 pub async fn delete(
     State(state): State<AppState>,
     auth: Authenticate,
+    Json(payload): Json<DeleteRequest>,
 ) -> Result<Json<String>, AppError> {
+    let user: User = users::get_user_by_id(&state.db, &auth.id)
+        .await
+        .ok_or(AppError::NotFound)?;
+
+    if !verify_password(&payload.password, &user.password) {
+        return Err(AppError::Unauthorized);
+    }
+
     users::delete_user(&state.db, &auth.id).await?;
     Ok(Json("ok".to_string()))
 }

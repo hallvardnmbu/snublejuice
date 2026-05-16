@@ -30,7 +30,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("http://taxfree.snublejuice.localhost:{}", _PORT);
 
     let listener = tokio::net::TcpListener::bind(addr).await?;
-    serve(listener, app).await?;
+    serve(listener, app.into_make_service_with_connect_info::<SocketAddr>()).await?;
 
     Ok(())
 }

@@ -11,7 +11,7 @@ static RE_INDEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[0-9]+$").unwr
 
 pub async fn get_image(Path(index): Path<String>) -> Result<impl IntoResponse, AppError> {
     if !RE_INDEX.is_match(&index) {
-        return Err(AppError::BadRequest("Invalid index".to_string()));
+        return Err(AppError::BadRequest("Ugyldig index.".to_string()));
     }
 
     let image_dir = env::var("IMAGE_DIR").map_err(|_| AppError::InternalServerError)?;

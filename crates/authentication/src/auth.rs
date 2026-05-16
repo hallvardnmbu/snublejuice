@@ -57,7 +57,9 @@ pub async fn signup(
         .await
         .is_some()
     {
-        return Err(AppError::BadRequest("User already exists".to_string()));
+        return Err(AppError::BadRequest(
+            "Brukeren finnes allerede.".to_string(),
+        ));
     }
 
     let hashed_password =
@@ -71,7 +73,7 @@ pub async fn signup(
         password: hashed_password,
         email: payload.email.clone(),
         favourites: vec![],
-        notify: false,
+        notify: payload.notify,
     };
 
     users::create_user(&state.db, &new_user).await?;

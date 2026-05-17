@@ -60,6 +60,8 @@ impl Parameters {
             } else {
                 sort.clone()
             }
+        } else if subdomain.is_taxfree() {
+            "taxfree.discount".to_string()
         } else {
             "discount".to_string()
         }
@@ -180,7 +182,7 @@ impl Parameters {
         // Sort field must exist and be non-null (skip if already constrained above).
         let sort_by = self.get_sort_by(subdomain);
         if !filter.contains_key(&sort_by) {
-            let is_discount = &sort_by == "discount";
+            let is_discount = sort_by == "discount" || sort_by == "taxfree.discount";
             filter.insert(sort_by, doc! { "$exists": true, "$ne": Bson::Null, "$gt": if is_discount {-100.0} else {0.0}  });
         }
 

@@ -33,7 +33,7 @@
         </header>
 
         <main>
-            {% with parameters=parameters, taxfree=(subdomain == "taxfree") %}{% include "partials/forms.html" %}{%
+            {% with parameters=parameters, taxfree=is_taxfree %}{% include "partials/forms.html" %}{%
             endwith %} {% with placement="top" %}{% include "partials/pagination.html" %}{% endwith %} {% if data|length
             == 0 %}
             <span>Ingen resultater finnes for valgt kominasjon.</span>
@@ -55,8 +55,7 @@
                 {% endif %}
             </div>
 
-            {% for item in data %} {% with parameters=parameters, item=item, index=loop.index0, taxfree=(subdomain ==
-            "taxfree") %} {% include "partials/product.html" %} {% endwith %} {% endfor %} {% endif %} {% with
+            {% for item in data %} {% with parameters=parameters, item=item, index=loop.index0, taxfree=is_taxfree %} {% include "partials/product.html" %} {% endwith %} {% endfor %} {% endif %} {% with
             placement="bottom" %}{% include "partials/pagination.html" %}{% endwith %}
         </main>
 

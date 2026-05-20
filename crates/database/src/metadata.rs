@@ -21,6 +21,17 @@ pub async fn increment_visitor(db: &Database, month: &str, subdomain: &str, fres
         .await;
 }
 
+pub async fn get_prices_updated(db: &Database, subdomain: &str) -> bool {
+    let collection: Collection<Document> = db.collection("metadata");
+    let Ok(Some(doc)) = collection.find_one(doc! { "id": "stock" }).await else {
+        return false;
+    };
+    doc.get_document("prices")
+        .ok()
+        .and_then(|prices| prices.get_bool(subdomain).ok())
+        .unwrap_or(false)
+}
+
 pub async fn get_distinct(db: &Database, field: &str, is_taxfree: bool) -> Vec<String> {
     let collection: Collection<Document> = db.collection("products");
 

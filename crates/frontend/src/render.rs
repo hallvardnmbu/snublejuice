@@ -11,7 +11,6 @@ use std::sync::OnceLock;
 use authentication::middle::MaybeAuthenticate;
 use database;
 use shared::{
-    errors::AppError,
     models::{Product, User},
     query::Parameters,
     state::AppState,
@@ -92,7 +91,7 @@ pub async fn site(
     subdomain: Subdomain,
     Query(parameters): Query<Parameters>,
     MaybeAuthenticate(user): MaybeAuthenticate,
-) -> Result<Html<String>, AppError> {
+) -> Html<String> {
     let is_production = std::env::var("ENVIRONMENT")
         .map(|e| e == "production")
         .unwrap_or(false);
@@ -109,8 +108,13 @@ pub async fn site(
     }
 
     match subdomain {
-        Subdomain::Landing => Ok(Html(render_landing())),
+        Subdomain::Landing => Html(render_landing()),
         Subdomain::Vinmonopolet | Subdomain::Taxfree => {
+            if !database::metadata::get_prices_updated(&state.db, subdomain.name()).await {
+                return Html(render_error(
+                    "For å få et pip når prisene er her, kan du lage bruker og huke av for varsling ;-)",
+                ));
+            }
             let products = database::products::get_products(
                 &state.db,
                 parameters.to_pipeline(&subdomain, &user),
@@ -121,14 +125,14 @@ pub async fn site(
                 parameters.to_filter(&subdomain, &user),
             )
             .await;
-            Ok(Html(render_products(
+            Html(render_products(
                 &products,
                 subdomain.is_taxfree(),
                 user,
                 parameters.page.unwrap_or(1),
                 max_page,
                 &parameters,
-            )))
+            ))
         }
     }
 }

@@ -79,6 +79,7 @@ impl Parameters {
                 "taxfree.stores",
                 doc! { "$exists": true, "$ne": Bson::Null },
             );
+            filter.insert("taxfree.valid", doc! { "$exists": true, "$eq": true });
         } else {
             filter.insert("updated", true);
         }

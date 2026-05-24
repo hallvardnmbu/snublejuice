@@ -96,10 +96,10 @@ pub async fn notification(db: &Database, user_id: &ObjectId, notify: bool) -> Re
     Ok(())
 }
 
-pub async fn logout(db: &Database, user_id: &ObjectId) -> Result<(), AppError> {
+pub async fn logout(db: &Database, session_id: &str) -> Result<(), AppError> {
     let collection = db.collection::<Session>("sessions");
 
-    collection.delete_one(doc! { "user_id": user_id }).await?;
+    collection.delete_one(doc! { "session_id": session_id }).await?;
     Ok(())
 }
 
@@ -137,6 +137,12 @@ pub async fn delete_user(db: &Database, user_id: &ObjectId) -> Result<(), AppErr
     db.collection::<User>("users")
         .delete_one(doc! { "_id": user_id })
         .await?;
+    Ok(())
+}
+
+pub async fn delete_sessions_for_user(db: &Database, user_id: &ObjectId) -> Result<(), AppError> {
+    let collection = db.collection::<Session>("sessions");
+    collection.delete_many(doc! { "user_id": user_id }).await?;
     Ok(())
 }
 

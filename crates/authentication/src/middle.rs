@@ -12,6 +12,7 @@ use shared::{errors::AppError, models::User};
 
 pub struct Authenticate {
     pub id: ObjectId,
+    pub session_id: String,
     pub user: User,
 }
 
@@ -46,12 +47,14 @@ where
 
         // Slide the expiration date forward.
         let db_clone = db.clone();
+        let session_id_clone = session_id.clone();
         spawn(async move {
-            let _ = users::update_expiration(db_clone, session_id).await;
+            let _ = users::update_expiration(db_clone, session_id_clone).await;
         });
 
         Ok(Authenticate {
             id: session.user_id,
+            session_id,
             user,
         })
     }

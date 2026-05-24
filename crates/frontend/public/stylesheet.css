@@ -7,14 +7,14 @@
     --text: #1a1815;
     --text-muted: #4a4636;
     --text-faint: #8b8470;
-    --clickable: #6b8a6f;
+    --clickable: var(--text-muted); /* #6b8a6f */
     --hover: #4d6750;
 
-    --background: #ece6d6;
-    --foreground: #f5f1e6;
+    --background: #f5f1e6;
+    --foreground: #ece6d6;
     --card-bg: #fbf8ee;
     --card-border: #e9e3d2;
-    --input-bg: #ffffff;
+    --input-bg: var(--card-bg);
     --input-border: #d8d1be;
     --star-fill: #c9a83f;
     --star-bg: #e0d6b5;
@@ -29,20 +29,20 @@
 }
 
 [data-theme="dark"] {
-    --text: #d4cfc5;
-    --text-muted: #9a937f;
-    --text-faint: #6f6852;
-    --clickable: #7ea283;
+    --text: #e4dfd5;
+    --text-muted: #b0a896;
+    --text-faint: #857e6a;
+    --clickable: var(--text-muted); /* #7ea283*/
     --hover: var(--text);
 
-    --background: #252220;
-    --foreground: #2e2b28;
-    --card-bg: #332f2b;
-    --card-border: #3d3833;
-    --input-bg: #2e2b28;
-    --input-border: #4a4540;
+    --background: #3b3530;
+    --foreground: #454038;
+    --card-bg: #514b42;
+    --card-border: #5e5850;
+    --input-bg: #454038;
+    --input-border: #6a6358;
     --star-fill: #c9a83f;
-    --star-bg: #4a4026;
+    --star-bg: #5a4d28;
     --star: var(--foreground);
 
     --line: 38%;
@@ -192,6 +192,8 @@ menu {
 }
 header form {
     margin-bottom: var(--padding);
+    width: calc(100% - 2 * var(--padding));
+    max-width: calc(4 * var(--image));
 }
 
 /* ── Nav buttons (account header) — use .btn ───────────────────────────── */
@@ -227,12 +229,10 @@ img {
     box-shadow: 0 0 0 1px #5a5248;
 }
 .img-wrap img {
-    max-width: 78%;
-    max-height: 82%;
     object-fit: contain;
     mix-blend-mode: multiply;
     width: auto;
-    height: auto;
+    height: 90%;
 }
 .img-wrap img.fallback {
     max-width: 46%;
@@ -493,6 +493,42 @@ form:not(header *) {
     box-shadow: 0 0 0 3px rgba(107, 138, 111, 0.15);
 }
 
+/* Account form inputs (text, password, email) */
+.adv-field input[type="text"],
+.adv-field input[type="password"],
+.adv-field input[type="email"] {
+    height: 40px;
+    padding: 0 12px;
+    background: var(--foreground);
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: var(--fontsize);
+    font-weight: 500;
+    color: var(--text);
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+    transition:
+        border-color 0.15s,
+        box-shadow 0.15s;
+}
+.adv-field input[type="text"]:focus,
+.adv-field input[type="password"]:focus,
+.adv-field input[type="email"]:focus {
+    border-color: var(--clickable);
+    box-shadow: 0 0 0 3px rgba(107, 138, 111, 0.15);
+}
+
+/* Checkbox row — label left, checkbox right */
+.adv-check-row {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+}
+
 /* Store/storelike text input in advanced panel */
 .adv-field input[type="search"] {
     height: 40px;
@@ -551,7 +587,6 @@ form:not(header *) {
     width: calc(100% - 2 * var(--padding));
     max-width: calc(10 * var(--image));
     padding-top: 14px;
-    border-top: 1px solid var(--card-border);
     margin-top: 4px;
 }
 /* Pagination — uses .btn */
@@ -588,7 +623,8 @@ section {
     display: flex;
     flex-direction: column;
     margin-top: calc(3 * var(--padding));
-    width: 100%;
+    margin: var(--padding);
+    width: calc(100% - 2 * var(--padding));
     max-width: calc(10 * var(--image));
 }
 section.landing {
@@ -613,9 +649,6 @@ section.landing {
 [data-theme="dark"] .product:hover {
     border-color: #5a5248;
     box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.3);
-}
-.product > * {
-    margin-right: 0;
 }
 section > div {
     position: relative;
@@ -647,7 +680,7 @@ section > div > div > .list {
     gap: var(--margin);
     align-items: left;
 }
-section > div > div > .price {
+section > div > div > span.price {
     gap: var(--padding);
     padding-bottom: calc(var(--padding) / 2);
     flex-direction: row;
@@ -700,11 +733,11 @@ a.rating:visited {
 }
 
 /* Price row */
-section > div > div > .price {
+section > div > div > span.price {
     justify-content: flex-start;
     align-items: flex-end;
     margin-top: 6px;
-    gap: calc(var(--padding) * 2);
+    gap: var(--padding);
 }
 
 /* Price cells (label above, value below) */
@@ -713,6 +746,7 @@ section > div > div > .price {
     flex-direction: column;
     gap: 1px;
     line-height: 1.1;
+    text-decoration: none;
 }
 .pclbl {
     font-family: "IBM Plex Mono", ui-monospace, monospace;
@@ -743,15 +777,28 @@ section > div > div > .price {
     display: inline-flex;
     align-items: baseline;
     gap: 3px;
-    background: var(--text);
-    color: var(--foreground);
+    color: var(--text);
     padding: 5px 10px;
-    border-radius: 8px;
+    background: linear-gradient(
+        150deg,
+        var(--foreground) 0%,
+        var(--background) 100%
+    );
+    border-radius: 6px;
     font-family: "IBM Plex Mono", ui-monospace, monospace;
     font-variant-numeric: tabular-nums;
     margin-left: auto;
     flex-shrink: 0;
     text-decoration: none;
+    z-index: 1;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.15s;
+}
+.product:hover .price-now {
+    box-shadow: 0 0 0 1px #b8b09a;
+}
+[data-theme="dark"] .product:hover .price-now {
+    box-shadow: 0 0 0 1px #5a5248;
 }
 .pn-cur {
     font-size: 9px;
@@ -764,6 +811,13 @@ section > div > div > .price {
     font-size: calc(var(--fontsize) + 4px);
     font-weight: 700;
     line-height: 1;
+}
+.pn-sep {
+    display: block;
+    align-self: stretch;
+    width: 1px;
+    background: var(--foreground);
+    margin: 0 var(--margin);
 }
 section > div > div > .description {
     margin: 0;

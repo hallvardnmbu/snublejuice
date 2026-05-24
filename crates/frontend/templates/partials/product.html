@@ -100,32 +100,41 @@
 
             <span class="price">
                 {% if taxfree %}
+                <a href="{{ item.url }}" target="_blank" class="pcell"
+                    ><span class="pclbl">POL</span><b class="pcval">{{ (item.price | round) | int }}</b></a
+                >
+                <a href="{{ item.taxfree.url }}" target="_blank" class="pcell"
+                    ><span class="pclbl">TAX</span><b class="pcval">{{ (item.taxfree.price | round) | int }}</b></a
+                >
                 <span class="pcell"
                     ><span class="pclbl">DIFF</span
                     ><b class="pcval pcval-change">{{ (item.taxfree.discount | round) | int }}%</b></span
                 >
+                <p class="price-now">
+                    <b class="pn-val">{{ (item.taxfree.discount | round) | int }}</b>
+                    <span class="pn-cur">%</span>
+                    <span class="pn-sep"></span>
+                    <span class="pn-cur">KR</span>
+                    <b class="pn-val">{{ (item.taxfree.price | round) | int }}</b>
+                </p>
+                {% else %} {% if item.oldprice %}
                 <span class="pcell"
-                    ><span class="pclbl">POL</span><b class="pcval">{{ (item.price | round) | int }}</b></span
-                >
-                <a href="{{ item.taxfree.url }}" target="_blank" class="price-now"
-                    ><span class="pn-cur">TAX-FREE</span
-                    ><b class="pn-val">{{ (item.taxfree.price | round) | int }}</b></a
-                >
-                {% else %}
-                <span class="pcell"
-                    ><span class="pclbl">KR/L</span><b class="pcval">{{ (item.literprice | round) | int }}</b></span
-                >{% if item.oldprice %}
-                <span class="pcell"
-                    ><span class="pclbl">ENDRING</span
-                    ><b class="pcval pcval-change">{{ (item.discount | round) | int }}%</b></span
+                    ><span class="pclbl">NÅ</span><b class="pcval">{{ (item.price | round) | int }}</b></span
                 >
                 <span class="pcell"
                     ><span class="pclbl">FØR</span
                     ><b class="pcval pcval-strike">{{ (item.oldprice | round) | int }}</b></span
                 >
+                <span class="pcell"
+                    ><span class="pclbl">ENDRING</span
+                    ><b class="pcval pcval-change">{{ (item.discount | round) | int }}%</b></span
+                >
                 {% endif %}
                 <p class="price-now">
-                    <span class="pn-cur">KR</span><b class="pn-val">{{ (item.price | round) | int }}</b>
+                    {% if item.oldprice %}
+                    <b class="pn-val">{{ (item.discount | round) | int }}</b><span class="pn-cur">%</span>
+                    <span class="pn-sep"></span>{% endif %}<span class="pn-cur">KR</span
+                    ><b class="pn-val">{{ (item.price | round) | int }}</b>
                 </p>
                 {% endif %}
             </span>

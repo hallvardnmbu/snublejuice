@@ -93,7 +93,7 @@ async function loadFavourites() {
 
     sessionStorage.setItem("favourites", JSON.stringify(stores));
   } catch (error) {
-    console.error("Error fetching favourites:", error);
+    console.debug("Unable to fetch favourites:", error);
   }
 }
 

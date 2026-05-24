@@ -56,26 +56,47 @@ document.getElementById("clearFilters").onclick = function (event) {
     "/?fresh=false" + (document.querySelector('input[name="favourites"]').value === "true" ? "&favourites=true" : "");
 };
 
-// Toggle advanced visibility.
+// Count active (non-default) filters and update the badge.
+function updateFilterBadge() {
+  const form = document.getElementById("filter");
+  const data = new FormData(form);
+  let count = 0;
+  const skip = new Set(["page", "ascending", "sort", "favourites"]);
+  const defaults = new Set(["null", "", "false"]);
+  for (const [key, value] of data.entries()) {
+    if (skip.has(key)) continue;
+    if (!defaults.has(value)) count++;
+  }
+  const badge = document.getElementById("filterBadge");
+  if (count > 0) {
+    badge.textContent = count;
+    badge.classList.add("visible");
+  } else {
+    badge.classList.remove("visible");
+  }
+}
+
+// Toggle advanced panel visibility via CSS class.
 document.getElementById("toggleAdvanced").onclick = function (event) {
   event.preventDefault();
-
-  const section = document.getElementById("advanced");
-  section.style.display = section.style.display === "flex" ? "none" : "flex";
-
-  // Set the button text based on visibility.
-  document.getElementById("toggleAdvanced").innerHTML = section.style.display === "flex" ? "Færre" : "Flere";
-
-  // Save the visibility state to session storage.
-  sessionStorage.setItem("advanced", section.style.display === "flex");
+  const panel = document.getElementById("advanced");
+  const btn = document.getElementById("toggleAdvanced");
+  const isOpen = panel.classList.toggle("open");
+  btn.classList.toggle("active", isOpen);
+  btn.setAttribute("aria-expanded", isOpen);
+  sessionStorage.setItem("advanced", isOpen);
 };
 
-// Update the button text based on visibility (from storage).
+// Restore panel state from session storage.
 document.addEventListener("DOMContentLoaded", function () {
-  const element = document.getElementById("advanced");
-  const isVisible = sessionStorage.getItem("advanced") === "true";
-  element.style.display = isVisible ? "flex" : "none";
-  document.getElementById("toggleAdvanced").innerHTML = isVisible ? "Færre" : "Flere";
+  const isOpen = sessionStorage.getItem("advanced") === "true";
+  if (isOpen) {
+    document.getElementById("advanced").classList.add("open");
+    const btn = document.getElementById("toggleAdvanced");
+    btn.classList.add("active");
+    btn.setAttribute("aria-expanded", "true");
+  }
+  updateFilterBadge();
 });
 
 // Price, volume, alcohol and search change.

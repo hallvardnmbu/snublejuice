@@ -7,41 +7,50 @@
     '
 >
     <div>
-        <img
-            src="/data/image/{{ item.index }}"
-            onerror="
-                this.className = 'fallback';
-                this.src = '/public/images/bottle.png';
-            "
-        />
+        <svg class="path" viewBox="0 0 0 0" preserveAspectRatio="none" aria-hidden="true">
+            <path id="path-{{ index }}" d="" data-prices="{{ item.prices }}"></path>
+        </svg>
+
+        <div class="img-wrap">
+            <img
+                src="/data/image/{{ item.index }}"
+                onerror="
+                    this.className = 'fallback';
+                    this.src = '/public/images/bottle.png';
+                "
+            />
+        </div>
 
         <div>
-            <h1>
+            <h2>
                 {% if user %}
-                <p alt="Favoritt" data-index="{{ item.index }}" class="favourite-toggle">
+                <button aria-label="Favoritt" data-index="{{ item.index }}" class="favourite-toggle">
                     {{ '★' if item.index in user.favourites else '☆' }}
-                </p>
+                </button>
                 {% endif %}
 
                 <a href="{{ item.taxfree.url if taxfree else item.url }}" target="_blank">{{ item.name }}</a>
-            </h1>
+            </h2>
 
-            <span>
+            <span class="meta">
                 <p>{{ item.category }}</p>
                 {% if item.subcategory %}
+                <p class="dot">·</p>
                 <p><i>{{ item.subcategory }}</i></p>
                 {% endif %}
-                <p>•</p>
+                <p class="dot meta-break">·</p>
                 <p>{{ (item.volume | round) | int }} cL</p>
-                <p>•</p>
+                <p class="dot">·</p>
                 <p>{{ item.alcohol }}% alk.</p>
             </span>
 
-            <span>
+            <span class="origin">
                 <p>{{ item.country }}</p>
                 {% if item.district %}
+                <p class="dot">·</p>
                 <i>{{ item.district }}</i>
                 {% endif %} {% if item.subdistrict %}
+                <p class="dot">·</p>
                 <p>{{ item.subdistrict }}</p>
                 {% endif %}
             </span>
@@ -79,44 +88,47 @@
                     </p>
                     {% endfor %}
 
-                    <p><b>{{ item.aperitif.points }}</b> av <b>100</b></p>
+                    <p>{{ item.aperitif.points }} av 100</p>
 
                     {% if item.aperitif.url %}
                 </a>
                 {% endif %}
             </span>
             {% endif %} {% if item.description %}
-            <span>{{ item.description }}</span>
+            <p class="description">{{ item.description }}</p>
             {% endif %}
 
-            <span>
+            <span class="price">
                 {% if taxfree %}
-                <a href="{{ item.taxfree.url }}" target="_blank"
-                    >TAX-FREE <b>{{ (item.taxfree.price | round) | int }}</b></a
+                <span class="pcell"
+                    ><span class="pclbl">DIFF</span
+                    ><b class="pcval pcval-change">{{ (item.taxfree.discount | round) | int }}%</b></span
                 >
-                <a href="{{ item.url }}" target="_blank">POL <b>{{ (item.price | round) | int }}</b></a>
-                <p>
-                    DIFF
-                    <b>{{ (item.taxfree.discount | round) | int }}%</b>
-                </p>
+                <span class="pcell"
+                    ><span class="pclbl">POL</span><b class="pcval">{{ (item.price | round) | int }}</b></span
+                >
+                <a href="{{ item.taxfree.url }}" target="_blank" class="price-now"
+                    ><span class="pn-cur">TAX-FREE</span
+                    ><b class="pn-val">{{ (item.taxfree.price | round) | int }}</b></a
+                >
                 {% else %}
-                <p>KR <b>{{ (item.price | round) | int }}</b></p>
-
-                {% if item.oldprice %}
-                <p>FØR <b>{{ (item.oldprice | round) | int }}</b></p>
-                <p>
-                    ENDRING
-                    <b>{{ (item.discount | round) | int }}%</b>
-                </p>
+                <span class="pcell"
+                    ><span class="pclbl">KR/L</span><b class="pcval">{{ (item.literprice | round) | int }}</b></span
+                >{% if item.oldprice %}
+                <span class="pcell"
+                    ><span class="pclbl">ENDRING</span
+                    ><b class="pcval pcval-change">{{ (item.discount | round) | int }}%</b></span
+                >
+                <span class="pcell"
+                    ><span class="pclbl">FØR</span
+                    ><b class="pcval pcval-strike">{{ (item.oldprice | round) | int }}</b></span
+                >
                 {% endif %}
-
-                <p>KR/L <b>{{ (item.literprice | round) | int }}</b></p>
+                <p class="price-now">
+                    <span class="pn-cur">KR</span><b class="pn-val">{{ (item.price | round) | int }}</b>
+                </p>
                 {% endif %}
             </span>
-
-            <svg class="path" viewBox="0 0 0 0">
-                <path id="path-{{ index }}" d="" data-prices="{{ item.prices }}"></path>
-            </svg>
         </div>
     </div>
 

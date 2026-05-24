@@ -2,7 +2,6 @@ use axum::{
     extract::{Query, State},
     response::Html,
 };
-use chrono::{Datelike, Local};
 use minijinja::{Environment, Value, context};
 use regex::Regex;
 use rust_embed::RustEmbed;

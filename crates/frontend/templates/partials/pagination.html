@@ -1,17 +1,5 @@
-<nav aria-label="Pagination">
-    <ol>
-        {% if page > 1 %}
-        <li>
-            <a href="#" onclick="changePage({{ page - 1 }})" aria-label="Previous Page">←</a>
-        </li>
-        {% endif %}
-
-        <li><b>{{ page }} av {{ max_page }}</b></li>
-
-        {% if page < max_page %}
-        <li>
-            <a href="#" onclick="changePage({{ page + 1 }})" aria-label="Next Page">→</a>
-        </li>
-        {% endif %}
-    </ol>
+<nav aria-label="Pagination" class="pager-nav">
+    <button class="btn" {% if page <= 1 %}disabled{% endif %} {% if page > 1 %}onclick="changePage({{ page - 1 }})"{% endif %} aria-label="Forrige side">←</button>
+    <span class="pager-pos">{{ page }} av {{ max_page }}</span>
+    <button class="btn" {% if page >= max_page %}disabled{% endif %} {% if page < max_page %}onclick="changePage({{ page + 1 }})"{% endif %} aria-label="Neste side">→</button>
 </nav>

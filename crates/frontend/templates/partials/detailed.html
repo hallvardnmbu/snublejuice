@@ -59,7 +59,24 @@
         </tbody>
     </table>
 
-    {% if item.characteristics | length > 0 or item.ingredients | length > 0 %}
+    {% if item.prices | length > 1 %}
+    <table class="metadata">
+        <tbody>
+            <tr>
+                <th>PRISHISTORIKK</th>
+                <th></th>
+            </tr>
+            <tr>
+                <td>Laveste</td>
+                <td>kr {{ (item.prices | min | round) | int }}</td>
+            </tr>
+            <tr>
+                <td>Høyeste</td>
+                <td>kr {{ (item.prices | max | round) | int }}</td>
+            </tr>
+        </tbody>
+    </table>
+    {% endif %} {% if item.characteristics | length > 0 or item.ingredients | length > 0 %}
     <table class="fractions">
         <tbody>
             {% if item.characteristics | length > 0 %}

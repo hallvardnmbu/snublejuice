@@ -8,12 +8,11 @@
     <input type="hidden" name="calcohol" value="{{ parameters.calcohol if parameters.calcohol is not none else '' }}">
     <input type="hidden" name="cyear" value="{{ parameters.cyear if parameters.cyear is not none else '' }}">
 
-    <search id="filters">
-        <button type="submit" style="display: none"></button>
+    <button type="submit" style="display: none"></button>
 
-        <div>
-            <button id="toggleSort">{{ 'synkende' if parameters.ascending == false else 'stigende' }}</button>
-
+    <div class="search-row">
+        <button id="toggleSort" class="sort-dir-btn">{{ 'synkende' if parameters.ascending == false else 'stigende' }}</button>
+        <div class="adv-sel sort-top-sel">
             <select name="sort" id="sort" onchange="applyFilters(true, false)">
                 <option value="discount" {{ 'selected' if parameters.sort == 'discount' else '' }}>Tilbud</option>
                 <option value="rating" {{ 'selected' if parameters.sort == 'rating' else '' }}>Rating</option>
@@ -23,88 +22,123 @@
                 <option value="alcohol" {{ 'selected' if parameters.sort == 'alcohol' else '' }}>Alkoholprosent</option>
             </select>
         </div>
+        <button type="button" id="toggleAdvanced" class="filter-btn" aria-expanded="false">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+            <span class="filter-badge" id="filterBadge"></span>
+        </button>
+    </div>
 
-        <div>
-            <select name="category" id="category" onchange="applyFilters(true, false)">
-                <option value="null" {{ 'selected' if parameters.category == 'null' else '' }}>Alle kategorier</option>
-                <option value="alkoholfritt" {{ 'selected' if parameters.category == 'alkoholfritt' else '' }}>Alkoholfritt</option>
-                <option value="aromatisert" {{ 'selected' if parameters.category == 'aromatisert' else '' }}>Aromatisert vin</option>
-                <option value="brennevin" {{ 'selected' if parameters.category == 'brennevin' else '' }}>Brennevin</option>
-                <option value="fruktvin" {{ 'selected' if parameters.category == 'fruktvin' else '' }}>Fruktvin</option>
-                <option value="hvitvin" {{ 'selected' if parameters.category == 'hvitvin' else '' }}>Hvitvin</option>
-                <option value="mjød" {{ 'selected' if parameters.category == 'mjød' else '' }}>Mjød</option>
-                <option value="musserende" {{ 'selected' if parameters.category == 'musserende' else '' }}>Musserende vin</option>
-                <option value="perlende" {{ 'selected' if parameters.category == 'perlende' else '' }}>Perlende vin</option>
-                <option value="rosévin" {{ 'selected' if parameters.category == 'rosévin' else '' }}>Rosévin</option>
-                <option value="rødvin" {{ 'selected' if parameters.category == 'rødvin' else '' }}>Rødvin</option>
-                <option value="sake" {{ 'selected' if parameters.category == 'sake' else '' }}>Sake</option>
-                <option value="sider" {{ 'selected' if parameters.category == 'sider' else '' }}>Sider</option>
-                <option value="sterkvin" {{ 'selected' if parameters.category == 'sterkvin' else '' }}>Sterkvin</option>
-                <option value="øl" {{ 'selected' if parameters.category == 'øl' else '' }}>Øl</option>
-            </select>
+    <div id="advanced" class="adv-panel">
+        <div class="adv-grid">
+
+            <div class="adv-field">
+                <span class="adv-lbl">Søk</span>
+                <input type="search" id="nsearch" name="search" value="{{ parameters.search if parameters.search is not none else '' }}" placeholder="Navn på produkt …">
+            </div>
+
+            <div class="adv-field">
+                <span class="adv-lbl">Kategori</span>
+                <div class="adv-sel">
+                    <select name="category" id="category" onchange="applyFilters(true, false)">
+                        <option value="null" {{ 'selected' if parameters.category == 'null' else '' }}>Alle kategorier</option>
+                        <option value="alkoholfritt" {{ 'selected' if parameters.category == 'alkoholfritt' else '' }}>Alkoholfritt</option>
+                        <option value="aromatisert" {{ 'selected' if parameters.category == 'aromatisert' else '' }}>Aromatisert vin</option>
+                        <option value="brennevin" {{ 'selected' if parameters.category == 'brennevin' else '' }}>Brennevin</option>
+                        <option value="fruktvin" {{ 'selected' if parameters.category == 'fruktvin' else '' }}>Fruktvin</option>
+                        <option value="hvitvin" {{ 'selected' if parameters.category == 'hvitvin' else '' }}>Hvitvin</option>
+                        <option value="mjød" {{ 'selected' if parameters.category == 'mjød' else '' }}>Mjød</option>
+                        <option value="musserende" {{ 'selected' if parameters.category == 'musserende' else '' }}>Musserende vin</option>
+                        <option value="perlende" {{ 'selected' if parameters.category == 'perlende' else '' }}>Perlende vin</option>
+                        <option value="rosévin" {{ 'selected' if parameters.category == 'rosévin' else '' }}>Rosévin</option>
+                        <option value="rødvin" {{ 'selected' if parameters.category == 'rødvin' else '' }}>Rødvin</option>
+                        <option value="sake" {{ 'selected' if parameters.category == 'sake' else '' }}>Sake</option>
+                        <option value="sider" {{ 'selected' if parameters.category == 'sider' else '' }}>Sider</option>
+                        <option value="sterkvin" {{ 'selected' if parameters.category == 'sterkvin' else '' }}>Sterkvin</option>
+                        <option value="øl" {{ 'selected' if parameters.category == 'øl' else '' }}>Øl</option>
+                    </select>
+                </div>
+            </div>
+
+            {% if favourites or taxfree %}
+            <input type="hidden" id="stores-search-vinmonopolet" name="storelike" value="">
+            {% else %}
+            <div class="adv-field">
+                <span class="adv-lbl">Butikk eller by</span>
+                <input type="search" id="stores-search-vinmonopolet" name="storelike" value="{{ parameters.storelike if parameters.storelike is not none else '' }}" placeholder="Oslo, Briskeby …">
+            </div>
+            {% endif %}
+
+            {% if taxfree %}
+            <div class="adv-field">
+                <span class="adv-lbl">Tax-free butikk</span>
+                <div class="adv-sel">
+                    <select name="store-taxfree" id="stores-taxfree" onchange="applyFilters(true, false)">
+                        <!-- Options will be dynamically populated by `public/scripts/stores.js`. -->
+                    </select>
+                </div>
+            </div>
+            {% else %}
+            <input type="hidden" name="store-taxfree" id="stores-taxfree" value="">
+            {% endif %}
+
+            {% if favourites or taxfree %}
+            <input type="hidden" name="store-vinmonopolet" id="stores-vinmonopolet" value="">
+            {% else %}
+            <div class="adv-field">
+                <span class="adv-lbl">Vinmonopolet butikk</span>
+                <div class="adv-sel">
+                    <select name="store-vinmonopolet" id="stores-vinmonopolet" onchange="applyFilters(true, false)">
+                        <!-- Options will be dynamically populated by `public/scripts/stores.js`. -->
+                    </select>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="adv-field">
+                <span class="adv-lbl">Land</span>
+                <div class="adv-sel">
+                    <select name="country" id="country" onchange="applyFilters(true, false)">
+                        <!-- Options will be dynamically populated by `public/scripts/countries.js`. -->
+                    </select>
+                </div>
+            </div>
+
+            <div class="adv-field">
+                <span class="adv-lbl">Pris</span>
+                <div class="adv-sort-row">
+                    <button id="togglePrice">{{ 'lik' if parameters.cprice else 'under' }}</button>
+                    <input type="number" id="price" name="price" min="0" step="1" value="{{ parameters.price if parameters.price is not none else '' }}" placeholder="pris">
+                </div>
+            </div>
+
+            <div class="adv-field">
+                <span class="adv-lbl">Volum (cL)</span>
+                <div class="adv-sort-row">
+                    <button id="toggleVolume">{{ 'lik' if parameters.cvolume else 'over' }}</button>
+                    <input type="number" id="volume" name="volume" min="0" step="1" value="{{ parameters.volume if parameters.volume is not none else '' }}" placeholder="volum i cL">
+                </div>
+            </div>
+
+            <div class="adv-field">
+                <span class="adv-lbl">Alkohol (%)</span>
+                <div class="adv-sort-row">
+                    <button id="toggleAlcohol">{{ 'lik' if parameters.calcohol else 'over' }}</button>
+                    <input type="number" id="alcohol" name="alcohol" min="0" step="0.5" value="{{ parameters.alcohol if parameters.alcohol is not none else '' }}" placeholder="alkoholprosent">
+                </div>
+            </div>
+
+            <div class="adv-field">
+                <span class="adv-lbl">Årgang</span>
+                <div class="adv-sort-row">
+                    <button id="toggleYear">{{ 'lik' if parameters.cyear else 'før' }}</button>
+                    <input type="number" id="year" name="year" min="1900" step="10" value="{{ parameters.year if parameters.year is not none else '' }}" placeholder="årgang">
+                </div>
+            </div>
+
+            <button id="clearFilters">Nullstill filtre</button>
+
         </div>
-
-        {% if favourites or taxfree %}
-        <input type="hidden" id="stores-search-vinmonopolet" name="storelike" value="">
-        {% else %}
-        <input type="search" id="stores-search-vinmonopolet" name="storelike" value="{{ parameters.storelike if parameters.storelike is not none else '' }}" placeholder="Butikk eller by ...">
-        {% endif %}
-
-        {% if taxfree %}
-        <div>
-            <select name="store-taxfree" id="stores-taxfree" onchange="applyFilters(true, false)">
-                <!-- Options will be dynamically populated by `public/scripts/stores.js`. -->
-            </select>
-        </div>
-        {% else %}
-        <input type="hidden" name="store-taxfree" id="stores-taxfree" value="">
-        {% endif %}
-
-        <input type="search" id="nsearch" name="search" value="{{ parameters.search if parameters.search is not none else '' }}" placeholder="Navnesøk ...">
-    </search>
-
-    <menu>
-        <button id="clearFilters">Nullstill</button>
-        <button id="toggleAdvanced">Flere</button>
-    </menu>
-
-    <search id="advanced" style="display: none;">
-        {% if favourites or taxfree %}
-        <input type="hidden" name="store-vinmonopolet" id="stores-vinmonopolet" value="">
-        {% else %}
-        <div>
-            <select name="store-vinmonopolet" id="stores-vinmonopolet" onchange="applyFilters(true, false)">
-                <!-- Options will be dynamically populated by `public/scripts/stores.js`. -->
-            </select>
-        </div>
-        {% endif %}
-
-        <div>
-            <select name="country" id="country" onchange="applyFilters(true, false)">
-                <!-- Options will be dynamically populated by `public/scripts/countries.js`. -->
-            </select>
-        </div>
-
-        <div>
-            <button id="togglePrice">{{ 'lik' if parameters.cprice else 'under' }}</button>
-            <input type="number" id="price" name="price" min="0" step="1" value="{{ parameters.price if parameters.price is not none else '' }}" placeholder="pris">
-        </div>
-
-        <div>
-            <button id="toggleVolume">{{ 'lik' if parameters.cvolume else 'over' }}</button>
-            <input type="number" id="volume" name="volume" min="0" step="1" value="{{ parameters.volume if parameters.volume is not none else '' }}" placeholder="volum i cL">
-        </div>
-
-        <div>
-            <button id="toggleAlcohol">{{ 'lik' if parameters.calcohol else 'over' }}</button>
-            <input type="number" id="alcohol" name="alcohol" min="0" step="0.5" value="{{ parameters.alcohol if parameters.alcohol is not none else '' }}" placeholder="alkoholprosent">
-        </div>
-
-        <div>
-            <button id="toggleYear">{{ 'lik' if parameters.cyear else 'før' }}</button>
-            <input type="number" id="year" name="year" min="1900" step="10" value="{{ parameters.year if parameters.year is not none else '' }}" placeholder="årgang">
-        </div>
-    </search>
+    </div>
 </form>
 
 <script>

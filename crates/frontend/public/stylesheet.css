@@ -1,43 +1,55 @@
-@font-face {
-    font-family: "Syne Mono";
-    font-style: normal;
-    font-weight: normal;
-    src: url("fonts/SyneMono-Regular.ttf") format("truetype");
-}
-
 :root {
-    --fontsize: 12px;
-    --margin: 4px; /* Should be even. */
+    --fontsize: 13.5px;
+    --margin: 4px;
     --padding: 10px;
-    --image: 100px;
+    --image: 92px;
 
-    --text: #333333;
-    --clickable: black;
-    --hover: blue;
+    --text: #1a1815;
+    --text-muted: #4a4636;
+    --text-faint: #8b8470;
+    --clickable: #6b8a6f;
+    --hover: #4d6750;
 
-    --background: #fcfbf9;
-    --foreground: #faf7f3;
+    --background: #ece6d6;
+    --foreground: #f5f1e6;
+    --card-bg: #fbf8ee;
+    --card-border: #e9e3d2;
+    --input-bg: #ffffff;
+    --input-border: #d8d1be;
+    --star-fill: #c9a83f;
+    --star-bg: #e0d6b5;
     --star: var(--foreground);
 
-    --line: 10%;
-    --negative: 100, 0, 0;
-    --positive: 0, 100, 0;
-    --neutral: 100, 100, 100;
+    --line: 42%;
+    --chart-fill: 28%;
+    --negative: 180, 60, 60;
+    --positive: 100, 160, 105;
+    --neutral: 207, 224, 200;
     --color: var(--neutral);
 }
+
 [data-theme="dark"] {
-    --text: #cccccc;
-    --clickable: #7a7a7a;
+    --text: #d4cfc5;
+    --text-muted: #9a937f;
+    --text-faint: #6f6852;
+    --clickable: #7ea283;
     --hover: var(--text);
 
-    --background: #333333;
-    --foreground: #444444;
+    --background: #252220;
+    --foreground: #2e2b28;
+    --card-bg: #332f2b;
+    --card-border: #3d3833;
+    --input-bg: #2e2b28;
+    --input-border: #4a4540;
+    --star-fill: #c9a83f;
+    --star-bg: #4a4026;
     --star: var(--foreground);
 
-    --line: 90%;
-    --negative: 59, 0, 0;
-    --positive: 31, 55, 43;
-    --neutral: 49, 49, 49;
+    --line: 38%;
+    --chart-fill: 24%;
+    --negative: 160, 70, 70;
+    --positive: 90, 140, 95;
+    --neutral: 120, 150, 115;
     --color: var(--neutral);
 }
 
@@ -58,16 +70,14 @@ main {
 }
 body {
     background: var(--background);
-
-    /* Sutract to avoid footer overflow. */
     min-height: calc(100% - var(--padding));
-
     gap: var(--padding);
     margin: var(--padding) var(--margin);
-
     color: var(--text);
-    font-family: "Syne Mono";
+    font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
     font-size: var(--fontsize);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 footer {
     flex-direction: row;
@@ -75,6 +85,47 @@ footer {
     justify-content: space-between;
     width: calc(100% - 2 * var(--padding));
     margin: auto var(--padding) var(--padding) var(--padding);
+}
+
+/* Dark mode toggle — styled as a bordered button, not a link */
+/* ── Shared action button ─────────────────────────────────────────────── */
+.btn {
+    appearance: none;
+    background: var(--text);
+    border: 1px solid var(--text);
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-family: inherit;
+    font-size: var(--fontsize);
+    font-weight: 500;
+    color: var(--foreground);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    transition:
+        background 0.12s,
+        border-color 0.12s;
+}
+.btn:hover:not(:disabled) {
+    background: #2b2823;
+    border-color: #2b2823;
+    color: var(--foreground);
+    cursor: pointer;
+}
+.btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+[data-theme="dark"] .btn {
+    background: var(--foreground);
+    color: var(--text);
+    border-color: var(--foreground);
+}
+[data-theme="dark"] .btn:hover:not(:disabled) {
+    background: #3d3833;
+    border-color: #3d3833;
 }
 
 h1,
@@ -86,7 +137,6 @@ button {
     font-weight: bold;
     font-family: inherit;
     font-size: var(--fontsize);
-
     margin: 0;
     padding: 0;
 }
@@ -102,8 +152,11 @@ a,
 a:visited,
 button {
     display: inline;
-
     color: var(--clickable);
+    text-decoration: none;
+}
+.rating,
+.rating:visited {
     text-decoration: underline;
 }
 a:hover,
@@ -123,20 +176,15 @@ nav ol {
     display: flex;
     flex-direction: row;
     gap: 0 var(--padding);
-
     padding: 0;
     list-style: none;
-
     align-items: center;
     justify-content: center;
 }
-nav ol li a {
-    font-size: calc(1.5 * var(--fontsize));
-    text-decoration: none;
-}
 #menu {
-    gap: 0;
+    gap: 4px;
     flex-wrap: wrap;
+    justify-content: center;
 }
 menu {
     align-items: center;
@@ -146,76 +194,387 @@ header form {
     margin-bottom: var(--padding);
 }
 
+/* ── Nav buttons (account header) — use .btn ───────────────────────────── */
+
+/* img rule kept for non-card images (e.g. error page logo) */
 img {
     max-width: calc(var(--image) - 4 * var(--padding));
 }
 
+/* ── Image inset/cutout wrapper ─────────────────────────────────────────── */
+.img-wrap {
+    width: var(--image);
+    flex-shrink: 0;
+    align-self: stretch;
+    background: linear-gradient(
+        150deg,
+        var(--foreground) 0%,
+        var(--background) 100%
+    );
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.15s;
+}
+.product:hover .img-wrap {
+    box-shadow: 0 0 0 1px #b8b09a;
+}
+[data-theme="dark"] .product:hover .img-wrap {
+    box-shadow: 0 0 0 1px #5a5248;
+}
+.img-wrap img {
+    max-width: 78%;
+    max-height: 82%;
+    object-fit: contain;
+    mix-blend-mode: multiply;
+    width: auto;
+    height: auto;
+}
+.img-wrap img.fallback {
+    max-width: 46%;
+    mix-blend-mode: normal;
+}
+[data-theme="dark"] .img-wrap img:not(.fallback) {
+    filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.12));
+    mix-blend-mode: screen;
+}
+
+/* ── Filter form ─────────────────────────────────────────────────────── */
+
 form:not(header *) {
     width: calc(100% - 2 * var(--padding));
-    max-width: calc(4 * var(--image));
+    max-width: calc(5 * var(--image));
 }
-form:not(header *) search {
+
+/* Search row: sort select + filter button side by side */
+.search-row {
     display: flex;
-    flex-direction: column;
-    gap: var(--margin);
+    gap: 8px;
+    align-items: center;
+    width: 100%;
 }
-form search div {
-    display: flex;
-    flex-direction: row;
-    gap: var(--padding);
-}
-form:not(header *) input,
-form:not(header *) select {
+
+/* Sort direction button — left of sort select in the top row */
+.sort-dir-btn {
+    appearance: none;
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 12px;
+    padding: 0 14px;
+    height: 44px;
     font-family: inherit;
     font-size: var(--fontsize);
-    font-weight: bold;
-    color: var(--text);
-
-    background-color: transparent;
-    appearance: none;
-    -webkit-appearance: none;
-    border-radius: 0;
-    padding: 0;
-    border: none;
+    font-weight: 500;
+    color: var(--text-muted);
     cursor: pointer;
+    flex-shrink: 0;
+    white-space: nowrap;
+    transition:
+        border-color 0.12s,
+        color 0.12s;
 }
-form:not(header *) search div input {
+.sort-dir-btn:hover {
+    border-color: #b8b09a;
+    color: var(--text);
+}
+
+/* Sort select in the top row (fills remaining space) */
+.sort-top-sel {
+    flex: 1;
+    min-width: 0;
+}
+.sort-top-sel select {
+    height: 44px;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+/* Filter button — ghost style matching the sort controls */
+.filter-btn {
+    appearance: none;
+    background: var(--foreground);
+    border: 1px solid var(--input-border);
+    border-radius: 12px;
+    padding: 0 14px;
+    height: 40px;
+    font-family: inherit;
+    font-size: var(--fontsize);
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+    flex-shrink: 0;
+    white-space: nowrap;
+    transition:
+        border-color 0.12s,
+        color 0.12s,
+        background 0.12s;
+}
+.filter-btn:hover {
+    border-color: #b8b09a;
+    color: var(--text);
+}
+.filter-btn.active {
+    background: var(--text);
+    color: var(--foreground);
+    border-color: var(--text);
+}
+[data-theme="dark"] .filter-btn.active {
+    background: var(--foreground);
+    color: var(--text);
+    border-color: var(--foreground);
+}
+.filter-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    background: var(--clickable);
+    color: #fff;
+    border-radius: 9px;
+    font-size: 10.5px;
+    font-weight: 600;
+    display: none;
+    place-items: center;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+}
+.filter-badge.visible {
+    display: grid;
+}
+
+/* Advanced panel — CSS transition, toggled via .open class */
+.adv-panel {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition:
+        max-height 0.25s ease,
+        opacity 0.2s ease,
+        margin-top 0.2s ease;
     width: 100%;
 }
-select {
-    width: 100%;
+.adv-panel.open {
+    max-height: 900px;
+    opacity: 1;
+    margin-top: 6px;
 }
-search div:has(select) {
+.adv-grid {
+    background: var(--input-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.adv-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.adv-lbl {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    font-weight: 500;
+}
+
+/* Inline row for toggle button + select/number input */
+.adv-sort-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+.adv-sort-row > input {
+    flex: 1;
+}
+#toggleSort,
+#togglePrice,
+#toggleVolume,
+#toggleAlcohol,
+#toggleYear {
+    appearance: none;
+    background: var(--foreground);
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    padding: 0 10px;
+    height: 40px;
+    font-family: inherit;
+    font-size: calc(var(--fontsize) - 0.5px);
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    flex-shrink: 0;
+    white-space: nowrap;
+    transition: border-color 0.12s;
+}
+#toggleSort:hover,
+#togglePrice:hover,
+#toggleVolume:hover,
+#toggleAlcohol:hover,
+#toggleYear:hover {
+    border-color: #b8b09a;
+    color: var(--text);
+}
+
+/* Select wrapper with chevron */
+.adv-sel {
     position: relative;
 }
-search div:has(select)::after {
+.adv-sel::after {
     content: "";
     position: absolute;
-    right: calc(var(--padding) / 2);
-    transform: translateY(50%);
-
-    width: var(--padding);
-    height: var(--padding);
-
-    background-color: var(--text);
-
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 10px;
+    background-color: var(--text-faint);
     mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpolygon points='0,0 10,0 5,5' fill='black'/%3E%3C/svg%3E");
     mask-repeat: no-repeat;
     mask-position: center;
-
     pointer-events: none;
 }
+.adv-sel select {
+    width: 100%;
+    height: 40px;
+    padding: 0 32px 0 12px;
+    background: var(--foreground);
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: var(--fontsize);
+    font-weight: 500;
+    color: var(--text);
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    outline: none;
+    transition:
+        border-color 0.15s,
+        box-shadow 0.15s;
+}
+.adv-sel select:focus {
+    border-color: var(--clickable);
+    box-shadow: 0 0 0 3px rgba(107, 138, 111, 0.15);
+}
+
+/* Number inputs in advanced panel */
+.adv-sort-row input[type="number"] {
+    height: 40px;
+    padding: 0 12px;
+    background: var(--foreground);
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: var(--fontsize);
+    font-weight: 500;
+    color: var(--text);
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+    transition:
+        border-color 0.15s,
+        box-shadow 0.15s;
+}
+.adv-sort-row input[type="number"]:focus {
+    border-color: var(--clickable);
+    box-shadow: 0 0 0 3px rgba(107, 138, 111, 0.15);
+}
+
+/* Store/storelike text input in advanced panel */
+.adv-field input[type="search"] {
+    height: 40px;
+    padding: 0 12px;
+    background: var(--foreground);
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: var(--fontsize);
+    font-weight: 500;
+    color: var(--text);
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+    width: 100%;
+    transition:
+        border-color 0.15s,
+        box-shadow 0.15s;
+}
+.adv-field input[type="search"]:focus {
+    border-color: var(--clickable);
+    box-shadow: 0 0 0 3px rgba(107, 138, 111, 0.15);
+}
+.adv-field input[type="search"]::placeholder {
+    color: var(--text-faint);
+    font-weight: 400;
+}
+
+/* Reset button inside advanced panel */
+#clearFilters {
+    appearance: none;
+    background: transparent;
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    height: 38px;
+    padding: 0 14px;
+    font-family: inherit;
+    font-size: var(--fontsize);
+    font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    margin-top: 2px;
+    transition: background 0.12s;
+}
+#clearFilters:hover {
+    background: var(--foreground);
+}
+
+/* ── Pagination ─────────────────────────────────────────────────────────── */
+
+.pager-nav {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: calc(100% - 2 * var(--padding));
+    max-width: calc(10 * var(--image));
+    padding-top: 14px;
+    border-top: 1px solid var(--card-border);
+    margin-top: 4px;
+}
+/* Pagination — uses .btn */
+.pager-pos {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--text-faint);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Messages ──────────────────────────────────────────────────────────── */
 
 .message {
     display: flex;
     flex-direction: column;
     gap: var(--padding);
-
     align-items: center;
     text-align: center;
-
     width: calc(100% - 2 * var(--padding));
     max-width: calc(4 * var(--image));
+    color: var(--text-muted);
+    font-size: calc(var(--fontsize) - 0.5px);
+    line-height: 1.5;
 }
 #userMessage {
     width: 100%;
@@ -223,57 +582,59 @@ search div:has(select)::after {
     padding: var(--margin);
 }
 
+/* ── Product cards ─────────────────────────────────────────────────────── */
+
 section {
     display: flex;
     flex-direction: column;
     margin-top: calc(3 * var(--padding));
-
     width: 100%;
     max-width: calc(10 * var(--image));
 }
 section.landing {
     max-width: 80%;
 }
-section a {
-    color: var(--text);
-}
 .product {
     cursor: pointer;
     position: relative;
     overflow: hidden;
     z-index: 1;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    transition:
+        border-color 0.15s,
+        box-shadow 0.15s;
+}
+.product:hover {
+    border-color: #b8b09a;
+    box-shadow: 0 4px 16px -4px rgba(70, 55, 20, 0.1);
+}
+[data-theme="dark"] .product:hover {
+    border-color: #5a5248;
+    box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.3);
 }
 .product > * {
-    margin-right: calc(10 * var(--margin));
+    margin-right: 0;
 }
 section > div {
     position: relative;
+    z-index: 1;
     display: flex;
     flex-direction: row;
     gap: var(--margin);
-}
-section > div > img {
-    margin-top: auto;
-    width: 100%;
-    height: auto;
-    max-height: calc(2 * var(--image));
-}
-section > div > img.fallback {
-    align-items: baseline;
-}
-[data-theme="dark"] section > div > img:not(.fallback) {
-    filter: drop-shadow(0 0 calc(var(--margin) / 2) var(--text));
-    -webkit-filter: drop-shadow(0 0 calc(var(--margin) / 2) var(--text));
+    padding: var(--padding);
 }
 section > div > div {
     position: relative;
+    z-index: 1;
     display: flex;
     flex-direction: column;
     gap: var(--margin);
-    padding: 0 var(--padding);
+    padding: 0 calc(var(--padding) / 2);
     width: 100%;
 }
-section > div > div > h1,
+section > div > div > h2,
 section > div > div > span:not(.list) {
     display: inline-flex;
     flex-direction: row;
@@ -286,38 +647,161 @@ section > div > div > .list {
     gap: var(--margin);
     align-items: left;
 }
-section > div > div > span:last-of-type {
+section > div > div > .price {
     gap: var(--padding);
-    padding-bottom: var(--padding);
-    flex-direction: row-reverse;
-    justify-content: right;
+    padding-bottom: calc(var(--padding) / 2);
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
 }
-section > div > div > h1 {
+section > div > div > h2 {
     margin-top: auto;
+    font-size: calc(1.35 * var(--fontsize));
+    font-weight: 600;
+    font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: -0.015em;
+    line-height: 1.2;
 }
-section > div > div > h1 > p {
+section > div > div > h2 a {
+    color: var(--text);
+    font-weight: 600;
+}
+section > div > div > h2 > button.favourite-toggle {
     cursor: pointer;
     font-size: 0.9rem;
-    display: inline-block;
+    background: none;
+    border: none;
+    color: var(--text-faint);
+    padding: 0;
+    text-decoration: none;
 }
+
+/* Secondary meta text */
+section > div > div > span.meta,
+section > div > div > span.origin {
+    font-size: calc(var(--fontsize) - 1px);
+    color: var(--text-muted);
+    line-height: 1.4;
+    flex-wrap: wrap;
+    align-items: baseline;
+}
+section > div > div > span.origin {
+    color: var(--text-faint);
+}
+.dot {
+    color: var(--input-border);
+    font-size: calc(var(--fontsize) - 4px);
+    padding: 0 1px;
+}
+/* Rating link: not bold */
+a.rating,
+a.rating:visited {
+    font-weight: 400;
+}
+
+/* Price row */
+section > div > div > .price {
+    justify-content: flex-start;
+    align-items: flex-end;
+    margin-top: 6px;
+    gap: calc(var(--padding) * 2);
+}
+
+/* Price cells (label above, value below) */
+.pcell {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 1px;
+    line-height: 1.1;
+}
+.pclbl {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 9px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    font-weight: 500;
+}
+.pcval {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--text);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+}
+.pcval-strike {
+    color: var(--text-faint);
+    text-decoration: line-through;
+}
+.pcval-change {
+    color: #4d6750;
+    font-weight: 600;
+}
+
+/* Current price pill */
+.price-now {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 3px;
+    background: var(--text);
+    color: var(--foreground);
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    margin-left: auto;
+    flex-shrink: 0;
+    text-decoration: none;
+}
+.pn-cur {
+    font-size: 9px;
+    opacity: 0.6;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+.pn-val {
+    font-size: calc(var(--fontsize) + 4px);
+    font-weight: 700;
+    line-height: 1;
+}
+section > div > div > .description {
+    margin: 0;
+    font-size: calc(var(--fontsize) - 1px);
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
 @media (min-width: 450px) {
-    section > div > div > h1 > p:hover {
+    section > div > div > h2 > button.favourite-toggle:hover {
         font-size: 0;
     }
-    section > div > div > h1 > p:hover::before {
+    section > div > div > h2 > button.favourite-toggle:hover::before {
         content: "★";
         font-size: 0.9rem;
     }
 }
 @media (max-width: 450px) {
     :root {
-        --image: 80px;
+        --image: 72px;
+        --fontsize: 13px;
+    }
+    span.meta {
+        flex-wrap: wrap;
+    }
+    span.meta .meta-break {
+        flex-basis: 100%;
+        height: 0;
+        overflow: hidden;
     }
 }
 
 section > div > div p {
     margin: 0;
 }
+
+/* ── Stars ─────────────────────────────────────────────────────────────── */
+
 .rating {
     display: inline-flex;
     flex-direction: row;
@@ -325,52 +809,52 @@ section > div > div p {
     text-decoration: none;
 }
 .star {
+    color: var(--star-fill);
     background: linear-gradient(
         90deg,
         currentColor var(--fill),
-        var(--star) var(--fill)
+        var(--star-bg) var(--fill)
     );
-
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
-section > div > div > svg {
+/* ── Price history SVG — spans content row, stays fixed when aside opens ── */
+
+.product > div > svg.path {
     position: absolute;
-    bottom: 0;
+    top: 0;
     left: 0;
-    width: 100%;
-    z-index: -1;
-    overflow: visible;
+    right: 0;
+    bottom: -1px; /* 1px bleed ensures fill reaches card border despite sub-pixel gaps */
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
 }
-section > div > div > svg path {
+.product > div > svg.path path {
     stroke: none;
     fill: color-mix(
         in srgb,
-        rgb(var(--color)) var(--line),
-        white calc(100% - var(--line))
+        rgb(var(--color)) var(--chart-fill),
+        white calc(100% - var(--chart-fill))
     );
 }
-.ylabel {
-    fill: color-mix(in srgb, rgb(var(--color)) 40%, white 60%);
+[data-theme="dark"] .product > div > svg.path path {
+    fill: color-mix(
+        in srgb,
+        rgb(var(--color)) var(--chart-fill),
+        #1a1815 calc(100% - var(--chart-fill))
+    );
 }
-[data-theme="dark"] .ylabel {
-    fill: color-mix(in srgb, rgb(var(--color)) 60%, white 40%);
-}
+
+/* ── Aside (detailed view) — full card width, no border ────────────────── */
 
 aside {
     display: none;
-    margin-left: calc(var(--image) - 4 * var(--padding) + var(--margin));
-    border: var(--margin) solid
-        color-mix(
-            in srgb,
-            rgb(var(--color)) var(--line),
-            white calc(100% - var(--line))
-        );
-    border-top: none;
-    border-bottom-left-radius: var(--padding);
-    border-bottom-right-radius: var(--padding);
+    border-top: 1px solid var(--card-border);
+    position: relative;
+    z-index: 1;
 }
 
 aside table {
@@ -381,7 +865,6 @@ aside table tbody {
     display: flex;
     flex-direction: column;
     gap: var(--padding);
-
     margin: var(--padding);
 }
 aside table tbody tr {
@@ -393,7 +876,6 @@ aside table tbody tr td {
 }
 aside table tbody tr td:first-of-type {
     width: calc(1.2 * var(--image));
-
     word-wrap: anywhere;
     hyphens: auto;
     -ms-hyphens: auto;
@@ -409,13 +891,11 @@ aside table tbody tr td:last-of-type {
 aside .metadata tbody tr td:last-of-type {
     margin-left: calc(2 * var(--margin));
     padding-left: calc(var(--padding) + var(--margin));
-
     word-break: break-word;
     hyphens: auto;
     -ms-hyphens: auto;
     -moz-hyphens: auto;
     -webkit-hyphens: auto;
-
     background: linear-gradient(
         to right,
         color-mix(
@@ -424,18 +904,15 @@ aside .metadata tbody tr td:last-of-type {
                 white calc(100% - var(--line))
             )
             var(--padding),
-        var(--foreground) var(--padding)
+        var(--card-bg) var(--padding)
     );
 }
 aside .fractions tbody tr td:last-of-type {
     margin-left: var(--margin);
     display: block;
-
-    /* height < 1rem for better visual alignment. */
     height: 0.8rem;
     align-self: center;
     white-space: nowrap;
-
     background: linear-gradient(
         to right,
         color-mix(
@@ -444,9 +921,11 @@ aside .fractions tbody tr td:last-of-type {
                 white calc(100% - var(--line))
             )
             0 calc(var(--percentage) * 1%),
-        var(--foreground) calc(var(--percentage) * 1%) 100%
+        var(--card-bg) calc(var(--percentage) * 1%) 100%
     );
 }
+
+/* ── Input spinner removal ─────────────────────────────────────────────── */
 
 input[type="number"],
 input[type="number"]::-webkit-outer-spin-button,

@@ -12,6 +12,7 @@
             {% endif %}
         {% endif %}
     {% endif %}
+    <span><button id="toggleTheme" class="btn">Mørkt</button></span>
 </menu>
 
 <menu id="profile" style="display: none;">
@@ -21,87 +22,73 @@
 </menu>
 
 <form id="loginForm" style="display: none;">
-    <search>
-        <table>
-            <tr>
-                <td>Brukernavn&nbsp;</td>
-                <td><input type="text" id="usernameLogin" name="username" minlength="2" required></td>
-            </tr>
-            <tr>
-                <td>Passord</td>
-                <td><input type="password" id="passwordLogin" name="password" minlength="4" required></td>
-            </tr>
-        </table>
-
+    <div class="adv-grid">
+        <div class="adv-field">
+            <span class="adv-lbl">Brukernavn</span>
+            <input type="text" id="usernameLogin" name="username" minlength="2" required>
+        </div>
+        <div class="adv-field">
+            <span class="adv-lbl">Passord</span>
+            <input type="password" id="passwordLogin" name="password" minlength="4" required>
+        </div>
         <button type="submit" class="btn">Logg inn</button>
-    </search>
+    </div>
 </form>
 
 <form id="registerForm" style="display: none;">
-    <search>
-        <table>
-            <tr>
-                <td>Brukernavn&nbsp;</td>
-                <td><input type="text" id="usernameRegister" name="username" minlength="2" required></td>
-            </tr>
-            <tr>
-                <td>E-post</td>
-                <td><input type="email" id="emailRegister" name="email" required></td>
-            </tr>
-            <tr>
-                <td>Passord</td>
-                <td><input type="password" id="passwordRegister" name="password" minlength="4" required></td>
-            </tr>
-            <tr>
-                <td>Månedsvarsel&nbsp;</td>
-                <td><input type="checkbox" id="notifyRegister" name="notify" value="true"></td>
-            </tr>
-        </table>
-
+    <div class="adv-grid">
+        <div class="adv-field">
+            <span class="adv-lbl">Brukernavn</span>
+            <input type="text" id="usernameRegister" name="username" minlength="2" required>
+        </div>
+        <div class="adv-field">
+            <span class="adv-lbl">E-post</span>
+            <input type="email" id="emailRegister" name="email" required>
+        </div>
+        <div class="adv-field">
+            <span class="adv-lbl">Passord</span>
+            <input type="password" id="passwordRegister" name="password" minlength="4" required>
+        </div>
+        <div class="adv-field adv-check-row">
+            <span class="adv-lbl">Månedsvarsel</span>
+            <input type="checkbox" id="notifyRegister" name="notify" value="true">
+        </div>
         <button type="submit" class="btn">Registrer</button>
-    </search>
+    </div>
 </form>
 
 <form id="notifyUserForm" style="display: none;">
-    <search>
-        <input type="hidden" id="usernameNotify" name="username" value="{{ user.username if user else '' }}">
-
-        <table>
-            <tr>
-                <td>E-post</td>
-                <td>{{ user.email if user else '' }}</td>
-            </tr>
-            <tr>
-                <td>Månedsvarsel&nbsp;</td>
-                <td><input type="checkbox" id="activeNotify" name="notify" {{ 'checked' if user and user.notify else '' }}></td>
-            </tr>
-        </table>
-
+    <input type="hidden" id="usernameNotify" name="username" value="{{ user.username if user else '' }}">
+    <div class="adv-grid">
+        <div class="adv-field">
+            <span class="adv-lbl">E-post</span>
+            <span>{{ user.email if user else '' }}</span>
+        </div>
+        <div class="adv-field adv-check-row">
+            <span class="adv-lbl">Månedsvarsel</span>
+            <input type="checkbox" id="activeNotify" name="notify" {{ 'checked' if user and user.notify else '' }}>
+        </div>
         <button type="submit" class="btn">Lagre</button>
-    </search>
+    </div>
 </form>
 
 <form id="deleteUserForm" style="display: none;">
-    <search>
-        <input type="hidden" id="usernameDelete" name="username" value="{{ user.username if user else '' }}">
-
-        <table>
-            <tr>
-                <td>Brukernavn&nbsp;</td>
-                <td>{{ user.username if user else '' }}</td>
-            </tr>
-            <tr>
-                <td>E-post</td>
-                <td>{{ user.email if user else '' }}</td>
-            </tr>
-            <tr>
-                <td>Passord</td>
-                <td><input type="password" id="passwordDelete" name="password" minlength="4" required></td>
-            </tr>
-        </table>
-
+    <input type="hidden" id="usernameDelete" name="username" value="{{ user.username if user else '' }}">
+    <div class="adv-grid">
+        <div class="adv-field">
+            <span class="adv-lbl">Brukernavn</span>
+            <span>{{ user.username if user else '' }}</span>
+        </div>
+        <div class="adv-field">
+            <span class="adv-lbl">E-post</span>
+            <span>{{ user.email if user else '' }}</span>
+        </div>
+        <div class="adv-field">
+            <span class="adv-lbl">Passord</span>
+            <input type="password" id="passwordDelete" name="password" minlength="4" required>
+        </div>
         <button type="submit" class="btn">Slett bruker</button>
-    </search>
+    </div>
 </form>
 
 <div class="message">
@@ -109,3 +96,4 @@
 </div>
 
 <script type="module" src="/public/scripts/profile.js"></script>
+<script src="/public/scripts/theme.js"></script>

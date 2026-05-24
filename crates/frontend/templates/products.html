@@ -42,29 +42,18 @@
             {% with parameters=parameters, taxfree=is_taxfree %}{% include "partials/forms.html" %}{% endwith %} {% with
             placement="top" %}{% include "partials/pagination.html" %}{% endwith %} {% if data|length == 0 %}
             <span>Ingen resultater finnes for valgt kominasjon.</span>
-            {% else %}
+            {% else %} {% if message %}
             <div class="message">
-                {% if current_day <= 5 %}
-                <span>[!] NY MÅNED; NYE TILBUD [!]</span>
-                {% endif %}
-
-                <div id="messageStock" style="display: none">
-                    <span>N.b.: Faktisk lagerbeholdning kan avvike. Oppdateres med jevne mellomrom.</span>
-                </div>
-
-                {% if message %}
                 <span>{{ message }}</span>
-                {% endif %}
             </div>
-
-            {% for item in data %} {% with parameters=parameters, item=item, index=loop.index0, taxfree=is_taxfree %} {%
-            include "partials/product.html" %} {% endwith %} {% endfor %} {% endif %} {% with placement="bottom" %}{%
-            include "partials/pagination.html" %}{% endwith %}
+            {% endif %} {% for item in data %} {% with parameters=parameters, item=item, index=loop.index0,
+            taxfree=is_taxfree %} {% include "partials/product.html" %} {% endwith %} {% endfor %} {% endif %} {% with
+            placement="bottom" %}{% include "partials/pagination.html" %}{% endwith %}
         </main>
 
         <footer>{% with landing=false %}{% include "partials/footer.html" %}{% endwith %}</footer>
 
-        <script src="/public/scripts/svg.js"></script>
+        <!--<script src="/public/scripts/svg.js"></script>-->
         <script src="/public/scripts/buttons.js"></script>
     </body>
 </html>

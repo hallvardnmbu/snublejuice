@@ -63,12 +63,9 @@ pub fn render_products(
     parameters: &Parameters,
 ) -> String {
     let tmpl = get_env().get_template("products.html").unwrap();
-    let now = Local::now();
-    let current_day = now.day();
     tmpl.render(context! {
         data,
         is_taxfree,
-        current_day,  // TODO
         user,
         page,
         max_page,

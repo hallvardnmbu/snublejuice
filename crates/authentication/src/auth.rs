@@ -27,6 +27,8 @@ pub async fn login(
         return Err(AppError::Unauthorized);
     }
 
+    users::delete_sessions_for_user(&state.db, &user.user_id).await?;
+
     let session_id = Uuid::new_v4().to_string();
 
     let expires_after =

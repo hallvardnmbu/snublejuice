@@ -1,5 +1,6 @@
 use authentication::middle::Authenticate;
 use axum::{Json, extract::State};
+use axum_extra::extract::cookie::{Cookie, CookieJar};
 
 use database::users;
 use authentication::middle::verify_password;
@@ -22,10 +23,12 @@ pub async fn get_user(
 
 pub async fn logout(
     State(state): State<AppState>,
+    jar: CookieJar,
     auth: Authenticate,
-) -> Result<Json<String>, AppError> {
-    users::logout(&state.db, &auth.id).await?;
-    Ok(Json("ok".to_string()))
+) -> Result<(CookieJar, Json<String>), AppError> {
+    users::logout(&state.db, &auth.session_id).await?;
+    let jar = jar.remove(Cookie::from("session_id"));
+    Ok((jar, Json("ok".to_string())))
 }
 
 pub async fn notification(

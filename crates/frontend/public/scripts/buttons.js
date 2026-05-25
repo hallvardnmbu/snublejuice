@@ -58,14 +58,12 @@ document.getElementById("clearFilters").onclick = function (event) {
 
 // Count active (non-default) filters and update the badge.
 function updateFilterBadge() {
-  const form = document.getElementById("filter");
-  const data = new FormData(form);
+  const params = new URLSearchParams(window.location.search);
+  // skip: meta params + comparator toggles (they modify price/volume/etc., not separate filters)
+  const skip = new Set(["fresh", "page", "ascending", "sort", "favourites", "cprice", "cvolume", "calcohol", "cyear"]);
   let count = 0;
-  const skip = new Set(["page", "ascending", "sort", "favourites"]);
-  const defaults = new Set(["null", "", "false"]);
-  for (const [key, value] of data.entries()) {
-    if (skip.has(key)) continue;
-    if (!defaults.has(value)) count++;
+  for (const key of params.keys()) {
+    if (!skip.has(key)) count++;
   }
   const badge = document.getElementById("filterBadge");
   if (count > 0) {
@@ -140,6 +138,22 @@ document.querySelectorAll(".favourite-toggle").forEach((star) => {
     this.innerText = this.innerText.trim() === "☆" ? "★" : "☆";
   });
 });
+
+// Touch-tap feedback on product cards (mirrors hover effect for ~2s).
+if (window.matchMedia("(hover: none)").matches) {
+  document.querySelectorAll(".product").forEach((card) => {
+    let timer = null;
+    card.addEventListener(
+      "touchstart",
+      function () {
+        this.classList.add("touch-active");
+        clearTimeout(timer);
+        timer = setTimeout(() => this.classList.remove("touch-active"), 2000);
+      },
+      { passive: true },
+    );
+  });
+}
 
 // Detailed view.
 document.addEventListener("DOMContentLoaded", function () {

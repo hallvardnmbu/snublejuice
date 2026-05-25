@@ -7,10 +7,6 @@
     '
 >
     <div>
-        <svg class="path" viewBox="0 0 0 0" preserveAspectRatio="none" aria-hidden="true">
-            <path id="path-{{ index }}" d="" data-prices="{{ item.prices }}"></path>
-        </svg>
-
         <div class="img-wrap">
             <img
                 src="/data/image/{{ item.index }}"
@@ -38,10 +34,6 @@
                 <p class="dot">·</p>
                 <p><i>{{ item.subcategory }}</i></p>
                 {% endif %}
-                <p class="dot meta-break">·</p>
-                <p>{{ (item.volume | round) | int }} cL</p>
-                <p class="dot">·</p>
-                <p>{{ item.alcohol }}% alk.</p>
             </span>
 
             <span class="origin">
@@ -53,6 +45,12 @@
                 <p class="dot">·</p>
                 <p>{{ item.subdistrict }}</p>
                 {% endif %}
+            </span>
+
+            <span class="meta">
+                <p>{{ (item.volume | round) | int }} cL</p>
+                <p class="dot">·</p>
+                <p>{{ item.alcohol }}% alk.</p>
             </span>
 
             {% if parameters.storelike %}

@@ -13,7 +13,7 @@
         <link rel="stylesheet" href="/public/stylesheet.css" />
 
         <title>Snublejuice</title>
-        <meta name="theme-color" content="#fcfbf9" />
+        <meta name="theme-color" content="#f5f1e6" />
         <link rel="manifest" href="/public/manifest.json" />
         <link rel="icon" type="image/png" href="/public/images/150x150.png" />
         <link rel="apple-touch-icon" href="/public/images/320x320.png" />
@@ -145,18 +145,13 @@
     </head>
 
     <body>
-        <header>{% with user=user %} {% include "partials/account.html" %}{% endwith %}</header>
+        <header>{% with user=user, landing=true %} {% include "partials/account.html" %}{% endwith %}</header>
         <main>
             {% include "partials/subdomains.html" %}
 
-            <section class="landing" itemscope itemtype="https://schema.org/Service">
+            <section class="landing clickable" itemscope itemtype="https://schema.org/Service" onclick="window.location.href='https://vinmonopolet.snublejuice.no'">
                 <h1>
-                    <a
-                        href="https://vinmonopolet.snublejuice.no"
-                        itemprop="name"
-                        style="color: var(--text); text-decoration: none"
-                        >Vinmonopolet</a
-                    >
+                    <a href="https://vinmonopolet.snublejuice.no" itemprop="name">Vinmonopolet</a>
                     <a href="https://vinmonopolet.snublejuice.no">vinmonopolet.snublejuice.no</a>
                 </h1>
                 <span itemprop="description">
@@ -175,14 +170,9 @@
                 <meta itemprop="provider" content="Snublejuice" />
             </section>
 
-            <section class="landing" itemscope itemtype="https://schema.org/Service">
+            <section class="landing clickable" itemscope itemtype="https://schema.org/Service" onclick="window.location.href='https://taxfree.snublejuice.no'">
                 <h1>
-                    <a
-                        href="https://taxfree.snublejuice.no"
-                        itemprop="name"
-                        style="color: var(--text); text-decoration: none"
-                        >Tax-free</a
-                    >
+                    <a href="https://taxfree.snublejuice.no" itemprop="name">Tax-free</a>
                     <a href="https://taxfree.snublejuice.no">taxfree.snublejuice.no</a>
                 </h1>
                 <span itemprop="description">

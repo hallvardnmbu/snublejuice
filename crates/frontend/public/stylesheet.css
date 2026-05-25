@@ -7,7 +7,7 @@
     --text: #1a1815;
     --text-muted: #4a4636;
     --text-faint: #8b8470;
-    --clickable: var(--text-muted); /* #6b8a6f */
+    --clickable: var(--text-muted);
     --hover: #4d6750;
 
     --background: #f5f1e6;
@@ -16,23 +16,25 @@
     --card-border: #e9e3d2;
     --input-bg: var(--card-bg);
     --input-border: #d8d1be;
+
     --star-fill: #c9a83f;
     --star-bg: #e0d6b5;
     --star: var(--foreground);
 
     --line: 42%;
-    --chart-fill: 28%;
     --negative: 180, 60, 60;
     --positive: 100, 160, 105;
     --neutral: 207, 224, 200;
     --color: var(--neutral);
+    --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 }
 
 [data-theme="dark"] {
     --text: #e4dfd5;
     --text-muted: #b0a896;
     --text-faint: #857e6a;
-    --clickable: var(--text-muted); /* #7ea283*/
+
+    --clickable: var(--text-muted);
     --hover: var(--text);
 
     --background: #3b3530;
@@ -41,12 +43,12 @@
     --card-border: #5e5850;
     --input-bg: #454038;
     --input-border: #6a6358;
+
     --star-fill: #c9a83f;
     --star-bg: #5a4d28;
     --star: var(--foreground);
 
     --line: 38%;
-    --chart-fill: 24%;
     --negative: 160, 70, 70;
     --positive: 90, 140, 95;
     --neutral: 120, 150, 115;
@@ -191,9 +193,10 @@ menu {
     margin: var(--margin) 0;
 }
 header form {
-    margin-bottom: var(--padding);
-    width: calc(100% - 2 * var(--padding));
-    max-width: calc(4 * var(--image));
+    width: min(calc(4 * var(--image)), calc(100vw - 2 * var(--padding)));
+    padding: var(--padding) var(--padding) 0 var(--padding);
+    box-sizing: border-box;
+    justify-content: center;
 }
 
 /* ── Nav buttons (account header) — use .btn ───────────────────────────── */
@@ -213,7 +216,7 @@ img {
         var(--foreground) 0%,
         var(--background) 100%
     );
-    border-radius: 10px;
+    border-radius: calc(14px - var(--padding));
     display: grid;
     place-items: center;
     overflow: hidden;
@@ -222,17 +225,19 @@ img {
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
     transition: box-shadow 0.15s;
 }
-.product:hover .img-wrap {
+.product:hover .img-wrap,
+.product.touch-active .img-wrap {
     box-shadow: 0 0 0 1px #b8b09a;
 }
-[data-theme="dark"] .product:hover .img-wrap {
+[data-theme="dark"] .product:hover .img-wrap,
+[data-theme="dark"] .product.touch-active .img-wrap {
     box-shadow: 0 0 0 1px #5a5248;
 }
 .img-wrap img {
     object-fit: contain;
     mix-blend-mode: multiply;
-    width: auto;
-    height: 90%;
+    width: 100%;
+    height: 95%;
 }
 .img-wrap img.fallback {
     max-width: 46%;
@@ -277,7 +282,14 @@ form:not(header *) {
         border-color 0.12s,
         color 0.12s;
 }
-.sort-dir-btn:hover {
+/* Sort/filter/toggle shared hover */
+.sort-dir-btn:hover,
+.filter-btn:hover,
+#toggleSort:hover,
+#togglePrice:hover,
+#toggleVolume:hover,
+#toggleAlcohol:hover,
+#toggleYear:hover {
     border-color: #b8b09a;
     color: var(--text);
 }
@@ -317,10 +329,6 @@ form:not(header *) {
         color 0.12s,
         background 0.12s;
 }
-.filter-btn:hover {
-    border-color: #b8b09a;
-    color: var(--text);
-}
 .filter-btn.active {
     background: var(--text);
     color: var(--foreground);
@@ -345,7 +353,7 @@ form:not(header *) {
     font-weight: 600;
     display: none;
     place-items: center;
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-family: var(--font-mono);
 }
 .filter-badge.visible {
     display: grid;
@@ -381,13 +389,16 @@ form:not(header *) {
     flex-direction: column;
     gap: 4px;
 }
-.adv-lbl {
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
-    font-size: 10.5px;
-    letter-spacing: 0.06em;
+.adv-lbl,
+.pclbl {
+    font-family: var(--font-mono);
     text-transform: uppercase;
     color: var(--text-faint);
     font-weight: 500;
+}
+.adv-lbl {
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
 }
 
 /* Inline row for toggle button + select/number input */
@@ -419,15 +430,6 @@ form:not(header *) {
     white-space: nowrap;
     transition: border-color 0.12s;
 }
-#toggleSort:hover,
-#togglePrice:hover,
-#toggleVolume:hover,
-#toggleAlcohol:hover,
-#toggleYear:hover {
-    border-color: #b8b09a;
-    color: var(--text);
-}
-
 /* Select wrapper with chevron */
 .adv-sel {
     position: relative;
@@ -446,10 +448,14 @@ form:not(header *) {
     mask-position: center;
     pointer-events: none;
 }
+/* ── Shared panel input / select styles ─────────────────────────────────── */
+.adv-sort-row input[type="number"],
+.adv-field input[type="text"],
+.adv-field input[type="password"],
+.adv-field input[type="email"],
+.adv-field input[type="search"],
 .adv-sel select {
-    width: 100%;
     height: 40px;
-    padding: 0 32px 0 12px;
     background: var(--foreground);
     border: 1px solid var(--input-border);
     border-radius: 10px;
@@ -459,67 +465,42 @@ form:not(header *) {
     color: var(--text);
     appearance: none;
     -webkit-appearance: none;
-    cursor: pointer;
     outline: none;
     transition:
         border-color 0.15s,
         box-shadow 0.15s;
 }
+.adv-sort-row input[type="number"],
+.adv-field input[type="text"],
+.adv-field input[type="password"],
+.adv-field input[type="email"],
+.adv-field input[type="search"] {
+    padding: 0 12px;
+}
+.adv-field input[type="text"],
+.adv-field input[type="password"],
+.adv-field input[type="email"],
+.adv-field input[type="search"] {
+    width: 100%;
+    box-sizing: border-box;
+}
+.adv-sel select {
+    width: 100%;
+    padding: 0 32px 0 12px;
+    cursor: pointer;
+}
+.adv-sort-row input[type="number"]:focus,
+.adv-field input[type="text"]:focus,
+.adv-field input[type="password"]:focus,
+.adv-field input[type="email"]:focus,
+.adv-field input[type="search"]:focus,
 .adv-sel select:focus {
     border-color: var(--clickable);
     box-shadow: 0 0 0 3px rgba(107, 138, 111, 0.15);
 }
-
-/* Number inputs in advanced panel */
-.adv-sort-row input[type="number"] {
-    height: 40px;
-    padding: 0 12px;
-    background: var(--foreground);
-    border: 1px solid var(--input-border);
-    border-radius: 10px;
-    font-family: inherit;
-    font-size: var(--fontsize);
-    font-weight: 500;
-    color: var(--text);
-    appearance: none;
-    -webkit-appearance: none;
-    outline: none;
-    transition:
-        border-color 0.15s,
-        box-shadow 0.15s;
-}
-.adv-sort-row input[type="number"]:focus {
-    border-color: var(--clickable);
-    box-shadow: 0 0 0 3px rgba(107, 138, 111, 0.15);
-}
-
-/* Account form inputs (text, password, email) */
-.adv-field input[type="text"],
-.adv-field input[type="password"],
-.adv-field input[type="email"] {
-    height: 40px;
-    padding: 0 12px;
-    background: var(--foreground);
-    border: 1px solid var(--input-border);
-    border-radius: 10px;
-    font-family: inherit;
-    font-size: var(--fontsize);
-    font-weight: 500;
-    color: var(--text);
-    appearance: none;
-    -webkit-appearance: none;
-    outline: none;
-    width: 100%;
-    box-sizing: border-box;
-    transition:
-        border-color 0.15s,
-        box-shadow 0.15s;
-}
-.adv-field input[type="text"]:focus,
-.adv-field input[type="password"]:focus,
-.adv-field input[type="email"]:focus {
-    border-color: var(--clickable);
-    box-shadow: 0 0 0 3px rgba(107, 138, 111, 0.15);
+.adv-field input[type="search"]::placeholder {
+    color: var(--text-faint);
+    font-weight: 400;
 }
 
 /* Checkbox row — label left, checkbox right */
@@ -527,34 +508,6 @@ form:not(header *) {
     flex-direction: row;
     align-items: center;
     gap: 8px;
-}
-
-/* Store/storelike text input in advanced panel */
-.adv-field input[type="search"] {
-    height: 40px;
-    padding: 0 12px;
-    background: var(--foreground);
-    border: 1px solid var(--input-border);
-    border-radius: 10px;
-    font-family: inherit;
-    font-size: var(--fontsize);
-    font-weight: 500;
-    color: var(--text);
-    appearance: none;
-    -webkit-appearance: none;
-    outline: none;
-    width: 100%;
-    transition:
-        border-color 0.15s,
-        box-shadow 0.15s;
-}
-.adv-field input[type="search"]:focus {
-    border-color: var(--clickable);
-    box-shadow: 0 0 0 3px rgba(107, 138, 111, 0.15);
-}
-.adv-field input[type="search"]::placeholder {
-    color: var(--text-faint);
-    font-weight: 400;
 }
 
 /* Reset button inside advanced panel */
@@ -591,7 +544,7 @@ form:not(header *) {
 }
 /* Pagination — uses .btn */
 .pager-pos {
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
     color: var(--text-faint);
     font-variant-numeric: tabular-nums;
@@ -628,7 +581,44 @@ section {
     max-width: calc(10 * var(--image));
 }
 section.landing {
-    max-width: 80%;
+    max-width: calc(5 * var(--image));
+    background: var(--foreground);
+    border: 1px solid var(--card-border);
+    border-radius: 0;
+    padding: var(--padding);
+    gap: var(--padding);
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition:
+        border-color 0.15s,
+        box-shadow 0.15s;
+}
+[data-theme="dark"] section.landing {
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+section.landing.clickable {
+    cursor: pointer;
+}
+section.landing.clickable:hover {
+    border-color: #b8b09a;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+[data-theme="dark"] section.landing.clickable:hover {
+    border-color: #5a5248;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+section.landing h1 > a:first-child {
+    color: var(--text);
+}
+section.landing span {
+    display: flex;
+    flex-direction: column;
+    gap: var(--margin);
+    color: var(--text-muted);
+    font-size: calc(var(--fontsize) - 1px);
+    line-height: 1.5;
+}
+section.landing p {
+    margin: 0;
 }
 .product {
     cursor: pointer;
@@ -642,11 +632,13 @@ section.landing {
         border-color 0.15s,
         box-shadow 0.15s;
 }
-.product:hover {
+.product:hover,
+.product.touch-active {
     border-color: #b8b09a;
     box-shadow: 0 4px 16px -4px rgba(70, 55, 20, 0.1);
 }
-[data-theme="dark"] .product:hover {
+[data-theme="dark"] .product:hover,
+[data-theme="dark"] .product.touch-active {
     border-color: #5a5248;
     box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.3);
 }
@@ -663,9 +655,24 @@ section > div > div {
     z-index: 1;
     display: flex;
     flex-direction: column;
-    gap: var(--margin);
+    gap: 0;
     padding: 0 calc(var(--padding) / 2);
     width: 100%;
+}
+/* Small gap after name */
+section > div > div > h2 + span {
+    margin-top: var(--margin);
+}
+/* Tiny gap between metadata spans (category↔origin↔volume) */
+section > div > div > span.meta + span.origin,
+section > div > div > span.origin + span.meta {
+    margin-top: 2px;
+}
+/* Small gap before description, store lists, and rating */
+section > div > div > p.description,
+section > div > div > span.list,
+section > div > div > span:not(.meta):not(.origin):not(.price):not(.list) {
+    margin-top: var(--margin);
 }
 section > div > div > h2,
 section > div > div > span:not(.list) {
@@ -682,13 +689,15 @@ section > div > div > .list {
 }
 section > div > div > span.price {
     gap: var(--padding);
+    padding-top: var(--margin);
     padding-bottom: calc(var(--padding) / 2);
     flex-direction: row;
-    align-items: center;
+    align-items: flex-end;
     flex-wrap: wrap;
+    justify-content: flex-start;
+    margin-top: auto;
 }
 section > div > div > h2 {
-    margin-top: auto;
     font-size: calc(1.35 * var(--fontsize));
     font-weight: 600;
     font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
@@ -732,14 +741,6 @@ a.rating:visited {
     font-weight: 400;
 }
 
-/* Price row */
-section > div > div > span.price {
-    justify-content: flex-start;
-    align-items: flex-end;
-    margin-top: 6px;
-    gap: var(--padding);
-}
-
 /* Price cells (label above, value below) */
 .pcell {
     display: inline-flex;
@@ -749,15 +750,11 @@ section > div > div > span.price {
     text-decoration: none;
 }
 .pclbl {
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
     font-size: 9px;
     letter-spacing: 0.07em;
-    text-transform: uppercase;
-    color: var(--text-faint);
-    font-weight: 500;
 }
 .pcval {
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
     color: var(--text);
     font-weight: 500;
@@ -784,20 +781,24 @@ section > div > div > span.price {
         var(--foreground) 0%,
         var(--background) 100%
     );
-    border-radius: 6px;
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    border-radius: calc(14px - var(--padding));
+    font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
     margin-left: auto;
+    margin-right: calc(-1 * var(--padding) / 2);
+    margin-bottom: calc(-1 * var(--padding) / 2);
     flex-shrink: 0;
     text-decoration: none;
     z-index: 1;
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
     transition: box-shadow 0.15s;
 }
-.product:hover .price-now {
+.product:hover .price-now,
+.product.touch-active .price-now {
     box-shadow: 0 0 0 1px #b8b09a;
 }
-[data-theme="dark"] .product:hover .price-now {
+[data-theme="dark"] .product:hover .price-now,
+[data-theme="dark"] .product.touch-active .price-now {
     box-shadow: 0 0 0 1px #5a5248;
 }
 .pn-cur {
@@ -808,7 +809,7 @@ section > div > div > span.price {
     font-weight: 500;
 }
 .pn-val {
-    font-size: calc(var(--fontsize) + 4px);
+    font-size: var(--fontsize);
     font-weight: 700;
     line-height: 1;
 }
@@ -838,7 +839,10 @@ section > div > div > .description {
 @media (max-width: 450px) {
     :root {
         --image: 72px;
-        --fontsize: 13px;
+        --fontsize: 12px;
+    }
+    .img-wrap img {
+        height: 98%;
     }
     span.meta {
         flex-wrap: wrap;
@@ -847,6 +851,64 @@ section > div > div > .description {
         flex-basis: 100%;
         height: 0;
         overflow: hidden;
+    }
+    .price-now {
+        padding: 3px 7px;
+    }
+    .pn-cur {
+        font-size: 8px;
+    }
+    section > div > div > span.price {
+        gap: var(--margin);
+        row-gap: var(--margin);
+    }
+    .pcell {
+        flex-shrink: 1;
+    }
+}
+
+/* ── Touch devices: suppress hover, apply touch-active feedback ─────────── */
+@media (hover: none) {
+    section.landing.clickable:hover {
+        border-color: var(--card-border);
+        box-shadow: none;
+    }
+    .product:hover {
+        border-color: var(--card-border);
+        box-shadow: none;
+    }
+    .product:hover .img-wrap,
+    .product:hover .price-now {
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
+    }
+    a:hover,
+    button:hover {
+        color: var(--clickable);
+        cursor: default;
+    }
+    .sort-dir-btn:hover,
+    .filter-btn:hover:not(.active),
+    #toggleSort:hover,
+    #togglePrice:hover,
+    #toggleVolume:hover,
+    #toggleAlcohol:hover,
+    #toggleYear:hover {
+        border-color: var(--input-border);
+        color: var(--text-muted);
+    }
+    #clearFilters:hover {
+        background: transparent;
+    }
+
+    /* Touch-tap feedback (class toggled by JS for ~2s) */
+    .product.touch-active {
+        transition:
+            border-color 0s,
+            box-shadow 0s;
+    }
+    .product.touch-active .img-wrap,
+    .product.touch-active .price-now {
+        transition: box-shadow 0s;
     }
 }
 
@@ -872,34 +934,6 @@ section > div > div p {
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-}
-
-/* ── Price history SVG — spans content row, stays fixed when aside opens ── */
-
-.product > div > svg.path {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: -1px; /* 1px bleed ensures fill reaches card border despite sub-pixel gaps */
-    z-index: 0;
-    pointer-events: none;
-    overflow: hidden;
-}
-.product > div > svg.path path {
-    stroke: none;
-    fill: color-mix(
-        in srgb,
-        rgb(var(--color)) var(--chart-fill),
-        white calc(100% - var(--chart-fill))
-    );
-}
-[data-theme="dark"] .product > div > svg.path path {
-    fill: color-mix(
-        in srgb,
-        rgb(var(--color)) var(--chart-fill),
-        #1a1815 calc(100% - var(--chart-fill))
-    );
 }
 
 /* ── Aside (detailed view) — full card width, no border ────────────────── */
@@ -928,13 +962,16 @@ aside table tbody tr {
 aside table tbody tr td {
     width: auto;
 }
-aside table tbody tr td:first-of-type {
-    width: calc(1.2 * var(--image));
-    word-wrap: anywhere;
+aside table tbody tr td:first-of-type,
+aside .metadata tbody tr td:last-of-type {
     hyphens: auto;
     -ms-hyphens: auto;
     -moz-hyphens: auto;
     -webkit-hyphens: auto;
+}
+aside table tbody tr td:first-of-type {
+    width: calc(1.2 * var(--image));
+    word-wrap: anywhere;
 }
 aside table tbody tr td:last-of-type {
     align-items: center;
@@ -946,10 +983,6 @@ aside .metadata tbody tr td:last-of-type {
     margin-left: calc(2 * var(--margin));
     padding-left: calc(var(--padding) + var(--margin));
     word-break: break-word;
-    hyphens: auto;
-    -ms-hyphens: auto;
-    -moz-hyphens: auto;
-    -webkit-hyphens: auto;
     background: linear-gradient(
         to right,
         color-mix(

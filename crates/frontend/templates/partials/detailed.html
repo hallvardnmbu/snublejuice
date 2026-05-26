@@ -59,20 +59,21 @@
         </tbody>
     </table>
 
-    {% if item.prices | length > 1 %}
+    {% if item.prices | length > 1 %} {% set prices_subset = item.prices[-12:] if item.prices | length >= 12 else
+    item.prices %}
     <table class="metadata">
         <tbody>
             <tr>
-                <th>PRISHISTORIKK</th>
+                <th>PRISER SISTE ÅR</th>
                 <th></th>
             </tr>
             <tr>
                 <td>Laveste</td>
-                <td>kr {{ (item.prices | min | round) | int }}</td>
+                <td>kr {{ (prices_subset | min | round) | int }}</td>
             </tr>
             <tr>
                 <td>Høyeste</td>
-                <td>kr {{ (item.prices | max | round) | int }}</td>
+                <td>kr {{ (prices_subset | max | round) | int }}</td>
             </tr>
         </tbody>
     </table>

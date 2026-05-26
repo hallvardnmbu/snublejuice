@@ -7,7 +7,7 @@
     '
 >
     <div>
-        <div class="img-wrap">
+        <a class="img-wrap" href="{{ item.taxfree.url if taxfree else item.url }}" target="_blank">
             <img
                 src="/data/image/{{ item.index }}"
                 onerror="
@@ -15,7 +15,7 @@
                     this.src = '/public/images/bottle.png';
                 "
             />
-        </div>
+        </a>
 
         <div>
             <h2>
@@ -104,36 +104,36 @@
                 <a href="{{ item.taxfree.url }}" target="_blank" class="pcell"
                     ><span class="pclbl">TAX</span><b class="pcval">{{ (item.taxfree.price | round) | int }}</b></a
                 >
-                <span class="pcell"
+                <a href="{{ item.taxfree.url }}" target="_blank" class="pcell"
                     ><span class="pclbl">DIFF</span
-                    ><b class="pcval pcval-change">{{ (item.taxfree.discount | round) | int }}%</b></span
+                    ><b class="pcval pcval-change">{{ (item.taxfree.discount | round) | int }}%</b></a
                 >
-                <p class="price-now">
+                <a href="{{ item.taxfree.url }}" target="_blank" class="price-now">
                     <b class="pn-val">{{ (item.taxfree.discount | round) | int }}</b>
                     <span class="pn-cur">%</span>
                     <span class="pn-sep"></span>
                     <span class="pn-cur">KR</span>
                     <b class="pn-val">{{ (item.taxfree.price | round) | int }}</b>
-                </p>
+                </a>
                 {% else %} {% if item.oldprice %}
-                <span class="pcell"
-                    ><span class="pclbl">NÅ</span><b class="pcval">{{ (item.price | round) | int }}</b></span
+                <a href="{{ item.url }}" target="_blank" class="pcell"
+                    ><span class="pclbl">NÅ</span><b class="pcval">{{ (item.price | round) | int }}</b></a
                 >
-                <span class="pcell"
+                <a href="{{ item.url }}" target="_blank" class="pcell"
                     ><span class="pclbl">FØR</span
-                    ><b class="pcval pcval-strike">{{ (item.oldprice | round) | int }}</b></span
+                    ><b class="pcval pcval-strike">{{ (item.oldprice | round) | int }}</b></a
                 >
-                <span class="pcell"
+                <a href="{{ item.url }}" target="_blank" class="pcell"
                     ><span class="pclbl">ENDRING</span
-                    ><b class="pcval pcval-change">{{ (item.discount | round) | int }}%</b></span
+                    ><b class="pcval pcval-change">{{ (item.discount | round) | int }}%</b></a
                 >
                 {% endif %}
-                <p class="price-now">
+                <a href="{{ item.url }}" target="_blank" class="price-now">
                     {% if item.oldprice %}
                     <b class="pn-val">{{ (item.discount | round) | int }}</b><span class="pn-cur">%</span>
                     <span class="pn-sep"></span>{% endif %}<span class="pn-cur">KR</span
                     ><b class="pn-val">{{ (item.price | round) | int }}</b>
-                </p>
+                </a>
                 {% endif %}
             </span>
         </div>

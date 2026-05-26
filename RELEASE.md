@@ -145,6 +145,7 @@ User=root
 WorkingDirectory=/home/snuble
 
 Environment=ENVIRONMENT=production
+Environment=COOKIE_DOMAIN=.snublejuice.no
 Environment=PORT=3000
 
 Environment=MONGODB=...

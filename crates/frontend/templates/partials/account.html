@@ -1,14 +1,14 @@
 <menu id="menu">
     {% if not user %}
         <button class="btn" onclick="toggleView('loginForm')">Logg inn</button>
-        <button class="btn" onclick="toggleView('registerForm')">Registrer</button>
+        <button class="btn btn-account" onclick="toggleView('registerForm')">Registrer</button>
     {% else %}
         <button class="btn" onclick="toggleView('profile')">{{ user.username }}</button>
         {% if not landing %}
             {% if not favourites %}
-                <button class="btn" onclick="applyFilters(true, true)">Favoritter</button>
+                <button class="btn btn-account" onclick="applyFilters(true, true)">Favoritter</button>
             {% else %}
-                <button class="btn" onclick="applyFilters(true, true)">Alle produkter</button>
+                <button class="btn btn-account" onclick="applyFilters(true, true)">Alle produkter</button>
             {% endif %}
         {% endif %}
     {% endif %}

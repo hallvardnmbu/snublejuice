@@ -215,7 +215,7 @@ nav ol {
     justify-content: center;
 }
 #menu {
-    gap: var(--margin);
+    gap: 0 var(--padding);
     flex-wrap: wrap;
     justify-content: center;
 }
@@ -270,6 +270,34 @@ img {
 [data-theme="dark"] .img-wrap img:not(.fallback) {
     filter: drop-shadow(0 0 3px var(--img-glow));
     mix-blend-mode: screen;
+}
+
+/* ── Header menu buttons — ghost style matching filter controls ──────── */
+#menu .btn:not(.btn-account) {
+    background: var(--foreground);
+    border-color: var(--input-border);
+    color: var(--text-muted);
+    height: var(--control-h-sm);
+    padding: 0 var(--padding-lg);
+}
+[data-theme="dark"] #menu .btn:not(.btn-account) {
+    background: var(--foreground);
+    border-color: var(--input-border);
+    color: var(--text-muted);
+}
+@media (hover: hover) {
+    #menu .btn:not(.btn-account):hover:not(:disabled) {
+        background: var(--foreground);
+        border-color: var(--border-hover);
+        color: var(--text);
+    }
+}
+@media (hover: none) {
+    #menu .btn:not(.btn-account):active:not(:disabled) {
+        opacity: 1;
+        border-color: var(--border-hover);
+        color: var(--text);
+    }
 }
 
 /* ── Filter form ─────────────────────────────────────────────────────── */

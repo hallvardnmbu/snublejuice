@@ -1,7 +1,7 @@
 use futures::StreamExt;
 use mongodb::{
     Collection, Database,
-    bson::{Document, from_document},
+    bson::{Bson, Document, doc, from_document},
 };
 use shared::models::{PRODUCTS_PER_PAGE, Product};
 
@@ -26,6 +26,33 @@ pub async fn get_products(db: &Database, pipeline: Vec<Document>) -> Vec<Product
     }
 
     documents
+}
+
+pub async fn get_preview(db: &Database, taxfree: bool) -> Option<Product> {
+    let pipeline = if taxfree {
+        vec![
+            doc! { "$match": {
+                "taxfree.stores": { "$exists": true, "$ne": Bson::Null },
+                "taxfree.valid": true,
+                "taxfree.discount": { "$lt": 0.0 },
+            }},
+            doc! { "$sort": { "taxfree.discount": 1 } },
+            doc! { "$limit": 1 },
+        ]
+    } else {
+        vec![
+            doc! { "$match": {
+                "updated": true,
+                "orderable": true,
+                "discount": { "$lt": 0.0 },
+                "price": { "$gt": 0.0 },
+                "alcohol": { "$gt": 0.0 },
+            }},
+            doc! { "$sort": { "discount": 1 } },
+            doc! { "$limit": 1 },
+        ]
+    };
+    get_products(db, pipeline).await.into_iter().next()
 }
 
 pub async fn get_max_page(db: &Database, filter: Document) -> u64 {

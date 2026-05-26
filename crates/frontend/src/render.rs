@@ -8,7 +8,6 @@ use rust_embed::RustEmbed;
 use std::sync::OnceLock;
 
 use authentication::middle::MaybeAuthenticate;
-use database;
 use shared::{
     models::{Product, User},
     query::Parameters,
@@ -48,9 +47,9 @@ fn get_env() -> &'static Environment<'static> {
     })
 }
 
-pub fn render_landing() -> String {
+pub fn render_landing(user: Option<User>) -> String {
     let tmpl = get_env().get_template("landing.html").unwrap();
-    tmpl.render(context! {}).unwrap()
+    tmpl.render(context! { user }).unwrap()
 }
 
 pub fn render_products(
@@ -104,7 +103,7 @@ pub async fn site(
     }
 
     match subdomain {
-        Subdomain::Landing => Html(render_landing()),
+        Subdomain::Landing => Html(render_landing(user)),
         Subdomain::Vinmonopolet | Subdomain::Taxfree => {
             if !database::metadata::get_prices_updated(&state.db, subdomain.name()).await {
                 return Html(render_error(

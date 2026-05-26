@@ -40,8 +40,12 @@ pub async fn login(
     };
     users::store_session(&state.db, session).await?;
 
+    let domain =
+        std::env::var("COOKIE_DOMAIN").unwrap_or_else(|_| "snublejuice.localhost".to_string());
+
     let cookie = Cookie::build(("session_id", session_id))
         .path("/")
+        .domain(domain)
         .http_only(true)
         .secure(true)
         .same_site(SameSite::Lax)
@@ -90,8 +94,12 @@ pub async fn signup(
     };
     users::store_session(&state.db, session).await?;
 
+    let domain =
+        std::env::var("COOKIE_DOMAIN").unwrap_or_else(|_| "snublejuice.localhost".to_string());
+
     let cookie = Cookie::build(("session_id", session_id))
         .path("/")
+        .domain(domain)
         .http_only(true)
         .secure(true)
         .same_site(SameSite::Lax)

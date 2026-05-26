@@ -25,6 +25,7 @@ pub fn router(state: AppState) -> Router<AppState> {
 
     Router::<AppState>::new()
         .merge(protected)
+        .route("/data/preview", get(products::get_preview))
         .route("/data/image/{index}", get(products::get_image))
         .route("/data/stores", get(metadata::get_stores))
         .route("/data/countries", get(metadata::get_countries))

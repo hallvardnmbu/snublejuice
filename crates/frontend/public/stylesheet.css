@@ -1102,29 +1102,8 @@ input[type="search"]::-webkit-search-results-decoration {
 /* Hero */
 .lp-hero {
     text-align: center;
-    padding: 28px 8px 14px;
+    padding: var(--padding) 0 calc(2 * var(--padding)) 0;
     width: 100%;
-}
-.lp-eyebrow {
-    font-family: var(--font-mono);
-    font-size: 10.5px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: #6b8a6f;
-    font-weight: 500;
-    display: inline-flex;
-    align-self: center;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 14px;
-}
-.lp-eyebrow::before,
-.lp-eyebrow::after {
-    content: "";
-    width: 28px;
-    height: 1px;
-    background: currentColor;
-    opacity: 0.4;
 }
 .lp-title {
     margin: 0 0 10px;

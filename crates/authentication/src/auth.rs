@@ -2,6 +2,7 @@ use axum::{Json, extract::State};
 use axum_extra::extract::cookie::{Cookie, CookieJar, SameSite};
 use mongodb::bson::DateTime;
 use std::time::{Duration, SystemTime};
+use time::Duration as TimeDuration;
 use uuid::Uuid;
 
 use crate::middle;
@@ -49,6 +50,7 @@ pub async fn login(
         .http_only(true)
         .secure(true)
         .same_site(SameSite::Lax)
+        .max_age(TimeDuration::seconds(ONE_MONTH as i64))
         .build();
 
     Ok((jar.add(cookie), Json("ok")))
@@ -103,6 +105,7 @@ pub async fn signup(
         .http_only(true)
         .secure(true)
         .same_site(SameSite::Lax)
+        .max_age(TimeDuration::seconds(ONE_MONTH as i64))
         .build();
 
     Ok((jar.add(cookie), Json("ok")))

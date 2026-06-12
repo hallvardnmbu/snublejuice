@@ -1,3 +1,5 @@
+{% from "partials/macros.html" import adv_field %}
+
 <menu id="menu">
     <div class="menu-group">
         {% if not user %}
@@ -15,7 +17,7 @@
         {% endif %}
     </div>
     <div class="menu-group">
-        <h1 class="lp-route-title">Snublejuice</h1>
+        <h1 class="site-title">Snublejuice</h1>
     </div>
     <div class="menu-group">
         {% if landing_url %}
@@ -25,84 +27,73 @@
     </div>
 </menu>
 
-<menu id="profile" style="display: none;">
+<menu id="profile" class="is-hidden">
     <button class="btn" onclick="toggleView('notifyUserForm')">Varslinger</button>
     <button class="btn" onclick="toggleView('deleteUserForm')">Slett meg</button>
     <button class="btn" onclick="logout()">Logg ut</button>
 </menu>
 
-<form id="loginForm" style="display: none;">
-    <div class="adv-grid">
-        <div class="adv-field">
-            <span class="adv-lbl">Brukernavn</span>
+<form id="loginForm" class="is-hidden">
+    <div class="adv-grid card card--inset">
+        {% call adv_field("Brukernavn") %}
             <input type="text" id="usernameLogin" name="username" minlength="2" required>
-        </div>
-        <div class="adv-field">
-            <span class="adv-lbl">Passord</span>
+        {% endcall %}
+        {% call adv_field("Passord") %}
             <input type="password" id="passwordLogin" name="password" minlength="4" required>
-        </div>
+        {% endcall %}
         <button type="submit" class="btn">Logg inn</button>
     </div>
 </form>
 
-<form id="registerForm" style="display: none;">
-    <div class="adv-grid">
-        <div class="adv-field">
-            <span class="adv-lbl">Brukernavn</span>
+<form id="registerForm" class="is-hidden">
+    <div class="adv-grid card card--inset">
+        {% call adv_field("Brukernavn") %}
             <input type="text" id="usernameRegister" name="username" minlength="2" required>
-        </div>
-        <div class="adv-field">
-            <span class="adv-lbl">E-post</span>
+        {% endcall %}
+        {% call adv_field("E-post") %}
             <input type="email" id="emailRegister" name="email" required>
-        </div>
-        <div class="adv-field">
-            <span class="adv-lbl">Passord</span>
+        {% endcall %}
+        {% call adv_field("Passord") %}
             <input type="password" id="passwordRegister" name="password" minlength="4" required>
-        </div>
-        <div class="adv-field adv-check-row">
-            <span class="adv-lbl">Månedsvarsel</span>
+        {% endcall %}
+        {% call adv_field("Månedsvarsel", "adv-check-row") %}
             <input type="checkbox" id="notifyRegister" name="notify" value="true">
-        </div>
+        {% endcall %}
         <button type="submit" class="btn">Registrer</button>
     </div>
 </form>
 
-<form id="notifyUserForm" style="display: none;">
+<form id="notifyUserForm" class="is-hidden">
     <input type="hidden" id="usernameNotify" name="username" value="{{ user.username if user else '' }}">
-    <div class="adv-grid">
-        <div class="adv-field">
-            <span class="adv-lbl">E-post</span>
+    <div class="adv-grid card card--inset">
+        {% call adv_field("E-post") %}
             <span>{{ user.email if user else '' }}</span>
-        </div>
-        <div class="adv-field adv-check-row">
-            <span class="adv-lbl">Månedsvarsel</span>
+        {% endcall %}
+        {% call adv_field("Månedsvarsel", "adv-check-row") %}
             <input type="checkbox" id="activeNotify" name="notify" {{ 'checked' if user and user.notify else '' }}>
-        </div>
+        {% endcall %}
         <button type="submit" class="btn">Lagre</button>
     </div>
 </form>
 
-<form id="deleteUserForm" style="display: none;">
+<form id="deleteUserForm" class="is-hidden">
     <input type="hidden" id="usernameDelete" name="username" value="{{ user.username if user else '' }}">
-    <div class="adv-grid">
-        <div class="adv-field">
-            <span class="adv-lbl">Brukernavn</span>
+    <div class="adv-grid card card--inset">
+        {% call adv_field("Brukernavn") %}
             <span>{{ user.username if user else '' }}</span>
-        </div>
-        <div class="adv-field">
-            <span class="adv-lbl">E-post</span>
+        {% endcall %}
+        {% call adv_field("E-post") %}
             <span>{{ user.email if user else '' }}</span>
-        </div>
-        <div class="adv-field">
-            <span class="adv-lbl">Passord</span>
+        {% endcall %}
+        {% call adv_field("Passord") %}
             <input type="password" id="passwordDelete" name="password" minlength="4" required>
-        </div>
+        {% endcall %}
         <button type="submit" class="btn">Slett bruker</button>
     </div>
 </form>
 
 <div class="message">
-    <span id="userMessage"></span>
+    <span id="userMessage" class="is-hidden"></span>
 </div>
 
 <script type="module" src="/public/scripts/profile.js"></script>

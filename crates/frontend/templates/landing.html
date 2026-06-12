@@ -1,351 +1,220 @@
-<!doctype html>
-<html lang="nb">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap"
-            rel="stylesheet"
-        />
-        <link rel="stylesheet" href="/public/stylesheet.css" />
+{% extends "base.html" %} {% from "partials/macros.html" import route_card %} {% block head %} {% include
+"partials/head.html" %}
 
-        <title>Snublejuice</title>
-        <meta name="theme-color" content="#f5f1e6" />
-        <link rel="manifest" href="/public/manifest.json" />
-        <link rel="icon" type="image/png" href="/public/images/150x150.png" />
-        <link rel="apple-touch-icon" href="/public/images/320x320.png" />
-        <meta property="og:image" content="/public/images/web.png" />
+<meta
+    name="description"
+    content="Se prishistorikk, finn skjulte tilbud og spar penger på alkohol. Sammenlign priser på vin, øl, brennevin og mer mellom Vinmonopolet og tax-free. Oppdateres månedlig med nye priser."
+/>
 
-        <meta
-            name="description"
-            content="Se prishistorikk, finn skjulte tilbud og spar penger på alkohol. Sammenlign priser på vin, øl, brennevin og mer mellom Vinmonopolet og tax-free. Oppdateres månedlig med nye priser."
-        />
+<meta property="og:title" content="Vinmonopolets tilbud og prishistorikk | Sammenlign priser med tax-free" />
+<meta
+    property="og:description"
+    content="Se prishistorikk, finn skjulte tilbud og spar penger på alkohol. Sammenlign priser på vin, øl, brennevin og mer mellom Vinmonopolet og tax-free. Oppdateres månedlig med nye priser."
+/>
+<meta property="og:url" content="https://snublejuice.no" />
+<meta property="og:type" content="website" />
+<meta property="og:locale" content="nb_NO" />
 
-        <meta property="og:title" content="Vinmonopolets tilbud og prishistorikk | Sammenlign priser med tax-free" />
-        <meta
-            property="og:description"
-            content="Se prishistorikk, finn skjulte tilbud og spar penger på alkohol. Sammenlign priser på vin, øl, brennevin og mer mellom Vinmonopolet og tax-free. Oppdateres månedlig med nye priser."
-        />
-        <meta property="og:url" content="https://snublejuice.no" />
-        <meta property="og:type" content="website" />
-        <meta property="og:locale" content="nb_NO" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Vinmonopolets tilbud og prishistorikk | Sammenlign priser med tax-free" />
+<meta
+    name="twitter:description"
+    content="Se prishistorikk, finn skjulte tilbud og spar penger på alkohol. Sammenlign priser på vin, øl, brennevin og mer mellom Vinmonopolet og tax-free. Oppdateres månedlig med nye priser."
+/>
 
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Vinmonopolets tilbud og prishistorikk | Sammenlign priser med tax-free" />
-        <meta
-            name="twitter:description"
-            content="Se prishistorikk, finn skjulte tilbud og spar penger på alkohol. Sammenlign priser på vin, øl, brennevin og mer mellom Vinmonopolet og tax-free. Oppdateres månedlig med nye priser."
-        />
+<script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Snublejuice",
+        "alternateName": "Snublejuice.no",
+        "description": "Se prishistorikk, finn skjulte tilbud og spar penger på alkohol. Sammenlign priser på vin, øl, brennevin og mer mellom Vinmonopolet og tax-free. Oppdateres månedlig med nye priser.",
+        "url": "https://snublejuice.no",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://vinmonopolet.snublejuice.no/?search={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+        },
+        "author": {
+            "@type": "Person",
+            "name": "Hallvard",
+            "url": "https://dilettant.no"
+        },
+        "datePublished": "2025-01-27",
+        "inLanguage": "nb"
+    }
+</script>
 
-        <script type="application/ld+json">
+<script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Snublejuice",
+        "url": "https://snublejuice.no",
+        "logo": "https://snublejuice.no/public/images/snublejuice.png",
+        "description": "Se prishistorikk, finn skjulte tilbud og spar penger på alkohol. Sammenlign priser på vin, øl, brennevin og mer mellom Vinmonopolet og tax-free. Oppdateres månedlig med nye priser.",
+        "foundingDate": "2025-01-27",
+        "founder": {
+            "@type": "Person",
+            "name": "Hallvard",
+            "url": "https://dilettant.no"
+        },
+        "serviceType": "Prissammenligning",
+        "areaServed": {
+            "@type": "Country",
+            "name": "Norway"
+        },
+        "knowsAbout": ["Vinmonopolet priser", "Tax-free priser", "Alkohol prishistorikk", "Duty-free sammenligning"],
+        "sameAs": ["https://vinmonopolet.snublejuice.no", "https://taxfree.snublejuice.no"]
+    }
+</script>
+
+<script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
             {
-                "@context": "https://schema.org",
-                "@type": "WebSite",
-                "name": "Snublejuice",
-                "alternateName": "Snublejuice.no",
-                "description": "Se prishistorikk, finn skjulte tilbud og spar penger på alkohol. Sammenlign priser på vin, øl, brennevin og mer mellom Vinmonopolet og tax-free. Oppdateres månedlig med nye priser.",
-                "url": "https://snublejuice.no",
-                "potentialAction": {
-                    "@type": "SearchAction",
-                    "target": {
-                        "@type": "EntryPoint",
-                        "urlTemplate": "https://vinmonopolet.snublejuice.no/?search={search_term_string}"
-                    },
-                    "query-input": "required name=search_term_string"
-                },
-                "author": {
-                    "@type": "Person",
-                    "name": "Hallvard",
-                    "url": "https://dilettant.no"
-                },
-                "datePublished": "2025-01-27",
-                "inLanguage": "nb"
-            }
-        </script>
-
-        <script type="application/ld+json">
+                "@type": "Question",
+                "name": "Hva er Snublejuice?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Snublejuice er en nettside hvor Vinmonopolets tilbud og prishistorikk vises. Samt en sammeligning av priser mellom tax-free og Vinmonopolet."
+                }
+            },
             {
-                "@context": "https://schema.org",
-                "@type": "Organization",
-                "name": "Snublejuice",
-                "url": "https://snublejuice.no",
-                "logo": "https://snublejuice.no/public/images/snublejuice.png",
-                "description": "Se prishistorikk, finn skjulte tilbud og spar penger på alkohol. Sammenlign priser på vin, øl, brennevin og mer mellom Vinmonopolet og tax-free. Oppdateres månedlig med nye priser.",
-                "foundingDate": "2025-01-27",
-                "founder": {
-                    "@type": "Person",
-                    "name": "Hallvard",
-                    "url": "https://dilettant.no"
-                },
-                "serviceType": "Prissammenligning",
-                "areaServed": {
-                    "@type": "Country",
-                    "name": "Norway"
-                },
-                "knowsAbout": [
-                    "Vinmonopolet priser",
-                    "Tax-free priser",
-                    "Alkohol prishistorikk",
-                    "Duty-free sammenligning"
-                ],
-                "sameAs": ["https://vinmonopolet.snublejuice.no", "https://taxfree.snublejuice.no"]
-            }
-        </script>
-
-        <script type="application/ld+json">
+                "@type": "Question",
+                "name": "Hvor ofte oppdateres prisene?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Vinmonopolet oppdaterer prisene sine hver måned. Vi gjør det samme, og finner ut hvilke varer som er på tilbud. Tax-free priser oppdateres for enkelhets skyld samtidig."
+                }
+            },
             {
-                "@context": "https://schema.org",
-                "@type": "FAQPage",
-                "mainEntity": [
-                    {
-                        "@type": "Question",
-                        "name": "Hva er Snublejuice?",
-                        "acceptedAnswer": {
-                            "@type": "Answer",
-                            "text": "Snublejuice er en nettside hvor Vinmonopolets tilbud og prishistorikk vises. Samt en sammeligning av priser mellom tax-free og Vinmonopolet."
-                        }
-                    },
-                    {
-                        "@type": "Question",
-                        "name": "Hvor ofte oppdateres prisene?",
-                        "acceptedAnswer": {
-                            "@type": "Answer",
-                            "text": "Vinmonopolet oppdaterer prisene sine hver måned. Vi gjør det samme, og finner ut hvilke varer som er på tilbud. Tax-free priser oppdateres for enkelhets skyld samtidig."
-                        }
-                    },
-                    {
-                        "@type": "Question",
-                        "name": "Hvor ofte oppdateres lagerstatus?",
-                        "acceptedAnswer": {
-                            "@type": "Answer",
-                            "text": "Lagerstatus oppdatere jevnlig. Ikke hver dag, men innimellom. I starten av måneden oppdateres lagerstatusen hyppigere enn mot slutten av måneden."
-                        }
-                    },
-                    {
-                        "@type": "Question",
-                        "name": "Kan jeg få varslinger om prisendringer?",
-                        "acceptedAnswer": {
-                            "@type": "Answer",
-                            "text": "Ja! Du kan registrere deg for å motta e-postvarslinger hver gang prisene oppdateres ved månedsskifte. Dette gjøres i profilen din."
-                        }
-                    }
-                ]
+                "@type": "Question",
+                "name": "Hvor ofte oppdateres lagerstatus?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Lagerstatus oppdatere jevnlig. Ikke hver dag, men innimellom. I starten av måneden oppdateres lagerstatusen hyppigere enn mot slutten av måneden."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Kan jeg få varslinger om prisendringer?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Ja! Du kan registrere deg for å motta e-postvarslinger hver gang prisene oppdateres ved månedsskifte. Dette gjøres i profilen din."
+                }
             }
-        </script>
+        ]
+    }
+</script>
 
-        <meta
-            name="keywords"
-            content="Vinmonopolet priser, Tax free priser, Vinmonopolet tilbud, Tax free alkohol, Prissammenligning alkohol, Duty free Norge, Vinmonopolet prishistorikk, Vinmonopolet prisendring, Duty free Gardermoen, Tax free Gardermoen, Vinmonopolet vs tax free, Alkohol tax free, Vin tax free, Øl tax free, Sprit tax free"
-        />
+<meta
+    name="keywords"
+    content="Vinmonopolet priser, Tax free priser, Vinmonopolet tilbud, Tax free alkohol, Prissammenligning alkohol, Duty free Norge, Vinmonopolet prishistorikk, Vinmonopolet prisendring, Duty free Gardermoen, Tax free Gardermoen, Vinmonopolet vs tax free, Alkohol tax free, Vin tax free, Øl tax free, Sprit tax free"
+/>
 
-        <link rel="canonical" href="https://snublejuice.no" />
-    </head>
+<link rel="canonical" href="https://snublejuice.no" />
+{% endblock %} {% block header %} {% with user=user, landing=true %}{% include "partials/account.html" %}{% endwith %}
+{% endblock %} {% block main_attrs %} class="lp-main"{% endblock %} {% block main %}
+<section class="lp-hero">
+    <h1 class="lp-title">Snubl over og gjør et kupp.</h1>
+    <p class="lp-sub">
+        Snublejuice følger prishistorikken til Vinmonopolet og tax-free-butikkene måned for måned, så du får med deg hva
+        som er på tilbud.
+    </p>
+</section>
 
-    <body>
-        <header>{% with user=user, landing=true %} {% include "partials/account.html" %}{% endwith %}</header>
+<div class="lp-routes" aria-label="Velg side">
+    {{ route_card( "vin", "https://vinmonopolet.snublejuice.no", "Butikkpriser", "Vinmonopolet",
+    "vinmonopolet.snublejuice.no", "Skjulte tilbud fra Vinmonopolet hvert månedsskifte.", "Gå til
+    vinmonopolet-utvalget", "preview-vin", "Prishistorikk og tilbudsoversikt" ) }} {{ route_card( "tax",
+    "https://taxfree.snublejuice.no", "Flyplasspriser", "Tax-free", "taxfree.snublejuice.no", "Hva lønner seg mest å
+    kjøpe på tax-free?", "Gå til tax-free-sammenligning", "preview-tax", "Prissammenligning tax-free vs Vinmonopolet" )
+    }}
+</div>
 
-        <main class="lp-main">
-            <section class="lp-hero">
-                <h1 class="lp-title">Snubl over og gjør et kupp.</h1>
-                <p class="lp-sub">
-                    Snublejuice følger prishistorikken til Vinmonopolet og tax-free-butikkene måned for måned, så du får
-                    med deg hva som er på tilbud.
-                </p>
-            </section>
+<div class="lp-how card">
+    <div class="lp-how-steps">
+        <div class="lp-how-step">
+            <span class="lp-how-step-num">01 / VELG</span>
+            <h4>Velg destinasjon</h4>
+            <p>Skal du på pol-tur eller flyplass? Vi finner beste tilbud uansett hvor!</p>
+        </div>
+        <div class="lp-how-step">
+            <span class="lp-how-step-num">02 / FILTRER</span>
+            <h4>Filtrer på det som teller</h4>
+            <p>Kategori, butikk eller flyplass, prisendring. Eller bare søk fritt.</p>
+        </div>
+        <div class="lp-how-step">
+            <span class="lp-how-step-num">03 / VARSLE</span>
+            <h4>Få varsel hver måned</h4>
+            <p>Vi sender e-post når prisene justeres så du ikke går glipp av tilbud.</p>
+        </div>
+    </div>
+</div>
 
-            <div class="lp-routes" aria-label="Velg side">
-                <a
-                    class="lp-route lp-route--vin"
-                    href="https://vinmonopolet.snublejuice.no"
-                    itemscope
-                    itemtype="https://schema.org/Service"
-                >
-                    <div class="lp-route-head">
-                        <span class="lp-route-tag">Butikkpriser</span>
-                        <span class="lp-route-glyph" aria-hidden="true">
-                            <svg
-                                width="20"
-                                height="20"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            >
-                                <path
-                                    d="M10 2 h4 v4 c0 2 3 3 3 7 v9 a2 2 0 0 1 -2 2 h-6 a2 2 0 0 1 -2 -2 v-9 c0 -4 3 -5 3 -7 z"
-                                />
-                                <path d="M9 14 h6" />
-                            </svg>
-                        </span>
-                    </div>
-                    <h2 class="lp-route-title" itemprop="name">
-                        Vinmonopolet
-                        <small>vinmonopolet.snublejuice.no</small>
-                    </h2>
-                    <p class="lp-route-desc" itemprop="description">
-                        Skjulte tilbud fra Vinmonopolet hvert månedsskifte.
-                    </p>
-                    <div class="lp-route-preview" id="preview-vin" style="display: none"></div>
-                    <div class="lp-route-cta">
-                        <span>Gå til vinmonopolet-utvalget</span>
-                        <span class="lp-route-cta-arrow">
-                            <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            >
-                                <path d="M5 12h14" />
-                                <path d="m13 6 6 6-6 6" />
-                            </svg>
-                        </span>
-                    </div>
-                    <meta itemprop="serviceType" content="Prishistorikk og tilbudsoversikt" />
-                    <meta itemprop="provider" content="Snublejuice" />
-                </a>
+<div class="lp-info">
+    <div class="lp-info-card card">
+        <h3>Lagerbeholdning</h3>
+        <p>
+            Lagerbeholdning oppdateres innimellom, så avvik kan forekomme. Alltid dobbeltsjekk på produktets egen side
+            før du handler.
+        </p>
+    </div>
+    <div class="lp-info-card card">
+        <h3>Varslinger</h3>
+        <p>
+            Kryss av for e-postvarsel hver gang prisene oppdateres. Aktiveres under
+            <span class="lp-kbd">Profil</span> → <span class="lp-kbd">Varslinger</span> når du er logget inn.
+        </p>
+    </div>
+</div>
+{% endblock %} {% block footer %} {% with landing=true %}{% include "partials/footer.html" %}{% endwith %} {% endblock
+%} {% block scripts %}
+<script type="module">
+    const BOTTLE = {
+        vin: `<path d="M24 5 h12 v17 c0 5 8 9 8 22 v45 c0 4 -2 6 -6 6 h-16 c-4 0 -6 -2 -6 -6 v-45 c0 -13 8 -17 8 -22 z" fill="#3a4d3c"/><rect x="10" y="55" width="40" height="26" fill="#f3ecd8"/><rect x="10" y="55" width="40" height="2" fill="#7a9b7d"/><rect x="10" y="79" width="40" height="2" fill="#7a9b7d"/><rect x="22" y="5" width="16" height="14" fill="rgba(0,0,0,.25)"/>`,
+        tax: `<path d="M24 5 h12 v17 c0 5 8 9 8 22 v45 c0 4 -2 6 -6 6 h-16 c-4 0 -6 -2 -6 -6 v-45 c0 -13 8 -17 8 -22 z" fill="#5a3a18"/><rect x="10" y="55" width="40" height="26" fill="#f7eed8"/><rect x="10" y="55" width="40" height="2" fill="#c98a3a"/><rect x="10" y="79" width="40" height="2" fill="#c98a3a"/><rect x="22" y="5" width="16" height="14" fill="rgba(0,0,0,.25)"/>`,
+    };
 
-                <a
-                    class="lp-route lp-route--tax"
-                    href="https://taxfree.snublejuice.no"
-                    itemscope
-                    itemtype="https://schema.org/Service"
-                >
-                    <div class="lp-route-head">
-                        <span class="lp-route-tag">Flyplasspriser</span>
-                        <span class="lp-route-glyph" aria-hidden="true">
-                            <svg
-                                width="20"
-                                height="20"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            >
-                                <path d="M8 3 h8 l2 4 v14 a1 1 0 0 1 -1 1 h-10 a1 1 0 0 1 -1 -1 v-14 z" />
-                                <path d="M8 7 h8" />
-                                <circle cx="12" cy="13" r="1.6" />
-                            </svg>
-                        </span>
-                    </div>
-                    <h2 class="lp-route-title" itemprop="name">
-                        Tax-free
-                        <small>taxfree.snublejuice.no</small>
-                    </h2>
-                    <p class="lp-route-desc" itemprop="description">Hva lønner seg mest å kjøpe på tax-free?</p>
-                    <div class="lp-route-preview" id="preview-tax" style="display: none"></div>
-                    <div class="lp-route-cta">
-                        <span>Gå til tax-free-sammenligning</span>
-                        <span class="lp-route-cta-arrow">
-                            <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            >
-                                <path d="M5 12h14" />
-                                <path d="m13 6 6 6-6 6" />
-                            </svg>
-                        </span>
-                    </div>
-                    <meta itemprop="serviceType" content="Prissammenligning tax-free vs Vinmonopolet" />
-                    <meta itemprop="provider" content="Snublejuice" />
-                </a>
-            </div>
+    function renderPreview(el, type, p) {
+        const name = p.name ?? "";
+        const price = Math.round(p.price ?? 0);
+        const now = type === "tax" ? Math.round(p.taxfree?.price ?? 0) : price;
+        const was = type === "tax" ? price : Math.round(p.oldprice ?? 0);
+        const discount = type === "tax" ? Math.round(p.taxfree?.discount ?? 0) : Math.round(p.discount ?? 0);
+        const meta =
+            type === "tax"
+                ? `${Math.round(p.volume ?? 0)} cL · ${discount}% mot polet`
+                : `${Math.round(p.volume ?? 0)} cL · ${(p.country ?? "").toUpperCase()} · ${discount}%`;
 
-            <div class="lp-how">
-                <div class="lp-how-steps">
-                    <div class="lp-how-step">
-                        <span class="lp-how-step-num">01 / VELG</span>
-                        <h4>Velg destinasjon</h4>
-                        <p>Skal du på pol-tur eller flyplass? Vi finner beste tilbud uansett hvor!</p>
-                    </div>
-                    <div class="lp-how-step">
-                        <span class="lp-how-step-num">02 / FILTRER</span>
-                        <h4>Filtrer på det som teller</h4>
-                        <p>Kategori, butikk eller flyplass, prisendring. Eller bare søk fritt.</p>
-                    </div>
-                    <div class="lp-how-step">
-                        <span class="lp-how-step-num">03 / VARSLE</span>
-                        <h4>Få varsel hver måned</h4>
-                        <p>Vi sender e-post når prisene justeres så du ikke går glipp av tilbud.</p>
-                    </div>
+        el.innerHTML = `
+                <div class="lp-preview-bottle img-inset">
+                    <svg viewBox="0 0 60 100" aria-hidden="true" width="22" height="40">${BOTTLE[type]}</svg>
                 </div>
-            </div>
-
-            <div class="lp-info">
-                <div class="lp-info-card">
-                    <h3>Lagerbeholdning</h3>
-                    <p>
-                        Lagerbeholdning oppdateres innimellom, så avvik kan forekomme. Alltid dobbeltsjekk på produktets
-                        egen side før du handler.
-                    </p>
+                <div class="lp-preview-body">
+                    <div class="lp-preview-name">${name}</div>
+                    <div class="label-mono label-mono--xs">${meta}</div>
                 </div>
-                <div class="lp-info-card">
-                    <h3>Varslinger</h3>
-                    <p>
-                        Kryss av for e-postvarsel hver gang prisene oppdateres. Aktiveres under
-                        <span class="lp-kbd">Profil</span> → <span class="lp-kbd">Varslinger</span> når du er logget
-                        inn.
-                    </p>
-                </div>
-            </div>
-        </main>
+                <div class="lp-preview-price">
+                    <span class="pn-val">kr ${now}</span>
+                    ${was ? `<span class="pcval pcval-strike">kr ${was}</span>` : ""}
+                </div>`;
+        el.classList.remove("is-hidden");
+    }
 
-        <footer>{% with landing=true %}{% include "partials/footer.html" %}{% endwith %}</footer>
-        <script type="module">
-            const BOTTLE = {
-                vin: `<path d="M24 5 h12 v17 c0 5 8 9 8 22 v45 c0 4 -2 6 -6 6 h-16 c-4 0 -6 -2 -6 -6 v-45 c0 -13 8 -17 8 -22 z" fill="#3a4d3c"/><rect x="10" y="55" width="40" height="26" fill="#f3ecd8"/><rect x="10" y="55" width="40" height="2" fill="#7a9b7d"/><rect x="10" y="79" width="40" height="2" fill="#7a9b7d"/><rect x="22" y="5" width="16" height="14" fill="rgba(0,0,0,.25)"/>`,
-                tax: `<path d="M24 5 h12 v17 c0 5 8 9 8 22 v45 c0 4 -2 6 -6 6 h-16 c-4 0 -6 -2 -6 -6 v-45 c0 -13 8 -17 8 -22 z" fill="#5a3a18"/><rect x="10" y="55" width="40" height="26" fill="#f7eed8"/><rect x="10" y="55" width="40" height="2" fill="#c98a3a"/><rect x="10" y="79" width="40" height="2" fill="#c98a3a"/><rect x="22" y="5" width="16" height="14" fill="rgba(0,0,0,.25)"/>`,
-            };
-
-            function renderPreview(el, type, p) {
-                const name = p.name ?? "";
-                const price = Math.round(p.price ?? 0);
-                const now = type === "tax" ? Math.round(p.taxfree?.price ?? 0) : price;
-                const was = type === "tax" ? price : Math.round(p.oldprice ?? 0);
-                const discount = type === "tax" ? Math.round(p.taxfree?.discount ?? 0) : Math.round(p.discount ?? 0);
-                const meta =
-                    type === "tax"
-                        ? `${Math.round(p.volume ?? 0)} cL · ${discount}% mot polet`
-                        : `${Math.round(p.volume ?? 0)} cL · ${(p.country ?? "").toUpperCase()} · ${discount}%`;
-
-                el.innerHTML = `
-                    <div class="lp-preview-bottle">
-                        <svg viewBox="0 0 60 100" aria-hidden="true" width="22" height="40">${BOTTLE[type]}</svg>
-                    </div>
-                    <div class="lp-preview-body">
-                        <div class="lp-preview-name">${name}</div>
-                        <div class="lp-preview-meta">${meta}</div>
-                    </div>
-                    <div class="lp-preview-price">
-                        <span class="lp-preview-now">kr ${now}</span>
-                        ${was ? `<span class="lp-preview-was">kr ${was}</span>` : ""}
-                    </div>`;
-                el.style.display = "";
-            }
-
-            fetch("/data/preview")
-                .then((r) => (r.ok ? r.json() : null))
-                .then((data) => {
-                    if (!data) return;
-                    if (data.vmp) renderPreview(document.getElementById("preview-vin"), "vin", data.vmp);
-                    if (data.tax) renderPreview(document.getElementById("preview-tax"), "tax", data.tax);
-                })
-                .catch(() => {});
-        </script>
-    </body>
-</html>
+    fetch("/data/preview")
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+            if (!data) return;
+            if (data.vmp) renderPreview(document.getElementById("preview-vin"), "vin", data.vmp);
+            if (data.tax) renderPreview(document.getElementById("preview-tax"), "tax", data.tax);
+        })
+        .catch(() => {});
+</script>
+{% endblock %}

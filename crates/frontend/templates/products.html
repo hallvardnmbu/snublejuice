@@ -1,58 +1,23 @@
-<!doctype html>
+{% extends "base.html" %} {% block head %} {% include "partials/head.html" %}
+<script src="/public/scripts/stores.js"></script>
+<script src="/public/scripts/countries.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.7/axios.min.js"></script>
 
-<html lang="nb">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap"
-            rel="stylesheet"
-        />
-        <link rel="stylesheet" href="/public/stylesheet.css" />
-
-        <script src="/public/scripts/stores.js"></script>
-        <script src="/public/scripts/countries.js"></script>
-
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.7/axios.min.js"></script>
-
-        <title>Snublejuice</title>
-        <meta name="theme-color" content="#f5f1e6" />
-        <link rel="manifest" href="/public/manifest.json" />
-        <link rel="icon" type="image/png" href="/public/images/150x150.png" />
-        <link rel="apple-touch-icon" href="/public/images/320x320.png" />
-        <meta property="og:image" content="/public/images/web.png" />
-
-        <meta property="og:title" content="Snublejuice.no" />
-        <meta
-            property="og:description"
-            content="Vinmonopolets prisendring, prishistorikk og sammenlikning med tax-free."
-        />
-        <meta name="description" content="Vinmonopolets prisendring, prishistorikk og sammenlikning med tax-free." />
-    </head>
-
-    <body>
-        <header>
-            {% with favourites=parameters.favourites, landing=false, landing_url=landing_url %} {% include "partials/account.html" %} {% endwith
-            %}
-        </header>
-
-        <main>
-            {% with parameters=parameters, taxfree=is_taxfree %}{% include "partials/forms.html" %}{% endwith %} {% with
-            placement="top" %}{% include "partials/pagination.html" %}{% endwith %} {% if data|length == 0 %}
-            <span>Ingen resultater finnes for valgt kominasjon.</span>
-            {% else %} {% if message %}
-            <div class="message">
-                <span>{{ message }}</span>
-            </div>
-            {% endif %} {% for item in data %} {% with parameters=parameters, item=item, index=loop.index0,
-            taxfree=is_taxfree %} {% include "partials/product.html" %} {% endwith %} {% endfor %} {% endif %} {% with
-            placement="bottom" %}{% include "partials/pagination.html" %}{% endwith %}
-        </main>
-
-        <footer>{% with landing=false %}{% include "partials/footer.html" %}{% endwith %}</footer>
-
-        <script src="/public/scripts/buttons.js"></script>
-    </body>
-</html>
+<meta property="og:title" content="Snublejuice.no" />
+<meta property="og:description" content="Vinmonopolets prisendring, prishistorikk og sammenlikning med tax-free." />
+<meta name="description" content="Vinmonopolets prisendring, prishistorikk og sammenlikning med tax-free." />
+{% endblock %} {% block header %} {% with favourites=parameters.favourites, landing=false, landing_url=landing_url %} {%
+include "partials/account.html" %} {% endwith %} {% endblock %} {% block main %} {% with parameters=parameters,
+taxfree=is_taxfree %}{% include "partials/forms.html" %}{% endwith %} {% with placement="top" %}{% include
+"partials/pagination.html" %}{% endwith %} {% if data|length == 0 %}
+<span>Ingen resultater finnes for valgt kominasjon.</span>
+{% else %} {% if message %}
+<div class="message">
+    <span>{{ message }}</span>
+</div>
+{% endif %} {% for item in data %} {% with parameters=parameters, item=item, index=loop.index0, taxfree=is_taxfree %} {%
+include "partials/product.html" %} {% endwith %} {% endfor %} {% endif %} {% with placement="bottom" %}{% include
+"partials/pagination.html" %}{% endwith %} {% endblock %} {% block footer %} {% with landing=false %}{% include
+"partials/footer.html" %}{% endwith %} {% endblock %} {% block scripts %}
+<script src="/public/scripts/buttons.js"></script>
+{% endblock %}

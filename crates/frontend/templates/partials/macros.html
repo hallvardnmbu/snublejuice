@@ -1,0 +1,98 @@
+{% macro route_card(type, href, tag, title, domain, desc, cta_text, preview_id, service_type) %}
+<a
+    class="lp-route lp-route--{{ type }} card card--interactive card--radius-xl"
+    href="{{ href }}"
+    itemscope
+    itemtype="https://schema.org/Service"
+>
+    <div class="lp-route-head">
+        <span class="lp-route-tag">{{ tag }}</span>
+        <span class="lp-route-glyph" aria-hidden="true">
+            {% if type == "vin" %}
+            <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <path d="M10 2 h4 v4 c0 2 3 3 3 7 v9 a2 2 0 0 1 -2 2 h-6 a2 2 0 0 1 -2 -2 v-9 c0 -4 3 -5 3 -7 z" />
+                <path d="M9 14 h6" />
+            </svg>
+            {% else %}
+            <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <path d="M8 3 h8 l2 4 v14 a1 1 0 0 1 -1 1 h-10 a1 1 0 0 1 -1 -1 v-14 z" />
+                <path d="M8 7 h8" />
+                <circle cx="12" cy="13" r="1.6" />
+            </svg>
+            {% endif %}
+        </span>
+    </div>
+    <h2 class="lp-route-title" itemprop="name">
+        {{ title }}
+        <small>{{ domain }}</small>
+    </h2>
+    <p class="lp-route-desc" itemprop="description">{{ desc }}</p>
+    <div class="lp-route-preview is-hidden" id="{{ preview_id }}"></div>
+    <div class="lp-route-cta">
+        <span>{{ cta_text }}</span>
+        <span class="lp-route-cta-arrow">
+            <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <path d="M5 12h14" />
+                <path d="m13 6 6 6-6 6" />
+            </svg>
+        </span>
+    </div>
+    <meta itemprop="serviceType" content="{{ service_type }}" />
+    <meta itemprop="provider" content="Snublejuice" />
+</a>
+{% endmacro %} {% macro adv_field(label, class="") %}
+<div class="adv-field{% if class %} {{ class }}{% endif %}">
+    <span class="adv-lbl">{{ label }}</span>
+    {{ caller() }}
+</div>
+{% endmacro %} {% macro price_cell(label, href, value, class="") %}
+<a href="{{ href }}" target="_blank" class="pcell"
+    ><span class="pclbl">{{ label }}</span><b class="pcval{% if class %} {{ class }}{% endif %}">{{ value }}</b></a
+>
+{% endmacro %} {% macro price_block(item, taxfree) %} {% if taxfree %} {{ price_cell("POL", item.url, (item.price |
+round) | int) }} {{ price_cell("TAX", item.taxfree.url, (item.taxfree.price | round) | int) }} {{ price_cell("DIFF",
+item.taxfree.url, ((item.taxfree.discount | round) | int) ~ "%", "pcval-change") }}
+<a href="{{ item.taxfree.url }}" target="_blank" class="price-now">
+    <b class="pn-val">{{ (item.taxfree.discount | round) | int }}</b>
+    <span class="pn-cur">%</span>
+    <span class="pn-sep"></span>
+    <span class="pn-cur">KR</span>
+    <b class="pn-val">{{ (item.taxfree.price | round) | int }}</b>
+</a>
+{% else %} {% if item.oldprice %} {{ price_cell("NÅ", item.url, (item.price | round) | int) }} {{ price_cell("FØR",
+item.url, (item.oldprice | round) | int, "pcval-strike") }} {{ price_cell("ENDRING", item.url, ((item.discount | round)
+| int) ~ "%", "pcval-change") }} {% endif %}
+<a href="{{ item.url }}" target="_blank" class="price-now">
+    {% if item.oldprice %}
+    <b class="pn-val">{{ (item.discount | round) | int }}</b><span class="pn-cur">%</span>
+    <span class="pn-sep"></span>{% endif %}<span class="pn-cur">KR</span
+    ><b class="pn-val">{{ (item.price | round) | int }}</b>
+</a>
+{% endif %} {% endmacro %}

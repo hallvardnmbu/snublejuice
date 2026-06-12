@@ -1,13 +1,18 @@
+{% from "partials/macros.html" import price_block %}
 <section
-    class="product"
+    class="product card card--interactive"
     id="{{ index }}"
     index="{{ index }}"
     style='
         --color: {% if taxfree %}{{ "var(--negative)" if item.taxfree.discount > 0 else "var(--positive)" if item.taxfree.discount < 0 else "var(--neutral)" }}{% else %}{{ "var(--negative)" if item.discount > 0 else "var(--positive)" if item.discount < 0 else "var(--neutral)" }}{% endif %};
     '
 >
-    <div>
-        <a class="img-wrap" href="{{ item.taxfree.url if taxfree else item.url }}" target="_blank">
+    <div class="product__row">
+        <a
+            class="product__image img-wrap img-inset"
+            href="{{ item.taxfree.url if taxfree else item.url }}"
+            target="_blank"
+        >
             <img
                 src="/data/image/{{ item.index }}"
                 onerror="
@@ -17,8 +22,8 @@
             />
         </a>
 
-        <div>
-            <h2>
+        <div class="product__body">
+            <h2 class="product__title">
                 {% if user %}
                 <button aria-label="Favoritt" data-index="{{ item.index }}" class="favourite-toggle">
                     {{ '★' if item.index in user.favourites else '☆' }}
@@ -66,7 +71,7 @@
                 {% endfor %}
             </span>
             {% endif %} {% if item.aperitif and item.aperitif.points is defined and item.aperitif.points != null %}
-            <span>
+            <span class="product__rating">
                 {% if item.aperitif.url %}
                 <a
                     href="{{ item.aperitif.url }}"
@@ -96,46 +101,7 @@
             <p class="description">{{ item.description }}</p>
             {% endif %}
 
-            <span class="price">
-                {% if taxfree %}
-                <a href="{{ item.url }}" target="_blank" class="pcell"
-                    ><span class="pclbl">POL</span><b class="pcval">{{ (item.price | round) | int }}</b></a
-                >
-                <a href="{{ item.taxfree.url }}" target="_blank" class="pcell"
-                    ><span class="pclbl">TAX</span><b class="pcval">{{ (item.taxfree.price | round) | int }}</b></a
-                >
-                <a href="{{ item.taxfree.url }}" target="_blank" class="pcell"
-                    ><span class="pclbl">DIFF</span
-                    ><b class="pcval pcval-change">{{ (item.taxfree.discount | round) | int }}%</b></a
-                >
-                <a href="{{ item.taxfree.url }}" target="_blank" class="price-now">
-                    <b class="pn-val">{{ (item.taxfree.discount | round) | int }}</b>
-                    <span class="pn-cur">%</span>
-                    <span class="pn-sep"></span>
-                    <span class="pn-cur">KR</span>
-                    <b class="pn-val">{{ (item.taxfree.price | round) | int }}</b>
-                </a>
-                {% else %} {% if item.oldprice %}
-                <a href="{{ item.url }}" target="_blank" class="pcell"
-                    ><span class="pclbl">NÅ</span><b class="pcval">{{ (item.price | round) | int }}</b></a
-                >
-                <a href="{{ item.url }}" target="_blank" class="pcell"
-                    ><span class="pclbl">FØR</span
-                    ><b class="pcval pcval-strike">{{ (item.oldprice | round) | int }}</b></a
-                >
-                <a href="{{ item.url }}" target="_blank" class="pcell"
-                    ><span class="pclbl">ENDRING</span
-                    ><b class="pcval pcval-change">{{ (item.discount | round) | int }}%</b></a
-                >
-                {% endif %}
-                <a href="{{ item.url }}" target="_blank" class="price-now">
-                    {% if item.oldprice %}
-                    <b class="pn-val">{{ (item.discount | round) | int }}</b><span class="pn-cur">%</span>
-                    <span class="pn-sep"></span>{% endif %}<span class="pn-cur">KR</span
-                    ><b class="pn-val">{{ (item.price | round) | int }}</b>
-                </a>
-                {% endif %}
-            </span>
+            <span class="price"> {{ price_block(item, taxfree) }} </span>
         </div>
     </div>
 

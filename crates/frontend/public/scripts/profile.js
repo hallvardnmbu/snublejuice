@@ -3,22 +3,20 @@ const _MODALS = ["profile", "loginForm", "registerForm", "notifyUserForm", "dele
 function toggleView(modal) {
   // Close all modals except the one that was clicked.
   for (const arg of _MODALS.filter((m) => m !== modal)) {
-    let element = document.getElementById(arg);
-    element.style.display = "none";
+    document.getElementById(arg).classList.add("is-hidden");
   }
 
   // Close message.
   const userMessage = document.getElementById("userMessage");
-  userMessage.style.display = "none";
+  userMessage.classList.add("is-hidden");
 
   // Open the clicked modal.
-  let element = document.getElementById(modal);
-  element.style.display = element.style.display === "flex" ? "none" : "flex";
+  document.getElementById(modal).classList.toggle("is-hidden");
 }
 
 async function showError(message) {
   const userMessage = document.getElementById("userMessage");
-  userMessage.style.display = "block";
+  userMessage.classList.remove("is-hidden");
   userMessage.textContent = message;
 }
 

@@ -85,6 +85,144 @@ pub fn render_error(message: &str, landing_url: &str) -> String {
     .unwrap()
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use shared::models::{Product, Taxfree};
+    use shared::query::Parameters;
+
+    fn sample_product() -> Product {
+        Product {
+            index: 0,
+            name: "Testvin".to_string(),
+            price: 150.0,
+            prices: vec![],
+            discount: 25.0,
+            volume: 75.0,
+            alcohol: 13.5,
+            literprice: 200.0,
+            url: "https://example.com/vin".to_string(),
+            stores: vec![],
+            category: "Rødvin".to_string(),
+            subcategory: None,
+            country: "Frankrike".to_string(),
+            district: None,
+            subdistrict: None,
+            description: None,
+            storage: None,
+            smell: None,
+            taste: None,
+            pair: None,
+            year: None,
+            oldprice: Some(200.0),
+            colour: None,
+            sugar: None,
+            acid: None,
+            characteristics: vec![],
+            ingredients: vec![],
+            aperitif: None,
+            taxfree: Some(Taxfree {
+                url: "https://example.com/tax".to_string(),
+                price: 120.0,
+                discount: 20.0,
+                stores: vec![],
+            }),
+        }
+    }
+
+    fn empty_parameters() -> Parameters {
+        Parameters {
+            page: None,
+            sort: None,
+            ascending: None,
+            favourites: None,
+            category: None,
+            country: None,
+            price: None,
+            cprice: None,
+            volume: None,
+            cvolume: None,
+            alcohol: None,
+            calcohol: None,
+            year: None,
+            cyear: None,
+            search: None,
+            storelike: None,
+            store_vinmonopolet: None,
+            store_taxfree: None,
+        }
+    }
+
+    #[test]
+    fn templates_extend_base_and_render() {
+        let landing = render_landing(None);
+        assert!(landing.contains("<!doctype html>"));
+        assert!(landing.contains(r#"href="/public/stylesheet.css""#));
+        assert!(landing.contains("application/ld+json"));
+        assert!(landing.contains("lp-main"));
+        assert!(landing.contains("preview-vin"));
+        assert!(landing.contains("itemscope"));
+        assert!(landing.contains("itemprop=\"name\""));
+        assert!(landing.contains("preview-tax"));
+
+        let parameters = empty_parameters();
+        let products = render_products(
+            &vec![],
+            false,
+            None,
+            1,
+            1,
+            &parameters,
+            "https://snublejuice.no",
+        );
+        assert!(products.contains(r#"href="/public/stylesheet.css""#));
+        assert!(products.contains("/public/scripts/stores.js"));
+        assert!(products.contains("/public/scripts/buttons.js"));
+        assert!(products.contains(r#"id="nsearch""#));
+        assert!(products.contains(r#"id="category""#));
+        assert!(!products.contains("lp-main"));
+
+        let error = render_error("Test message", "https://snublejuice.no");
+        assert!(error.contains(r#"href="/public/stylesheet.css""#));
+        assert!(error.contains("Test message"));
+        assert!(error.contains("error-logo"));
+    }
+
+    #[test]
+    fn price_block_renders_vin_and_taxfree() {
+        let parameters = empty_parameters();
+        let vin = render_products(
+            &vec![sample_product()],
+            false,
+            None,
+            1,
+            1,
+            &parameters,
+            "https://snublejuice.no",
+        );
+        assert!(vin.contains(">NÅ</span>"));
+        assert!(vin.contains(">FØR</span>"));
+        assert!(vin.contains(">ENDRING</span>"));
+        assert!(vin.contains("pcval-strike"));
+        assert!(vin.contains("class=\"price-now\""));
+
+        let tax = render_products(
+            &vec![sample_product()],
+            true,
+            None,
+            1,
+            1,
+            &parameters,
+            "https://snublejuice.no",
+        );
+        assert!(tax.contains(">POL</span>"));
+        assert!(tax.contains(">TAX</span>"));
+        assert!(tax.contains(">DIFF</span>"));
+        assert!(tax.contains("pcval-change"));
+        assert!(tax.contains("example.com"));
+    }
+}
+
 pub async fn site(
     State(state): State<AppState>,
     subdomain: Subdomain,

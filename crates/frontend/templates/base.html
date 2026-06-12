@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="nb">
+    <head>
+        {% block head %}
+            {% include "partials/head.html" %}
+        {% endblock %}
+    </head>
+    <body>
+        <header>{% block header %}{% endblock %}</header>
+        <main{% block main_attrs %}{% endblock %}>{% block main %}{% endblock %}</main>
+        <footer>{% block footer %}{% endblock %}</footer>
+        {% block scripts %}{% endblock %}
+    </body>
+</html>

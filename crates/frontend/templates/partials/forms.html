@@ -1,3 +1,5 @@
+{% from "partials/macros.html" import adv_field %}
+
 <form action="/" method="get" id="filter">
     <input type="hidden" name="page" value="{{ parameters.page if parameters.page is not none else '' }}">
     <input type="hidden" name="ascending" value="{{ parameters.ascending if parameters.ascending is not none else 'true' }}">
@@ -8,7 +10,7 @@
     <input type="hidden" name="calcohol" value="{{ parameters.calcohol if parameters.calcohol is not none else '' }}">
     <input type="hidden" name="cyear" value="{{ parameters.cyear if parameters.cyear is not none else '' }}">
 
-    <button type="submit" style="display: none"></button>
+    <button type="submit" class="is-hidden"></button>
 
     <div class="search-row">
         <button id="toggleSort" class="sort-dir-btn">{{ 'synkende' if parameters.ascending == false else 'stigende' }}</button>
@@ -29,15 +31,13 @@
     </div>
 
     <div id="advanced" class="adv-panel">
-        <div class="adv-grid">
+        <div class="adv-grid card card--inset">
 
-            <div class="adv-field">
-                <span class="adv-lbl">Søk</span>
+            {% call adv_field("Søk") %}
                 <input type="search" id="nsearch" name="search" value="{{ parameters.search if parameters.search is not none else '' }}" placeholder="Navn på produkt …">
-            </div>
+            {% endcall %}
 
-            <div class="adv-field">
-                <span class="adv-lbl">Kategori</span>
+            {% call adv_field("Kategori") %}
                 <div class="adv-sel">
                     <select name="category" id="category" onchange="applyFilters(true, false)">
                         <option value="null" {{ 'selected' if parameters.category == 'null' else '' }}>Alle kategorier</option>
@@ -57,26 +57,24 @@
                         <option value="øl" {{ 'selected' if parameters.category == 'øl' else '' }}>Øl</option>
                     </select>
                 </div>
-            </div>
+            {% endcall %}
 
             {% if favourites or taxfree %}
             <input type="hidden" id="stores-search-vinmonopolet" name="storelike" value="">
             {% else %}
-            <div class="adv-field">
-                <span class="adv-lbl">Butikk eller by</span>
+            {% call adv_field("Butikk eller by") %}
                 <input type="search" id="stores-search-vinmonopolet" name="storelike" value="{{ parameters.storelike if parameters.storelike is not none else '' }}" placeholder="Oslo, Briskeby …">
-            </div>
+            {% endcall %}
             {% endif %}
 
             {% if taxfree %}
-            <div class="adv-field">
-                <span class="adv-lbl">Tax-free butikk</span>
+            {% call adv_field("Tax-free butikk") %}
                 <div class="adv-sel">
                     <select name="store-taxfree" id="stores-taxfree" onchange="applyFilters(true, false)">
                         <!-- Options will be dynamically populated by `public/scripts/stores.js`. -->
                     </select>
                 </div>
-            </div>
+            {% endcall %}
             {% else %}
             <input type="hidden" name="store-taxfree" id="stores-taxfree" value="">
             {% endif %}
@@ -84,56 +82,50 @@
             {% if favourites or taxfree %}
             <input type="hidden" name="store-vinmonopolet" id="stores-vinmonopolet" value="">
             {% else %}
-            <div class="adv-field">
-                <span class="adv-lbl">Vinmonopolet butikk</span>
+            {% call adv_field("Vinmonopolet butikk") %}
                 <div class="adv-sel">
                     <select name="store-vinmonopolet" id="stores-vinmonopolet" onchange="applyFilters(true, false)">
                         <!-- Options will be dynamically populated by `public/scripts/stores.js`. -->
                     </select>
                 </div>
-            </div>
+            {% endcall %}
             {% endif %}
 
-            <div class="adv-field">
-                <span class="adv-lbl">Land</span>
+            {% call adv_field("Land") %}
                 <div class="adv-sel">
                     <select name="country" id="country" onchange="applyFilters(true, false)">
                         <!-- Options will be dynamically populated by `public/scripts/countries.js`. -->
                     </select>
                 </div>
-            </div>
+            {% endcall %}
 
-            <div class="adv-field">
-                <span class="adv-lbl">Pris</span>
+            {% call adv_field("Pris") %}
                 <div class="adv-sort-row">
                     <button id="togglePrice">{{ 'lik' if parameters.cprice else 'under' }}</button>
                     <input type="number" id="price" name="price" min="0" step="1" value="{{ parameters.price if parameters.price is not none else '' }}" placeholder="pris">
                 </div>
-            </div>
+            {% endcall %}
 
-            <div class="adv-field">
-                <span class="adv-lbl">Volum (cL)</span>
+            {% call adv_field("Volum (cL)") %}
                 <div class="adv-sort-row">
                     <button id="toggleVolume">{{ 'lik' if parameters.cvolume else 'over' }}</button>
                     <input type="number" id="volume" name="volume" min="0" step="1" value="{{ parameters.volume if parameters.volume is not none else '' }}" placeholder="volum i cL">
                 </div>
-            </div>
+            {% endcall %}
 
-            <div class="adv-field">
-                <span class="adv-lbl">Alkohol (%)</span>
+            {% call adv_field("Alkohol (%)") %}
                 <div class="adv-sort-row">
                     <button id="toggleAlcohol">{{ 'lik' if parameters.calcohol else 'over' }}</button>
                     <input type="number" id="alcohol" name="alcohol" min="0" step="0.5" value="{{ parameters.alcohol if parameters.alcohol is not none else '' }}" placeholder="alkoholprosent">
                 </div>
-            </div>
+            {% endcall %}
 
-            <div class="adv-field">
-                <span class="adv-lbl">Årgang</span>
+            {% call adv_field("Årgang") %}
                 <div class="adv-sort-row">
                     <button id="toggleYear">{{ 'lik' if parameters.cyear else 'før' }}</button>
                     <input type="number" id="year" name="year" min="1900" step="10" value="{{ parameters.year if parameters.year is not none else '' }}" placeholder="årgang">
                 </div>
-            </div>
+            {% endcall %}
 
             <button id="clearFilters">Nullstill filtre</button>
 

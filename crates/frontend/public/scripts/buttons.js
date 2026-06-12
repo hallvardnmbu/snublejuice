@@ -166,7 +166,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const itemIndex = this.getAttribute("index");
       const aside = document.getElementById(itemIndex).querySelector("aside");
-      aside.style.display = aside.style.display === "block" ? "none" : "block";
+      aside.classList.toggle("is-hidden");
     });
   });
 });

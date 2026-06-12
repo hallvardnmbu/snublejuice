@@ -1,18 +1,28 @@
 <menu id="menu">
-    {% if not user %}
-        <button class="btn" onclick="toggleView('loginForm')">Logg inn</button>
-        <button class="btn btn-account" onclick="toggleView('registerForm')">Registrer</button>
-    {% else %}
-        <button class="btn" onclick="toggleView('profile')">{{ user.username }}</button>
-        {% if not landing %}
-            {% if not favourites %}
-                <button class="btn btn-account" onclick="applyFilters(true, true)">Favoritter</button>
-            {% else %}
-                <button class="btn btn-account" onclick="applyFilters(true, true)">Alle produkter</button>
+    <div class="menu-group">
+        {% if not user %}
+            <button class="btn" onclick="toggleView('loginForm')">Logg inn</button>
+            <button class="btn btn-account" onclick="toggleView('registerForm')">Registrer</button>
+        {% else %}
+            <button class="btn" onclick="toggleView('profile')">{{ user.username }}</button>
+            {% if not landing %}
+                {% if not favourites %}
+                    <button class="btn btn-account" onclick="applyFilters(true, true)">Favoritter</button>
+                {% else %}
+                    <button class="btn btn-account" onclick="applyFilters(true, true)">Alle produkter</button>
+                {% endif %}
             {% endif %}
         {% endif %}
-    {% endif %}
-    <button id="toggleTheme" class="btn">Mørkt</button>
+    </div>
+    <div class="menu-group">
+        <h1 class="lp-route-title">Snublejuice</h1>
+    </div>
+    <div class="menu-group">
+        {% if landing_url %}
+            <button class="btn" onclick="window.location.href='{{ landing_url }}'">Forside</button>
+        {% endif %}
+        <button id="toggleTheme" class="btn">Mørkt</button>
+    </div>
 </menu>
 
 <menu id="profile" style="display: none;">

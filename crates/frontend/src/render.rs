@@ -1,5 +1,6 @@
 use axum::{
     extract::{Query, State},
+    http::HeaderMap,
     response::Html,
 };
 use minijinja::{Environment, Value, context};
@@ -12,7 +13,7 @@ use shared::{
     models::{Product, User},
     query::Parameters,
     state::AppState,
-    subdomain::Subdomain,
+    subdomain::{Subdomain, landing_url_from_host},
 };
 
 #[derive(RustEmbed)]
@@ -59,6 +60,7 @@ pub fn render_products(
     page: i64,
     max_page: u64,
     parameters: &Parameters,
+    landing_url: &str,
 ) -> String {
     let tmpl = get_env().get_template("products.html").unwrap();
     tmpl.render(context! {
@@ -69,14 +71,16 @@ pub fn render_products(
         max_page,
         parameters,
         landing => false,
+        landing_url,
     })
     .unwrap()
 }
 
-pub fn render_error(message: &str) -> String {
+pub fn render_error(message: &str, landing_url: &str) -> String {
     let tmpl = get_env().get_template("error.html").unwrap();
     tmpl.render(context! {
         message,
+        landing_url,
     })
     .unwrap()
 }
@@ -84,9 +88,15 @@ pub fn render_error(message: &str) -> String {
 pub async fn site(
     State(state): State<AppState>,
     subdomain: Subdomain,
+    headers: HeaderMap,
     Query(parameters): Query<Parameters>,
     MaybeAuthenticate(user): MaybeAuthenticate,
 ) -> Html<String> {
+    let host = headers
+        .get("host")
+        .and_then(|h| h.to_str().ok())
+        .unwrap_or("snublejuice.no");
+    let landing_url = landing_url_from_host(host);
     let is_production = std::env::var("ENVIRONMENT")
         .map(|e| e == "production")
         .unwrap_or(false);
@@ -108,6 +118,7 @@ pub async fn site(
             if !database::metadata::get_prices_updated(&state.db, subdomain.name()).await {
                 return Html(render_error(
                     "For å få et pip når prisene er her, kan du lage bruker og huke av for varsling ;-)",
+                    &landing_url,
                 ));
             }
             let products = database::products::get_products(
@@ -127,6 +138,7 @@ pub async fn site(
                 parameters.page.unwrap_or(1),
                 max_page,
                 &parameters,
+                &landing_url,
             ))
         }
     }

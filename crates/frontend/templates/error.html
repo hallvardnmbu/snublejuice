@@ -33,7 +33,7 @@
     </head>
 
     <body>
-        <header>{% with favourites=false, landing=true %} {% include "partials/account.html" %} {% endwith %}</header>
+        <header>{% with favourites=false, landing=true, landing_url=landing_url %} {% include "partials/account.html" %} {% endwith %}</header>
 
         <main>
             <div class="message">

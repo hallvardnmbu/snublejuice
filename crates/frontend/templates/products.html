@@ -34,7 +34,7 @@
 
     <body>
         <header>
-            {% with favourites=parameters.favourites, landing=false %} {% include "partials/account.html" %} {% endwith
+            {% with favourites=parameters.favourites, landing=false, landing_url=landing_url %} {% include "partials/account.html" %} {% endwith
             %}
         </header>
 

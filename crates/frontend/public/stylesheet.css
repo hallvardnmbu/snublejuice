@@ -112,8 +112,6 @@ footer {
     display: flex;
     flex-direction: column;
     align-items: center;
-}
-main {
     width: 100%;
 }
 body {
@@ -215,9 +213,37 @@ nav ol {
     justify-content: center;
 }
 #menu {
-    gap: 0 var(--padding);
+    display: flex;
     flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    width: calc(100% - 2 * var(--padding));
+    max-width: calc(10 * var(--image));
+    gap: 0 var(--padding);
+}
+#menu .menu-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0 var(--padding);
+}
+#menu .menu-group:first-child,
+#menu .menu-group:last-child {
+    flex: 1;
+}
+#menu .menu-group:first-child {
+    justify-content: flex-start;
+}
+#menu .menu-group:last-child {
+    justify-content: flex-end;
+}
+#menu .menu-group:nth-child(2) {
     justify-content: center;
+}
+@media (max-width: 600px) {
+    #menu .menu-group:nth-child(2) {
+        display: none;
+    }
 }
 menu {
     align-items: center;
@@ -273,27 +299,27 @@ img {
 }
 
 /* ── Header menu buttons — ghost style matching filter controls ──────── */
-#menu .btn:not(.btn-account) {
+#menu .btn {
     background: var(--foreground);
     border-color: var(--input-border);
     color: var(--text-muted);
     height: var(--control-h-sm);
     padding: 0 var(--padding-lg);
 }
-[data-theme="dark"] #menu .btn:not(.btn-account) {
+[data-theme="dark"] #menu .btn {
     background: var(--foreground);
     border-color: var(--input-border);
     color: var(--text-muted);
 }
 @media (hover: hover) {
-    #menu .btn:not(.btn-account):hover:not(:disabled) {
+    #menu .btn:hover:not(:disabled) {
         background: var(--foreground);
         border-color: var(--border-hover);
         color: var(--text);
     }
 }
 @media (hover: none) {
-    #menu .btn:not(.btn-account):active:not(:disabled) {
+    #menu .btn:active:not(:disabled) {
         opacity: 1;
         border-color: var(--border-hover);
         color: var(--text);

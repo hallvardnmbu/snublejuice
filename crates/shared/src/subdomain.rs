@@ -22,6 +22,18 @@ impl Subdomain {
     }
 }
 
+pub fn landing_url_from_host(host: &str) -> String {
+    let (hostname, port) = host
+        .split_once(':')
+        .map(|(h, p)| (h, Some(p)))
+        .unwrap_or((host, None));
+    let domain = hostname.split('.').skip(1).collect::<Vec<_>>().join(".");
+    match port {
+        Some(p) => format!("//{domain}:{p}"),
+        None => format!("//{domain}"),
+    }
+}
+
 impl<S> FromRequestParts<S> for Subdomain
 where
     S: Send + Sync,

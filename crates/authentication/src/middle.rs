@@ -84,3 +84,20 @@ where
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn hash_and_verify_password_roundtrip() {
+        let hashed = hash_password("snuble-secret").unwrap();
+        assert!(verify_password("snuble-secret", &hashed));
+        assert!(!verify_password("wrong-password", &hashed));
+    }
+
+    #[test]
+    fn verify_password_rejects_invalid_hash() {
+        assert!(!verify_password("password", "not-a-bcrypt-hash"));
+    }
+}

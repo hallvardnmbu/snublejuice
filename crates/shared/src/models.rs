@@ -178,3 +178,63 @@ fn parse_ingredient(s: &str) -> Option<Ingredient> {
         percentage: 100.0,
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn deserializes_characteristics_into_percentages() {
+        let product: Product = serde_json::from_value(json!({
+            "index": 1,
+            "name": "Test",
+            "price": 100.0,
+            "prices": [],
+            "discount": -10.0,
+            "volume": 75.0,
+            "alcohol": 13.0,
+            "literprice": 133.0,
+            "url": "https://example.com",
+            "stores": [],
+            "category": "Rødvin",
+            "country": "Frankrike",
+            "characteristics": ["Fruktig, 3 av 5", "Tørr, 1 av 5", "invalid"]
+        }))
+        .unwrap();
+
+        assert_eq!(product.characteristics.len(), 2);
+        assert_eq!(product.characteristics[0].name, "Fruktig");
+        assert_eq!(product.characteristics[0].percentage, 60);
+        assert_eq!(product.characteristics[1].name, "Tørr");
+        assert_eq!(product.characteristics[1].percentage, 20);
+    }
+
+    #[test]
+    fn deserializes_ingredients_from_multiple_formats() {
+        let product: Product = serde_json::from_value(json!({
+            "index": 1,
+            "name": "Test",
+            "price": 100.0,
+            "prices": [],
+            "discount": -10.0,
+            "volume": 75.0,
+            "alcohol": 13.0,
+            "literprice": 133.0,
+            "url": "https://example.com",
+            "stores": [],
+            "category": "Cider",
+            "country": "Norge",
+            "ingredients": ["90% eple", "Pinot Bianco 80 prosent", "Chardonnay"]
+        }))
+        .unwrap();
+
+        assert_eq!(product.ingredients.len(), 3);
+        assert_eq!(product.ingredients[0].grape, "Chardonnay");
+        assert!((product.ingredients[0].percentage - 100.0).abs() < f64::EPSILON);
+        assert_eq!(product.ingredients[1].grape, "Eple");
+        assert!((product.ingredients[1].percentage - 90.0).abs() < f64::EPSILON);
+        assert_eq!(product.ingredients[2].grape, "Pinot Bianco");
+        assert!((product.ingredients[2].percentage - 80.0).abs() < f64::EPSILON);
+    }
+}

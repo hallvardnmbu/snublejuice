@@ -291,3 +291,145 @@ pub struct SignupRequest {
     #[serde(default)]
     pub notify: bool,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::User;
+    use mongodb::bson::oid::ObjectId;
+
+    fn empty_params() -> Parameters {
+        Parameters {
+            page: None,
+            sort: None,
+            ascending: None,
+            favourites: None,
+            category: None,
+            country: None,
+            price: None,
+            cprice: None,
+            volume: None,
+            cvolume: None,
+            alcohol: None,
+            calcohol: None,
+            year: None,
+            cyear: None,
+            search: None,
+            storelike: None,
+            store_vinmonopolet: None,
+            store_taxfree: None,
+        }
+    }
+
+    fn test_user(favourites: Vec<i64>) -> User {
+        User {
+            user_id: ObjectId::new(),
+            username: "test".to_string(),
+            password: "hash".to_string(),
+            email: "test@example.com".to_string(),
+            favourites,
+            notify: false,
+        }
+    }
+
+    #[test]
+    fn is_empty_detects_any_set_field() {
+        assert!(empty_params().is_empty());
+        let mut params = empty_params();
+        params.page = Some(2);
+        assert!(!params.is_empty());
+    }
+
+    #[test]
+    fn to_filter_includes_base_vinmonopolet_constraints() {
+        let filter = empty_params().to_filter(&Subdomain::Vinmonopolet, &None);
+        assert_eq!(filter.get_bool("updated"), Ok(true));
+        assert_eq!(filter.get_document("price").unwrap().get_f64("$gt"), Ok(0.0));
+        assert_eq!(filter.get_bool("orderable"), Ok(true));
+    }
+
+    #[test]
+    fn to_filter_includes_taxfree_constraints() {
+        let filter = empty_params().to_filter(&Subdomain::Taxfree, &None);
+        assert!(filter.contains_key("taxfree.stores"));
+        assert_eq!(
+            filter
+                .get_document("taxfree.valid")
+                .unwrap()
+                .get_bool("$eq"),
+            Ok(true)
+        );
+        assert!(!filter.contains_key("updated"));
+    }
+
+    #[test]
+    fn to_filter_maps_category_slug_and_country() {
+        let mut params = empty_params();
+        params.category = Some("rødvin".to_string());
+        params.country = Some("Frankrike".to_string());
+        let filter = params.to_filter(&Subdomain::Vinmonopolet, &None);
+        assert_eq!(filter.get_str("category"), Ok("Rødvin"));
+        assert_eq!(filter.get_str("country"), Ok("Frankrike"));
+    }
+
+    #[test]
+    fn to_filter_search_returns_early_without_category_filters() {
+        let mut params = empty_params();
+        params.search = Some("cabernet".to_string());
+        params.category = Some("rødvin".to_string());
+        let filter = params.to_filter(&Subdomain::Vinmonopolet, &None);
+        assert!(!filter.contains_key("category"));
+    }
+
+    #[test]
+    fn to_filter_favourites_restricts_to_user_indices() {
+        let mut params = empty_params();
+        params.favourites = Some(true);
+        let user = test_user(vec![1, 2, 3]);
+        let filter = params.to_filter(&Subdomain::Vinmonopolet, &Some(user));
+        assert_eq!(
+            filter.get_document("index").unwrap().get_array("$in").unwrap(),
+            &vec![Bson::Int64(1), Bson::Int64(2), Bson::Int64(3)]
+        );
+    }
+
+    #[test]
+    fn to_options_sorts_and_paginates() {
+        let mut params = empty_params();
+        params.page = Some(3);
+        params.ascending = Some(false);
+        let options = params.to_options(&Subdomain::Vinmonopolet);
+        assert_eq!(
+            options[0].get_document("$sort").unwrap().get_i32("discount"),
+            Ok(-1)
+        );
+        assert_eq!(options[1].get_i64("$skip"), Ok(30));
+        assert_eq!(options[2].get_i64("$limit"), Ok(PRODUCTS_PER_PAGE));
+    }
+
+    #[test]
+    fn to_options_taxfree_defaults_to_taxfree_discount() {
+        let options = empty_params().to_options(&Subdomain::Taxfree);
+        assert!(options[0].get_document("$sort").unwrap().contains_key("taxfree.discount"));
+    }
+
+    #[test]
+    fn to_pipeline_with_search_includes_search_stage() {
+        let mut params = empty_params();
+        params.search = Some("riesling".to_string());
+        let pipeline = params.to_pipeline(&Subdomain::Vinmonopolet, &None);
+        assert!(pipeline[0].contains_key("$search"));
+        assert!(pipeline[1].contains_key("$match"));
+        assert!(!pipeline.iter().any(|stage| stage.contains_key("$sort")));
+    }
+
+    #[test]
+    fn to_pipeline_without_search_uses_match_sort_skip_and_limit() {
+        let pipeline = empty_params().to_pipeline(&Subdomain::Vinmonopolet, &None);
+        assert_eq!(pipeline.len(), 4);
+        assert!(pipeline[0].contains_key("$match"));
+        assert!(pipeline[1].contains_key("$sort"));
+        assert!(pipeline[2].contains_key("$skip"));
+        assert!(pipeline[3].contains_key("$limit"));
+    }
+}

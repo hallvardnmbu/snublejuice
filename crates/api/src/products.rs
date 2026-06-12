@@ -48,3 +48,17 @@ async fn serve_fallback() -> ([(header::HeaderName, &'static str); 1], Vec<u8>) 
     let contents = fs::read(fallback_path).await.unwrap_or_else(|_| Vec::new());
     ([(header::CONTENT_TYPE, "image/png")], contents)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn index_regex_accepts_digits_only() {
+        assert!(RE_INDEX.is_match("0"));
+        assert!(RE_INDEX.is_match("123456789"));
+        assert!(!RE_INDEX.is_match(""));
+        assert!(!RE_INDEX.is_match("12a34"));
+        assert!(!RE_INDEX.is_match("-1"));
+    }
+}

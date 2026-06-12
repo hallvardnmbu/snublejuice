@@ -2,6 +2,7 @@ use axum::{extract::FromRequestParts, http::request::Parts};
 
 use crate::errors::AppError;
 
+#[derive(Debug)]
 pub enum Subdomain {
     Landing,
     Vinmonopolet,
@@ -53,5 +54,75 @@ where
             "taxfree" => Ok(Subdomain::Taxfree),
             _ => Ok(Subdomain::Landing),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::body::Body;
+    use axum::http::Request;
+
+    #[test]
+    fn name_and_is_taxfree() {
+        assert_eq!(Subdomain::Vinmonopolet.name(), "vinmonopolet");
+        assert_eq!(Subdomain::Taxfree.name(), "taxfree");
+        assert_eq!(Subdomain::Landing.name(), "landing");
+        assert!(!Subdomain::Vinmonopolet.is_taxfree());
+        assert!(Subdomain::Taxfree.is_taxfree());
+        assert!(!Subdomain::Landing.is_taxfree());
+    }
+
+    #[test]
+    fn landing_url_from_host_strips_subdomain() {
+        assert_eq!(
+            landing_url_from_host("vinmonopolet.snublejuice.no"),
+            "//snublejuice.no"
+        );
+        assert_eq!(
+            landing_url_from_host("taxfree.snublejuice.localhost:3000"),
+            "//snublejuice.localhost:3000"
+        );
+        assert_eq!(landing_url_from_host("snublejuice.no"), "//no");
+    }
+
+    #[tokio::test]
+    async fn from_request_parts_parses_host_header() {
+        async fn extract(host: &str) -> Subdomain {
+            let mut parts = Request::builder()
+                .header("host", host)
+                .body(Body::empty())
+                .unwrap()
+                .into_parts()
+                .0;
+            Subdomain::from_request_parts(&mut parts, &()).await.unwrap()
+        }
+
+        assert!(matches!(
+            extract("vinmonopolet.snublejuice.no").await,
+            Subdomain::Vinmonopolet
+        ));
+        assert!(matches!(
+            extract("TAXFREE.snublejuice.no").await,
+            Subdomain::Taxfree
+        ));
+        assert!(matches!(
+            extract("snublejuice.no").await,
+            Subdomain::Landing
+        ));
+    }
+
+    #[tokio::test]
+    async fn from_request_parts_rejects_missing_host() {
+        let mut parts = Request::builder()
+            .body(Body::empty())
+            .unwrap()
+            .into_parts()
+            .0;
+        let err = Subdomain::from_request_parts(&mut parts, &())
+            .await
+            .err()
+            .unwrap();
+        assert!(matches!(err, AppError::BadRequest(_)));
     }
 }

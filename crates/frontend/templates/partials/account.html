@@ -6,7 +6,7 @@
             <button class="btn" onclick="toggleView('loginForm')">Logg inn</button>
             <button class="btn btn-account" onclick="toggleView('registerForm')">Registrer</button>
         {% else %}
-            <button class="btn" onclick="toggleView('profile')">{{ user.username }}</button>
+            <button class="btn btn-username" onclick="toggleView('profile')" title="{{ user.username }}">{{ user.username | truncate(12) }}</button>
             {% if not landing %}
                 {% if not favourites %}
                     <button class="btn btn-account" onclick="applyFilters(true, true)">Favoritter</button>

@@ -68,6 +68,8 @@
     --accent-tax: #a07830;
     --accent-vin-dark: #8aad8e;
     --accent-tax-dark: #c89a50;
+    --warning: #a06020;
+    --disclaimer: rgb(180, 60, 60);
 
     --line: 42%;
     --negative: 180, 60, 60;
@@ -111,6 +113,7 @@
 
     --accent-vin: var(--accent-vin-dark);
     --accent-tax: var(--accent-tax-dark);
+    --warning: #c89a50;
 }
 
 html {
@@ -758,6 +761,24 @@ form:not(header *) {
     padding: var(--margin);
 }
 
+/* ── Updating banner ───────────────────────────────────────────────────── */
+
+.prices-updating-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    width: calc(100% - 2 * var(--padding));
+    max-width: calc(10 * var(--image));
+    margin: var(--radius-lg);
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--disclaimer);
+    color: var(--disclaimer);
+}
+.prices-updating-banner > span {
+    padding: var(--padding);
+}
+
 /* ── Product cards ─────────────────────────────────────────────────────── */
 
 section {
@@ -772,7 +793,6 @@ section {
 .product {
     cursor: pointer;
     position: relative;
-    overflow: hidden;
     z-index: 1;
 }
 .product.touch-active {
@@ -810,6 +830,26 @@ section {
 .product__body > span.list,
 .product__body > .product__rating {
     margin-top: var(--margin);
+}
+
+.product__disclaimer {
+    position: absolute;
+    top: calc(-1 * var(--badge-offset));
+    right: calc(-1 * var(--badge-offset));
+    min-width: var(--badge-size);
+    height: var(--badge-size);
+    padding: 0 var(--badge-offset);
+    background: var(--disclaimer);
+    color: var(--background);
+    border-radius: calc(var(--badge-size) / 2);
+    font-size: var(--fontsize-label);
+    font-weight: 700;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-mono);
+    pointer-events: none;
+    user-select: none;
+    z-index: 2;
 }
 .product__title,
 .product__body > span:not(.list) {

@@ -79,20 +79,20 @@
 {% endmacro %} {% macro price_block(item, taxfree) %} {% if taxfree %} {{ price_cell("POL", item.url, (item.price |
 round) | int) }} {{ price_cell("TAX", item.taxfree.url, (item.taxfree.price | round) | int) }} {{ price_cell("DIFF",
 item.taxfree.url, ((item.taxfree.discount | round) | int) ~ "%", "pcval-change") }}
-<a href="{{ item.taxfree.url }}" target="_blank" class="price-now">
+<div class="price-now">
     <b class="pn-val">{{ (item.taxfree.discount | round) | int }}</b>
     <span class="pn-cur">%</span>
     <span class="pn-sep"></span>
     <span class="pn-cur">KR</span>
     <b class="pn-val">{{ (item.taxfree.price | round) | int }}</b>
-</a>
+</div>
 {% else %} {% if item.oldprice %} {{ price_cell("NÅ", item.url, (item.price | round) | int) }} {{ price_cell("FØR",
 item.url, (item.oldprice | round) | int, "pcval-strike") }} {{ price_cell("ENDRING", item.url, ((item.discount | round)
 | int) ~ "%", "pcval-change") }} {% endif %}
-<a href="{{ item.url }}" target="_blank" class="price-now">
+<div class="price-now">
     {% if item.oldprice %}
     <b class="pn-val">{{ (item.discount | round) | int }}</b><span class="pn-cur">%</span>
     <span class="pn-sep"></span>{% endif %}<span class="pn-cur">KR</span
     ><b class="pn-val">{{ (item.price | round) | int }}</b>
-</a>
+</div>
 {% endif %} {% endmacro %}

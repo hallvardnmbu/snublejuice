@@ -61,6 +61,7 @@ pub fn render_products(
     max_page: u64,
     parameters: &Parameters,
     landing_url: &str,
+    prices_updated: bool,
 ) -> String {
     let tmpl = get_env().get_template("products.html").unwrap();
     tmpl.render(context! {
@@ -72,6 +73,7 @@ pub fn render_products(
         parameters,
         landing => false,
         landing_url,
+        prices_updated,
     })
     .unwrap()
 }
@@ -120,6 +122,7 @@ mod tests {
             acid: None,
             characteristics: vec![],
             ingredients: vec![],
+            updated: Some(true),
             aperitif: None,
             taxfree: Some(Taxfree {
                 url: "https://example.com/tax".to_string(),
@@ -174,6 +177,7 @@ mod tests {
             1,
             &parameters,
             "https://snublejuice.no",
+            true,
         );
         assert!(products.contains(r#"href="/public/stylesheet.css""#));
         assert!(products.contains("/public/scripts/stores.js"));
@@ -199,6 +203,7 @@ mod tests {
             1,
             &parameters,
             "https://snublejuice.no",
+            true,
         );
         assert!(vin.contains(">NÅ</span>"));
         assert!(vin.contains(">FØR</span>"));
@@ -214,6 +219,7 @@ mod tests {
             1,
             &parameters,
             "https://snublejuice.no",
+            true,
         );
         assert!(tax.contains(">POL</span>"));
         assert!(tax.contains(">TAX</span>"));
@@ -253,20 +259,16 @@ pub async fn site(
     match subdomain {
         Subdomain::Landing => Html(render_landing(user)),
         Subdomain::Vinmonopolet | Subdomain::Taxfree => {
-            if !database::metadata::get_prices_updated(&state.db, subdomain.name()).await {
-                return Html(render_error(
-                    "For å få et pip når prisene er her, kan du lage bruker og huke av for varsling ;-)",
-                    &landing_url,
-                ));
-            }
+            let prices_updated =
+                database::metadata::get_prices_updated(&state.db, subdomain.name()).await;
             let products = database::products::get_products(
                 &state.db,
-                parameters.to_pipeline(&subdomain, &user),
+                parameters.to_pipeline(&subdomain, &user, prices_updated),
             )
             .await;
             let max_page = database::products::get_max_page(
                 &state.db,
-                parameters.to_filter(&subdomain, &user),
+                parameters.to_filter(&subdomain, &user, prices_updated),
             )
             .await;
             Html(render_products(
@@ -277,6 +279,7 @@ pub async fn site(
                 max_page,
                 &parameters,
                 &landing_url,
+                prices_updated,
             ))
         }
     }

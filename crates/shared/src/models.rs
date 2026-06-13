@@ -90,6 +90,7 @@ pub struct Product {
     pub characteristics: Vec<Characteristic>,
     #[serde(default, deserialize_with = "deserialize_ingredients")]
     pub ingredients: Vec<Ingredient>,
+    pub updated: Option<bool>,
     // External integrations
     pub aperitif: Option<Aperitif>,
     pub taxfree: Option<Taxfree>,

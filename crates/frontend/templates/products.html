@@ -9,7 +9,11 @@
 {% endblock %} {% block header %} {% with favourites=parameters.favourites, landing=false, landing_url=landing_url %} {%
 include "partials/account.html" %} {% endwith %} {% endblock %} {% block main %} {% with parameters=parameters,
 taxfree=is_taxfree %}{% include "partials/forms.html" %}{% endwith %} {% with placement="top" %}{% include
-"partials/pagination.html" %}{% endwith %} {% if data|length == 0 %}
+"partials/pagination.html" %}{% endwith %} {% if not prices_updated %}
+<div class="prices-updating-banner">
+    <span>Prisene oppdateres. Produkter som gjenstår er markert, og viser forrige måneds tall.</span>
+</div>
+{% endif %} {% if data|length == 0 %}
 <span>Ingen resultater finnes for valgt kominasjon.</span>
 {% else %} {% if message %}
 <div class="message">

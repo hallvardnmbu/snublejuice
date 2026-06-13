@@ -317,21 +317,6 @@ nav ol {
     z-index: 1;
     pointer-events: none;
 }
-@media (max-width: 600px) {
-    #menu .menu-group:nth-child(2) {
-        display: none;
-    }
-}
-@media (max-width: 400px) {
-    #menu {
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-    }
-    #menu .menu-group:last-child {
-        margin-left: 0;
-    }
-}
 .site-title {
     margin: 0;
     font-size: 22px;
@@ -999,12 +984,30 @@ a.rating:visited {
     line-height: 1.5;
 }
 
-@media (max-width: 450px) {
+@media (max-width: 600px) {
     :root {
         --image: 72px;
         --fontsize: 12px;
         --fontsize-tag: 8px;
     }
+    main {
+        max-width: 100%;
+    }
+
+    #menu .menu-group:nth-child(2) {
+        display: none;
+    }
+    #menu {
+        justify-content: center;
+        flex-wrap: wrap-reverse;
+        align-content: center;
+        width: 100%;
+        gap: var(--padding);
+    }
+    #menu .menu-group:is(:first-child, :last-child) {
+        margin-left: unset;
+    }
+
     .img-wrap img {
         height: 98%;
     }

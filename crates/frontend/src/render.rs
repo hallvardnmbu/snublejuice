@@ -44,6 +44,15 @@ fn get_env() -> &'static Environment<'static> {
             iter.filter(|s| s.as_str().map(|s| re.is_match(s)).unwrap_or(false))
                 .collect::<Vec<_>>()
         });
+        env.add_filter("truncate", |value: String, max: u32| -> String {
+            let max = max as usize;
+            let chars: Vec<char> = value.chars().collect();
+            if chars.len() <= max {
+                value
+            } else {
+                format!("{}…", chars[..max].iter().collect::<String>())
+            }
+        });
         env
     })
 }

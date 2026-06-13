@@ -87,15 +87,6 @@ pub fn render_products(
     .unwrap()
 }
 
-pub fn render_error(message: &str, landing_url: &str) -> String {
-    let tmpl = get_env().get_template("error.html").unwrap();
-    tmpl.render(context! {
-        message,
-        landing_url,
-    })
-    .unwrap()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -171,7 +162,8 @@ mod tests {
         assert!(landing.contains("<!doctype html>"));
         assert!(landing.contains(r#"href="/public/stylesheet.css""#));
         assert!(landing.contains("application/ld+json"));
-        assert!(landing.contains("lp-main"));
+        assert!(landing.contains("landing"));
+        assert!(landing.contains("hero"));
         assert!(landing.contains("preview-vin"));
         assert!(landing.contains("itemscope"));
         assert!(landing.contains("itemprop=\"name\""));
@@ -193,12 +185,7 @@ mod tests {
         assert!(products.contains("/public/scripts/buttons.js"));
         assert!(products.contains(r#"id="nsearch""#));
         assert!(products.contains(r#"id="category""#));
-        assert!(!products.contains("lp-main"));
-
-        let error = render_error("Test message", "https://snublejuice.no");
-        assert!(error.contains(r#"href="/public/stylesheet.css""#));
-        assert!(error.contains("Test message"));
-        assert!(error.contains("error-logo"));
+        assert!(!products.contains("landing"));
     }
 
     #[test]
@@ -217,7 +204,7 @@ mod tests {
         assert!(vin.contains(">NÅ</span>"));
         assert!(vin.contains(">FØR</span>"));
         assert!(vin.contains(">ENDRING</span>"));
-        assert!(vin.contains("pcval-strike"));
+        assert!(vin.contains("strikethrough"));
         assert!(vin.contains("class=\"price-now\""));
 
         let tax = render_products(
@@ -233,7 +220,7 @@ mod tests {
         assert!(tax.contains(">POL</span>"));
         assert!(tax.contains(">TAX</span>"));
         assert!(tax.contains(">DIFF</span>"));
-        assert!(tax.contains("pcval-change"));
+        assert!(tax.contains("change"));
         assert!(tax.contains("example.com"));
     }
 }

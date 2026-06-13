@@ -1,9 +1,9 @@
-<aside class="is-hidden">
+<aside class="hidden">
     <table class="metadata">
         <tbody>
             {% if item.aperitif and item.aperitif.points is defined and item.aperitif.points != null %}
             <tr>
-                <td>Rating</td>
+                <td class="label">Rating</td>
                 <td>
                     Vurdert {{ item.aperitif.points }} av 100 hos {% if item.aperitif.url %}
                     <a
@@ -17,45 +17,17 @@
             </tr>
             {% endif %} {% if taxfree and item.taxfree.stores %}
             <tr>
-                <td>Lager</td>
+                <td class="label">Lager</td>
                 <td>{{ item.taxfree.stores | sort | join(' + ') }}</td>
             </tr>
-            {% endif %} {% if item.smell %}
+            {% endif %} {% for label, value in [ ('Lukt', item.smell), ('Smak', item.taste), ('Lagring', item.storage),
+            ('Farge', item.colour), ('Passer til', item.pair | join(' & ') if item.pair and item.pair | length > 0 else
+            none), ('Metode', item.method), ('Årgang', item.year), ] %} {% if value %}
             <tr>
-                <td>Lukt</td>
-                <td>{{ item.smell }}</td>
+                <td class="label">{{ label }}</td>
+                <td>{{ value }}</td>
             </tr>
-            {% endif %} {% if item.taste %}
-            <tr>
-                <td>Smak</td>
-                <td>{{ item.taste }}</td>
-            </tr>
-            {% endif %} {% if item.storage %}
-            <tr>
-                <td>Lagring</td>
-                <td>{{ item.storage }}</td>
-            </tr>
-            {% endif %} {% if item.colour %}
-            <tr>
-                <td>Farge</td>
-                <td>{{ item.colour }}</td>
-            </tr>
-            {% endif %} {% if item.pair and item.pair | length > 0 %}
-            <tr>
-                <td>Passer til</td>
-                <td>{{ item.pair | join(' & ') }}</td>
-            </tr>
-            {% endif %} {% if item.method %}
-            <tr>
-                <td>Metode</td>
-                <td>{{ item.method }}</td>
-            </tr>
-            {% endif %} {% if item.year %}
-            <tr>
-                <td>Årgang</td>
-                <td>{{ item.year }}</td>
-            </tr>
-            {% endif %}
+            {% endif %} {% endfor %}
         </tbody>
     </table>
 
@@ -67,40 +39,30 @@
                 <th>PRISER SISTE ÅR</th>
                 <th></th>
             </tr>
+            {% for label, value in [ ('Laveste', (prices_subset | min | round) | int), ('Høyeste', (prices_subset | max
+            | round) | int), ] %}
             <tr>
-                <td>Laveste</td>
-                <td>kr {{ (prices_subset | min | round) | int }}</td>
+                <td class="label">{{ label }}</td>
+                <td>kr {{ value }}</td>
             </tr>
-            <tr>
-                <td>Høyeste</td>
-                <td>kr {{ (prices_subset | max | round) | int }}</td>
-            </tr>
+            {% endfor %}
         </tbody>
     </table>
     {% endif %} {% if item.characteristics | length > 0 or item.ingredients | length > 0 %}
     <table class="fractions">
         <tbody>
-            {% if item.characteristics | length > 0 %}
+            {% for section in [ {'title': 'EGENSKAPER', 'items': item.characteristics, 'field': 'name'}, {'title':
+            'INGREDIENSER', 'items': item.ingredients, 'field': 'grape'}, ] %} {% if section.items | length > 0 %}
             <tr>
-                <th>EGENSKAPER</th>
+                <th>{{ section.title }}</th>
                 <th></th>
             </tr>
-            {% for charcteristic in item.characteristics %}
+            {% for entry in section.items %}
             <tr>
-                <td class="label">{{ charcteristic.name }}</td>
-                <td class="percentage" style="--percentage: {{ charcteristic.percentage }}"></td>
+                <td class="label">{{ entry[section.field] }}</td>
+                <td style="--percentage: {{ entry.percentage }}"></td>
             </tr>
-            {% endfor %} {% endif %} {% if item.ingredients | length > 0 %}
-            <tr>
-                <th>INGREDIENSER</th>
-                <th></th>
-            </tr>
-            {% for ingredient in item.ingredients %}
-            <tr>
-                <td class="label">{{ ingredient.grape }}</td>
-                <td class="percentage" style="--percentage: {{ ingredient.percentage }}"></td>
-            </tr>
-            {% endfor %} {% endif %}
+            {% endfor %} {% endif %} {% endfor %}
         </tbody>
     </table>
     {% endif %}

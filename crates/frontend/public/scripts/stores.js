@@ -49,18 +49,7 @@ function populateStores(stores, subdomain) {
   // Add event listener to save the selected store to local storage
   dropdown.addEventListener("change", () => {
     sessionStorage.setItem("store", dropdown.value);
-    displayMessage(dropdown.value !== "null" || search?.value);
   });
-
-  // Display message if a store other than "null" is selected on page load
-  displayMessage(dropdown.value !== "null" || search?.value);
-}
-
-// Function to display a message if a store other than "null" is selected
-function displayMessage(active = false) {
-  const messageElement = document.getElementById("messageStock");
-  if (!messageElement) return;
-  messageElement.style.display = active ? "block" : "none";
 }
 
 // Fetch stores on page load or use cached data

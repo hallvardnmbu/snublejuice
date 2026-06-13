@@ -1,15 +1,15 @@
 {% from "partials/macros.html" import price_block %}
 <section
-    class="product card card--interactive"
+    class="product card"
     id="{{ index }}"
     index="{{ index }}"
     style='
         --color: {% if taxfree %}{{ "var(--negative)" if item.taxfree.discount > 0 else "var(--positive)" if item.taxfree.discount < 0 else "var(--neutral)" }}{% else %}{{ "var(--negative)" if item.discount > 0 else "var(--positive)" if item.discount < 0 else "var(--neutral)" }}{% endif %};
     '
 >
-    <div class="product__row">
+    <div>
         <a
-            class="product__image img-wrap img-inset"
+            class="img-wrap"
             href="{{ item.taxfree.url if taxfree else item.url }}"
             target="_blank"
         >
@@ -22,8 +22,8 @@
             />
         </a>
 
-        <div class="product__body">
-            <h2 class="product__title">
+        <div>
+            <h2>
                 {% if user %}
                 <button aria-label="Favoritt" data-index="{{ item.index }}" class="favourite-toggle">
                     {{ '★' if item.index in user.favourites else '☆' }}
@@ -101,11 +101,11 @@
             <p class="description">{{ item.description }}</p>
             {% endif %}
 
-            <span class="price"> {{ price_block(item, taxfree) }} </span>
+            <span class="prices"> {{ price_block(item, taxfree) }} </span>
         </div>
     </div>
 
     {% if item.updated == false %}
-    <span class="product__disclaimer" aria-label="Ikke oppdatert for denne måneden">!</span>
+    <span class="disclaimer" aria-label="Ikke oppdatert for denne måneden">!</span>
     {% endif %} {% with taxfree=taxfree, item=item %} {% include "partials/detailed.html" %} {% endwith %}
 </section>

@@ -1,52 +1,52 @@
 {% from "partials/macros.html" import adv_field %}
 
 <menu id="menu">
-    <div class="menu-group">
+    <div>
         {% if not user %}
-            <button class="btn" onclick="toggleView('loginForm')">Logg inn</button>
-            <button class="btn btn-account" onclick="toggleView('registerForm')">Registrer</button>
+            <button onclick="toggleView('loginForm')">Logg inn</button>
+            <button onclick="toggleView('registerForm')">Registrer</button>
         {% else %}
-            <button class="btn btn-username" onclick="toggleView('profile')" title="{{ user.username }}">{{ user.username | truncate(12) }}</button>
+            <button onclick="toggleView('profile')" title="{{ user.username }}">{{ user.username | truncate(12) }}</button>
             {% if not landing %}
                 {% if not favourites %}
-                    <button class="btn btn-account" onclick="applyFilters(true, true)">Favoritter</button>
+                    <button onclick="applyFilters(true, true)">Favoritter</button>
                 {% else %}
-                    <button class="btn btn-account" onclick="applyFilters(true, true)">Alle produkter</button>
+                    <button onclick="applyFilters(true, true)">Alle produkter</button>
                 {% endif %}
             {% endif %}
         {% endif %}
     </div>
-    <div class="menu-group">
-        <h1 class="site-title">Snublejuice</h1>
+    <div>
+        <h1>Snublejuice</h1>
     </div>
-    <div class="menu-group">
+    <div>
         {% if landing_url %}
-            <button class="btn" onclick="window.location.href='{{ landing_url }}'">Forside</button>
+            <button onclick="window.location.href='{{ landing_url }}'">Forside</button>
         {% endif %}
-        <button id="toggleTheme" class="btn">Mørkt</button>
+        <button id="toggleTheme">Mørkt</button>
     </div>
 </menu>
 
-<menu id="profile" class="is-hidden">
-    <button class="btn" onclick="toggleView('notifyUserForm')">Varslinger</button>
-    <button class="btn" onclick="toggleView('deleteUserForm')">Slett meg</button>
-    <button class="btn" onclick="logout()">Logg ut</button>
+<menu id="profile" class="hidden">
+    <button onclick="toggleView('notifyUserForm')">Varslinger</button>
+    <button onclick="toggleView('deleteUserForm')">Slett meg</button>
+    <button onclick="logout()">Logg ut</button>
 </menu>
 
-<form id="loginForm" class="is-hidden">
-    <div class="adv-grid card card--inset">
+<form id="loginForm" class="hidden">
+    <div class="card inset">
         {% call adv_field("Brukernavn") %}
             <input type="text" id="usernameLogin" name="username" minlength="2" required>
         {% endcall %}
         {% call adv_field("Passord") %}
             <input type="password" id="passwordLogin" name="password" minlength="4" required>
         {% endcall %}
-        <button type="submit" class="btn">Logg inn</button>
+        <button type="submit">Logg inn</button>
     </div>
 </form>
 
-<form id="registerForm" class="is-hidden">
-    <div class="adv-grid card card--inset">
+<form id="registerForm" class="hidden">
+    <div class="card inset">
         {% call adv_field("Brukernavn") %}
             <input type="text" id="usernameRegister" name="username" minlength="2" required>
         {% endcall %}
@@ -56,29 +56,29 @@
         {% call adv_field("Passord") %}
             <input type="password" id="passwordRegister" name="password" minlength="4" required>
         {% endcall %}
-        {% call adv_field("Månedsvarsel", "adv-check-row") %}
+        {% call adv_field("Månedsvarsel") %}
             <input type="checkbox" id="notifyRegister" name="notify" value="true">
         {% endcall %}
-        <button type="submit" class="btn">Registrer</button>
+        <button type="submit">Registrer</button>
     </div>
 </form>
 
-<form id="notifyUserForm" class="is-hidden">
+<form id="notifyUserForm" class="hidden">
     <input type="hidden" id="usernameNotify" name="username" value="{{ user.username if user else '' }}">
-    <div class="adv-grid card card--inset">
+    <div class="card inset">
         {% call adv_field("E-post") %}
             <span>{{ user.email if user else '' }}</span>
         {% endcall %}
-        {% call adv_field("Månedsvarsel", "adv-check-row") %}
+        {% call adv_field("Månedsvarsel") %}
             <input type="checkbox" id="activeNotify" name="notify" {{ 'checked' if user and user.notify else '' }}>
         {% endcall %}
-        <button type="submit" class="btn">Lagre</button>
+        <button type="submit">Lagre</button>
     </div>
 </form>
 
-<form id="deleteUserForm" class="is-hidden">
+<form id="deleteUserForm" class="hidden">
     <input type="hidden" id="usernameDelete" name="username" value="{{ user.username if user else '' }}">
-    <div class="adv-grid card card--inset">
+    <div class="card inset">
         {% call adv_field("Brukernavn") %}
             <span>{{ user.username if user else '' }}</span>
         {% endcall %}
@@ -88,12 +88,12 @@
         {% call adv_field("Passord") %}
             <input type="password" id="passwordDelete" name="password" minlength="4" required>
         {% endcall %}
-        <button type="submit" class="btn">Slett bruker</button>
+        <button type="submit">Slett bruker</button>
     </div>
 </form>
 
-<div class="message">
-    <span id="userMessage" class="is-hidden"></span>
+<div class="message hidden">
+    <span></span>
 </div>
 
 <script type="module" src="/public/scripts/profile.js"></script>

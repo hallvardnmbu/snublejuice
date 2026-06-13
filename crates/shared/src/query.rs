@@ -67,20 +67,20 @@ impl Parameters {
         }
     }
 
-    pub fn to_filter(&self, subdomain: &Subdomain, user: &Option<User>) -> Document {
+    pub fn to_filter(&self, subdomain: &Subdomain, user: &Option<User>, prices_updated: bool) -> Document {
         let mut filter = doc! {};
 
         let favourites: bool = self.favourites.unwrap_or(false);
         let taxfree: bool = subdomain.is_taxfree();
 
-        // Only include updated products.
         if taxfree {
             filter.insert(
                 "taxfree.stores",
                 doc! { "$exists": true, "$ne": Bson::Null },
             );
             filter.insert("taxfree.valid", doc! { "$exists": true, "$eq": true });
-        } else {
+        } else if prices_updated {
+            // Only fully-updated products when the monthly update is complete.
             filter.insert("updated", true);
         }
 
@@ -204,7 +204,7 @@ impl Parameters {
         options
     }
 
-    pub fn to_pipeline(&self, subdomain: &Subdomain, user: &Option<User>) -> Vec<Document> {
+    pub fn to_pipeline(&self, subdomain: &Subdomain, user: &Option<User>, prices_updated: bool) -> Vec<Document> {
         let mut pipeline: Vec<Document> = Vec::new();
 
         if let Some(search) = &self.search {
@@ -236,7 +236,7 @@ impl Parameters {
                 },
             });
 
-            pipeline.push(doc! { "$match": self.to_filter(subdomain, user) });
+            pipeline.push(doc! { "$match": self.to_filter(subdomain, user, prices_updated) });
 
             pipeline.push(doc! { "$skip": ((self.page.unwrap_or(1) - 1) * PRODUCTS_PER_PAGE) });
             pipeline.push(doc! { "$limit": PRODUCTS_PER_PAGE });
@@ -244,7 +244,7 @@ impl Parameters {
             return pipeline;
         }
 
-        pipeline.push(doc! { "$match": self.to_filter(subdomain, user) });
+        pipeline.push(doc! { "$match": self.to_filter(subdomain, user, prices_updated) });
 
         pipeline.extend(self.to_options(subdomain));
 
@@ -342,7 +342,7 @@ mod tests {
 
     #[test]
     fn to_filter_includes_base_vinmonopolet_constraints() {
-        let filter = empty_params().to_filter(&Subdomain::Vinmonopolet, &None);
+        let filter = empty_params().to_filter(&Subdomain::Vinmonopolet, &None, true);
         assert_eq!(filter.get_bool("updated"), Ok(true));
         assert_eq!(filter.get_document("price").unwrap().get_f64("$gt"), Ok(0.0));
         assert_eq!(filter.get_bool("orderable"), Ok(true));
@@ -350,7 +350,7 @@ mod tests {
 
     #[test]
     fn to_filter_includes_taxfree_constraints() {
-        let filter = empty_params().to_filter(&Subdomain::Taxfree, &None);
+        let filter = empty_params().to_filter(&Subdomain::Taxfree, &None, true);
         assert!(filter.contains_key("taxfree.stores"));
         assert_eq!(
             filter
@@ -367,7 +367,7 @@ mod tests {
         let mut params = empty_params();
         params.category = Some("rødvin".to_string());
         params.country = Some("Frankrike".to_string());
-        let filter = params.to_filter(&Subdomain::Vinmonopolet, &None);
+        let filter = params.to_filter(&Subdomain::Vinmonopolet, &None, true);
         assert_eq!(filter.get_str("category"), Ok("Rødvin"));
         assert_eq!(filter.get_str("country"), Ok("Frankrike"));
     }
@@ -377,7 +377,7 @@ mod tests {
         let mut params = empty_params();
         params.search = Some("cabernet".to_string());
         params.category = Some("rødvin".to_string());
-        let filter = params.to_filter(&Subdomain::Vinmonopolet, &None);
+        let filter = params.to_filter(&Subdomain::Vinmonopolet, &None, true);
         assert!(!filter.contains_key("category"));
     }
 
@@ -386,7 +386,7 @@ mod tests {
         let mut params = empty_params();
         params.favourites = Some(true);
         let user = test_user(vec![1, 2, 3]);
-        let filter = params.to_filter(&Subdomain::Vinmonopolet, &Some(user));
+        let filter = params.to_filter(&Subdomain::Vinmonopolet, &Some(user), true);
         assert_eq!(
             filter.get_document("index").unwrap().get_array("$in").unwrap(),
             &vec![Bson::Int64(1), Bson::Int64(2), Bson::Int64(3)]
@@ -417,7 +417,7 @@ mod tests {
     fn to_pipeline_with_search_includes_search_stage() {
         let mut params = empty_params();
         params.search = Some("riesling".to_string());
-        let pipeline = params.to_pipeline(&Subdomain::Vinmonopolet, &None);
+        let pipeline = params.to_pipeline(&Subdomain::Vinmonopolet, &None, true);
         assert!(pipeline[0].contains_key("$search"));
         assert!(pipeline[1].contains_key("$match"));
         assert!(!pipeline.iter().any(|stage| stage.contains_key("$sort")));
@@ -425,7 +425,7 @@ mod tests {
 
     #[test]
     fn to_pipeline_without_search_uses_match_sort_skip_and_limit() {
-        let pipeline = empty_params().to_pipeline(&Subdomain::Vinmonopolet, &None);
+        let pipeline = empty_params().to_pipeline(&Subdomain::Vinmonopolet, &None, true);
         assert_eq!(pipeline.len(), 4);
         assert!(pipeline[0].contains_key("$match"));
         assert!(pipeline[1].contains_key("$sort"));

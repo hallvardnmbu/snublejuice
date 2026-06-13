@@ -105,5 +105,7 @@
         </div>
     </div>
 
-    {% with taxfree=taxfree, item=item %} {% include "partials/detailed.html" %} {% endwith %}
+    {% if item.updated == false %}
+    <span class="product__disclaimer" aria-label="Ikke oppdatert for denne måneden">!</span>
+    {% endif %} {% with taxfree=taxfree, item=item %} {% include "partials/detailed.html" %} {% endwith %}
 </section>

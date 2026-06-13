@@ -35,28 +35,28 @@
     --badge-offset: 5px;
 
     /* palette */
-    --text: #1a1815;
-    --text-muted: #4a4636;
-    --text-faint: #8b8470;
+    --text: #1c1b19;
+    --text-muted: #484642;
+    --text-faint: #85827a;
     --clickable: var(--text-muted);
     --hover: #4d6750;
     --price-change: #4d6750;
 
-    --background: #f5f1e6;
-    --foreground: #ece6d6;
-    --card-bg: #fbf8ee;
-    --card-border: #e9e3d2;
+    --background: #f0eeea;
+    --foreground: #e6e4e0;
+    --card-bg: #f8f7f5;
+    --card-border: #e2dfd9;
     --input-bg: var(--card-bg);
-    --input-border: #d8d1be;
+    --input-border: #d6d2cb;
 
     --star-fill: #c9a83f;
-    --star-bg: #e0d6b5;
+    --star-bg: #dcd8d0;
     --star: var(--foreground);
 
-    --border-hover: #b8b09a;
-    --btn-hover-bg: #2b2823;
+    --border-hover: #b5b1a9;
+    --btn-hover-bg: #2b2a28;
 
-    --shadow-card: rgba(70, 55, 20, 0.1);
+    --shadow-card: rgba(40, 38, 32, 0.1);
     --shadow-subtle: rgba(0, 0, 0, 0.05);
     --shadow-inset: rgba(0, 0, 0, 0.05);
     --shadow-inset-hover: rgba(0, 0, 0, 0.1);
@@ -80,26 +80,26 @@
 }
 
 [data-theme="dark"] {
-    --text: #e4dfd5;
-    --text-muted: #b0a896;
-    --text-faint: #857e6a;
+    --text: #eae8e4;
+    --text-muted: #b0ada6;
+    --text-faint: #84807a;
 
     --clickable: var(--text-muted);
     --hover: var(--text);
 
-    --background: #3b3530;
-    --foreground: #454038;
-    --card-bg: #514b42;
-    --card-border: #5e5850;
-    --input-bg: #454038;
-    --input-border: #6a6358;
+    --background: #363431;
+    --foreground: #43413d;
+    --card-bg: #4d4b47;
+    --card-border: #5a5854;
+    --input-bg: #43413d;
+    --input-border: #65625c;
 
     --star-fill: #c9a83f;
-    --star-bg: #5a4d28;
+    --star-bg: #524f40;
     --star: var(--foreground);
 
-    --border-hover: #5a5248;
-    --btn-hover-bg: #3d3833;
+    --border-hover: #686560;
+    --btn-hover-bg: #3d3b38;
 
     --shadow-card: rgba(0, 0, 0, 0.3);
     --shadow-inset: rgba(0, 0, 0, 0.2);

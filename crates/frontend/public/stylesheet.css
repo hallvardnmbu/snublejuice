@@ -221,9 +221,9 @@ footer {
     cursor: default;
 }
 [data-theme="dark"] .btn {
-    background: var(--foreground);
+    background: var(--card-bg);
     color: var(--text);
-    border-color: var(--foreground);
+    border-color: var(--card-border);
 }
 
 h1,
@@ -616,7 +616,7 @@ form:not(header *) {
     content: "";
     position: absolute;
     right: var(--padding);
-    top: 50%;
+    top: 55%;
     transform: translateY(-50%);
     width: var(--padding);
     height: var(--padding);
@@ -987,8 +987,22 @@ a.rating:visited {
 @media (max-width: 600px) {
     :root {
         --image: 72px;
-        --fontsize: 12px;
+        --fontsize: 11px;
         --fontsize-tag: 8px;
+
+        /* control heights */
+        --control-h: 38px;
+        --control-h-sm: 34px;
+        --control-h-xs: 32px;
+
+        /* spacing */
+        --gap-xs: 3px;
+        --gap-sm: 4px;
+        --gap-md: 6px;
+        --gap-lp: 8px;
+        --gap-lp-md: 12px;
+        --padding-input: 8px;
+        --padding-lg: 10px;
     }
     main {
         max-width: 100%;

@@ -80,7 +80,6 @@ document.getElementById("toggleAdvanced").onclick = function (event) {
   const panel = document.getElementById("advanced");
   const btn = document.getElementById("toggleAdvanced");
   const isOpen = panel.classList.toggle("open");
-  btn.classList.toggle("active", isOpen);
   btn.setAttribute("aria-expanded", isOpen);
   sessionStorage.setItem("advanced", isOpen);
 };
@@ -91,7 +90,6 @@ document.addEventListener("DOMContentLoaded", function () {
   if (isOpen) {
     document.getElementById("advanced").classList.add("open");
     const btn = document.getElementById("toggleAdvanced");
-    btn.classList.add("active");
     btn.setAttribute("aria-expanded", "true");
   }
   updateFilterBadge();
@@ -139,22 +137,6 @@ document.querySelectorAll(".favourite-toggle").forEach((star) => {
   });
 });
 
-// Touch-tap feedback on product cards (mirrors hover effect for ~2s).
-if (window.matchMedia("(hover: none)").matches) {
-  document.querySelectorAll(".product").forEach((card) => {
-    let timer = null;
-    card.addEventListener(
-      "touchstart",
-      function () {
-        this.classList.add("touch-active");
-        clearTimeout(timer);
-        timer = setTimeout(() => this.classList.remove("touch-active"), 2000);
-      },
-      { passive: true },
-    );
-  });
-}
-
 // Detailed view.
 document.addEventListener("DOMContentLoaded", function () {
   const sections = document.querySelectorAll(".product");
@@ -166,7 +148,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const itemIndex = this.getAttribute("index");
       const aside = document.getElementById(itemIndex).querySelector("aside");
-      aside.classList.toggle("is-hidden");
+      aside.classList.toggle("hidden");
     });
   });
 });

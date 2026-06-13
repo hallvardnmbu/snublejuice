@@ -120,60 +120,63 @@
 
 <link rel="canonical" href="https://snublejuice.no" />
 {% endblock %} {% block header %} {% with user=user, landing=true %}{% include "partials/account.html" %}{% endwith %}
-{% endblock %} {% block main_attrs %} class="lp-main"{% endblock %} {% block main %}
-<section class="lp-hero">
-    <h1 class="lp-title">Snubl over og gjør et kupp.</h1>
-    <p class="lp-sub">
-        Snublejuice følger prishistorikken til Vinmonopolet og tax-free-butikkene måned for måned, så du får med deg hva
-        som er på tilbud.
-    </p>
+{% endblock %} {% block main %}
+<section class="landing">
+    <div class="hero">
+        <h1>Snubl over og gjør et kupp.</h1>
+        <p>
+            Snublejuice følger prishistorikken til Vinmonopolet og tax-free-butikkene måned for måned, så du får med deg
+            hva som er på tilbud.
+        </p>
+    </div>
+
+    <div class="routes" aria-label="Velg side">
+        {{ route_card( "vin", "https://vinmonopolet.snublejuice.no", "Butikkpriser", "Vinmonopolet",
+        "vinmonopolet.snublejuice.no", "Skjulte tilbud fra Vinmonopolet hvert månedsskifte.", "Gå til
+        vinmonopolet-utvalget", "preview-vin", "Prishistorikk og tilbudsoversikt" ) }} {{ route_card( "tax",
+        "https://taxfree.snublejuice.no", "Flyplasspriser", "Tax-free", "taxfree.snublejuice.no", "Hva lønner seg mest å
+        kjøpe på tax-free?", "Gå til tax-free-sammenligning", "preview-tax", "Prissammenligning tax-free vs
+        Vinmonopolet" ) }}
+    </div>
+
+    <div class="how card">
+        <div class="how-steps">
+            <div>
+                <span class="label-mono label-mono--xs">01 / VELG</span>
+                <h4>Velg destinasjon</h4>
+                <p>Skal du på pol-tur eller flyplass? Vi finner beste tilbud uansett hvor!</p>
+            </div>
+            <div>
+                <span class="label-mono label-mono--xs">02 / FILTRER</span>
+                <h4>Filtrer på det som teller</h4>
+                <p>Kategori, butikk eller flyplass, prisendring. Eller bare søk fritt.</p>
+            </div>
+            <div>
+                <span class="label-mono label-mono--xs">03 / VARSLE</span>
+                <h4>Få varsel hver måned</h4>
+                <p>Vi sender e-post når prisene justeres så du ikke går glipp av tilbud.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="info">
+        <div class="card">
+            <h3>Lagerbeholdning</h3>
+            <p>
+                Lagerbeholdning oppdateres innimellom, så avvik kan forekomme. Alltid dobbeltsjekk på produktets egen
+                side før du handler.
+            </p>
+        </div>
+        <div class="card">
+            <h3>Varslinger</h3>
+            <p>
+                Kryss av for e-postvarsel hver gang prisene oppdateres. Aktiveres under
+                <span class="label-mono label-mono--xs">Profil</span>,
+                <span class="label-mono label-mono--xs">Varslinger</span> når du er logget inn.
+            </p>
+        </div>
+    </div>
 </section>
-
-<div class="lp-routes" aria-label="Velg side">
-    {{ route_card( "vin", "https://vinmonopolet.snublejuice.no", "Butikkpriser", "Vinmonopolet",
-    "vinmonopolet.snublejuice.no", "Skjulte tilbud fra Vinmonopolet hvert månedsskifte.", "Gå til
-    vinmonopolet-utvalget", "preview-vin", "Prishistorikk og tilbudsoversikt" ) }} {{ route_card( "tax",
-    "https://taxfree.snublejuice.no", "Flyplasspriser", "Tax-free", "taxfree.snublejuice.no", "Hva lønner seg mest å
-    kjøpe på tax-free?", "Gå til tax-free-sammenligning", "preview-tax", "Prissammenligning tax-free vs Vinmonopolet" )
-    }}
-</div>
-
-<div class="lp-how card">
-    <div class="lp-how-steps">
-        <div class="lp-how-step">
-            <span class="lp-how-step-num">01 / VELG</span>
-            <h4>Velg destinasjon</h4>
-            <p>Skal du på pol-tur eller flyplass? Vi finner beste tilbud uansett hvor!</p>
-        </div>
-        <div class="lp-how-step">
-            <span class="lp-how-step-num">02 / FILTRER</span>
-            <h4>Filtrer på det som teller</h4>
-            <p>Kategori, butikk eller flyplass, prisendring. Eller bare søk fritt.</p>
-        </div>
-        <div class="lp-how-step">
-            <span class="lp-how-step-num">03 / VARSLE</span>
-            <h4>Få varsel hver måned</h4>
-            <p>Vi sender e-post når prisene justeres så du ikke går glipp av tilbud.</p>
-        </div>
-    </div>
-</div>
-
-<div class="lp-info">
-    <div class="lp-info-card card">
-        <h3>Lagerbeholdning</h3>
-        <p>
-            Lagerbeholdning oppdateres innimellom, så avvik kan forekomme. Alltid dobbeltsjekk på produktets egen side
-            før du handler.
-        </p>
-    </div>
-    <div class="lp-info-card card">
-        <h3>Varslinger</h3>
-        <p>
-            Kryss av for e-postvarsel hver gang prisene oppdateres. Aktiveres under
-            <span class="lp-kbd">Profil</span> → <span class="lp-kbd">Varslinger</span> når du er logget inn.
-        </p>
-    </div>
-</div>
 {% endblock %} {% block footer %} {% with landing=true %}{% include "partials/footer.html" %}{% endwith %} {% endblock
 %} {% block scripts %}
 <script type="module">
@@ -194,18 +197,18 @@
                 : `${Math.round(p.volume ?? 0)} cL · ${(p.country ?? "").toUpperCase()} · ${discount}%`;
 
         el.innerHTML = `
-                <div class="lp-preview-bottle img-inset">
+                <div class="preview">
                     <svg viewBox="0 0 60 100" aria-hidden="true" width="22" height="40">${BOTTLE[type]}</svg>
                 </div>
-                <div class="lp-preview-body">
-                    <div class="lp-preview-name">${name}</div>
-                    <div class="label-mono label-mono--xs">${meta}</div>
+                <div class="preview-body">
+                    <div class="preview-name">${name}</div>
+                    <span class="label-mono label-mono--xs">${meta}</span>
                 </div>
-                <div class="lp-preview-price">
-                    <span class="pn-val">kr ${now}</span>
-                    ${was ? `<span class="pcval pcval-strike">kr ${was}</span>` : ""}
+                <div class="preview-price">
+                    <span class="price">kr ${now}</span>
+                    ${was ? `<span class="price strikethrough">kr ${was}</span>` : ""}
                 </div>`;
-        el.classList.remove("is-hidden");
+        el.classList.remove("hidden");
     }
 
     fetch("/data/preview")

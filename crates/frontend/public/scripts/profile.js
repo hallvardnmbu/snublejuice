@@ -3,21 +3,22 @@ const _MODALS = ["profile", "loginForm", "registerForm", "notifyUserForm", "dele
 function toggleView(modal) {
   // Close all modals except the one that was clicked.
   for (const arg of _MODALS.filter((m) => m !== modal)) {
-    document.getElementById(arg).classList.add("is-hidden");
+    document.getElementById(arg).classList.add("hidden");
   }
 
   // Close message.
-  const userMessage = document.getElementById("userMessage");
-  userMessage.classList.add("is-hidden");
+  const container = document.querySelector(".message");
+  container.classList.add("hidden");
 
   // Open the clicked modal.
-  document.getElementById(modal).classList.toggle("is-hidden");
+  document.getElementById(modal).classList.toggle("hidden");
 }
 
 async function showError(message) {
-  const userMessage = document.getElementById("userMessage");
-  userMessage.classList.remove("is-hidden");
-  userMessage.textContent = message;
+  const container = document.querySelector(".message");
+  container.classList.remove("hidden");
+  const span = container.querySelector("span");
+  span.textContent = message;
 }
 
 async function tryPost(endpoint, formData) {
@@ -35,7 +36,7 @@ async function tryPost(endpoint, formData) {
     }
     window.location.reload();
   } catch (error) {
-    showError(`Hmm, noe gikk galt... ${error.message || error}`);
+    showError(`Hmm, noe gikk galt...`);
   }
 }
 

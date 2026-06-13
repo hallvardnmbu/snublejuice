@@ -1,13 +1,8 @@
 {% macro route_card(type, href, tag, title, domain, desc, cta_text, preview_id, service_type) %}
-<a
-    class="lp-route lp-route--{{ type }} card card--interactive card--radius-xl"
-    href="{{ href }}"
-    itemscope
-    itemtype="https://schema.org/Service"
->
-    <div class="lp-route-head">
-        <span class="lp-route-tag">{{ tag }}</span>
-        <span class="lp-route-glyph" aria-hidden="true">
+<a class="route route--{{ type }} card" href="{{ href }}" itemscope itemtype="https://schema.org/Service">
+    <div class="route-head">
+        <span class="label">{{ tag }}</span>
+        <span class="route-glyph" aria-hidden="true">
             {% if type == "vin" %}
             <svg
                 width="20"
@@ -40,59 +35,57 @@
             {% endif %}
         </span>
     </div>
-    <h2 class="lp-route-title" itemprop="name">
+    <h2 itemprop="name">
         {{ title }}
-        <small>{{ domain }}</small>
+        <small class="label-mono label-mono--xs">{{ domain }}</small>
     </h2>
-    <p class="lp-route-desc" itemprop="description">{{ desc }}</p>
-    <div class="lp-route-preview is-hidden" id="{{ preview_id }}"></div>
-    <div class="lp-route-cta">
+    <p itemprop="description">{{ desc }}</p>
+    <div class="route-preview card inset hidden" id="{{ preview_id }}"></div>
+    <div class="route-cta">
         <span>{{ cta_text }}</span>
-        <span class="lp-route-cta-arrow">
-            <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-            >
-                <path d="M5 12h14" />
-                <path d="m13 6 6 6-6 6" />
-            </svg>
-        </span>
+        <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+        >
+            <path d="M5 12h14" />
+            <path d="m13 6 6 6-6 6" />
+        </svg>
     </div>
     <meta itemprop="serviceType" content="{{ service_type }}" />
     <meta itemprop="provider" content="Snublejuice" />
 </a>
-{% endmacro %} {% macro adv_field(label, class="") %}
-<div class="adv-field{% if class %} {{ class }}{% endif %}">
-    <span class="adv-lbl">{{ label }}</span>
+{% endmacro %} {% macro adv_field(label) %}
+<div>
+    <span class="label">{{ label }}</span>
     {{ caller() }}
 </div>
 {% endmacro %} {% macro price_cell(label, href, value, class="") %}
-<a href="{{ href }}" target="_blank" class="pcell"
-    ><span class="pclbl">{{ label }}</span><b class="pcval{% if class %} {{ class }}{% endif %}">{{ value }}</b></a
+<a href="{{ href }}" target="_blank"
+    ><span class="label">{{ label }}</span><b class="price{% if class %} {{ class }}{% endif %}">{{ value }}</b></a
 >
 {% endmacro %} {% macro price_block(item, taxfree) %} {% if taxfree %} {{ price_cell("POL", item.url, (item.price |
 round) | int) }} {{ price_cell("TAX", item.taxfree.url, (item.taxfree.price | round) | int) }} {{ price_cell("DIFF",
-item.taxfree.url, ((item.taxfree.discount | round) | int) ~ "%", "pcval-change") }}
-<div class="price-now">
-    <b class="pn-val">{{ (item.taxfree.discount | round) | int }}</b>
-    <span class="pn-cur">%</span>
-    <span class="pn-sep"></span>
-    <span class="pn-cur">KR</span>
-    <b class="pn-val">{{ (item.taxfree.price | round) | int }}</b>
+item.taxfree.url, ((item.taxfree.discount | round) | int) ~ "%", "change") }}
+<div class="card">
+    <b>{{ (item.taxfree.discount | round) | int }}</b>
+    <span>%</span>
+    <span class="separator"></span>
+    <span>KR</span>
+    <b>{{ (item.taxfree.price | round) | int }}</b>
 </div>
 {% else %} {% if item.oldprice %} {{ price_cell("NÅ", item.url, (item.price | round) | int) }} {{ price_cell("FØR",
-item.url, (item.oldprice | round) | int, "pcval-strike") }} {{ price_cell("ENDRING", item.url, ((item.discount | round)
-| int) ~ "%", "pcval-change") }} {% endif %}
-<div class="price-now">
+item.url, (item.oldprice | round) | int, "strikethrough") }} {{ price_cell("ENDRING", item.url, ((item.discount | round)
+| int) ~ "%", "change") }} {% endif %}
+<div class="card">
     {% if item.oldprice %}
-    <b class="pn-val">{{ (item.discount | round) | int }}</b><span class="pn-cur">%</span>
-    <span class="pn-sep"></span>{% endif %}<span class="pn-cur">KR</span
-    ><b class="pn-val">{{ (item.price | round) | int }}</b>
+    <b>{{ (item.discount | round) | int }}</b><span>%</span> <span class="separator"></span>{% endif %}<span>KR</span
+    ><b>{{ (item.price | round) | int }}</b>
 </div>
 {% endif %} {% endmacro %}

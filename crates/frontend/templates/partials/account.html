@@ -17,7 +17,11 @@
         {% endif %}
     </div>
     <div>
-        <h1>Snublejuice</h1>
+        {% if landing_url %}
+            <h1 role="link" onclick="window.location.href='{{ landing_url }}'">Snublejuice</h1>
+        {% else %}
+            <h1>Snublejuice</h1>
+        {% endif %}
     </div>
     <div>
         {% if landing_url %}

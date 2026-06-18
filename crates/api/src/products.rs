@@ -1,4 +1,9 @@
-use axum::{Json, extract::{Path, State}, http::header, response::IntoResponse};
+use axum::{
+    Json,
+    extract::{Path, State},
+    http::header,
+    response::IntoResponse,
+};
 use mongodb::Database;
 use regex::Regex;
 use serde::Serialize;
@@ -44,7 +49,7 @@ pub async fn get_image(Path(index): Path<String>) -> Result<impl IntoResponse, A
 }
 
 async fn serve_fallback() -> ([(header::HeaderName, &'static str); 1], Vec<u8>) {
-    let fallback_path = PathBuf::from("/public/images/bottle.png");
+    let fallback_path = PathBuf::from("/public/images/snublejuice.png");
     let contents = fs::read(fallback_path).await.unwrap_or_else(|_| Vec::new());
     ([(header::CONTENT_TYPE, "image/png")], contents)
 }

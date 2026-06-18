@@ -277,6 +277,10 @@ menu div:nth-child(2) {
     z-index: 1;
     pointer-events: none;
 }
+menu div:nth-child(2) h1[role="link"] {
+    pointer-events: auto;
+    cursor: pointer;
+}
 header form {
     display: flex;
     flex-direction: column;
@@ -519,10 +523,10 @@ img {
     max-width: calc(var(--image) - 4 * var(--padding));
 }
 img.fallback {
-    max-width: 46%;
+    max-width: 100%;
     mix-blend-mode: normal;
 }
-[data-theme="dark"] .img-wrap img:not(.fallback) {
+[data-theme="dark"] .img-wrap img {
     filter: drop-shadow(0 0 3px var(--img-glow));
     mix-blend-mode: screen;
 }

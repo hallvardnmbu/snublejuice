@@ -36,16 +36,6 @@
       "src": "images/800x800.png",
       "sizes": "800x800",
       "type": "image/png"
-    },
-    {
-      "src": "images/1024x1024.png",
-      "sizes": "1024x1024",
-      "type": "image/png"
-    },
-    {
-      "src": "images/1280x1280.png",
-      "sizes": "1280x1280",
-      "type": "image/png"
     }
   ],
   "start_url": "/",

@@ -8,16 +8,12 @@
     '
 >
     <div>
-        <a
-            class="img-wrap"
-            href="{{ item.taxfree.url if taxfree else item.url }}"
-            target="_blank"
-        >
+        <a class="img-wrap" href="{{ item.taxfree.url if taxfree else item.url }}" target="_blank">
             <img
                 src="/data/image/{{ item.index }}"
                 onerror="
                     this.className = 'fallback';
-                    this.src = '/public/images/bottle.png';
+                    this.src = '/public/images/snublejuice.png';
                 "
             />
         </a>

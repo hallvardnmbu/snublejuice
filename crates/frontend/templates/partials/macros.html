@@ -61,8 +61,8 @@
     <meta itemprop="serviceType" content="{{ service_type }}" />
     <meta itemprop="provider" content="Snublejuice" />
 </a>
-{% endmacro %} {% macro adv_field(label) %}
-<div>
+{% endmacro %} {% macro adv_field(label, class="", id="") %}
+<div{% if id %} id="{{ id }}"{% endif %}{% if class %} class="{{ class }}"{% endif %}>
     <span class="label">{{ label }}</span>
     {{ caller() }}
 </div>

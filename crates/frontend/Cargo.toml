@@ -14,3 +14,4 @@ minijinja = { version = "2.18.0" }
 rust-embed = "8"
 chrono = { workspace = true }
 regex = { workspace = true }
+serde = { workspace = true }

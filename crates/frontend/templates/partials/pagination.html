@@ -1,5 +1,5 @@
-<nav aria-label="Pagination">
-    <button {% if page <= 1 %}disabled{% endif %} {% if page > 1 %}onclick="changePage({{ page - 1 }})"{% endif %} aria-label="Forrige side">←</button>
+<nav aria-label="Pagination" data-placement="{{ placement }}">
+    <button type="button" data-page="{{ page - 1 }}" {% if page <= 1 %}disabled{% endif %} aria-label="Forrige side">←</button>
     <span>{{ page }} av {{ max_page }}</span>
-    <button {% if page >= max_page %}disabled{% endif %} {% if page < max_page %}onclick="changePage({{ page + 1 }})"{% endif %} aria-label="Neste side">→</button>
+    <button type="button" data-page="{{ page + 1 }}" {% if page >= max_page %}disabled{% endif %} aria-label="Neste side">→</button>
 </nav>

@@ -8,11 +8,7 @@
         {% else %}
             <button onclick="toggleView('profile')" title="{{ user.username }}">{{ user.username | truncate(12) }}</button>
             {% if not landing %}
-                {% if not favourites %}
-                    <button onclick="applyFilters(true, true)">Favoritter</button>
-                {% else %}
-                    <button onclick="applyFilters(true, true)">Alle produkter</button>
-                {% endif %}
+                <button type="button" id="toggleFavourites">{{ 'Alle produkter' if favourites else 'Favoritter' }}</button>
             {% endif %}
         {% endif %}
     </div>

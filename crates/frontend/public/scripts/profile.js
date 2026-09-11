@@ -1,24 +1,34 @@
 const _MODALS = ["profile", "loginForm", "registerForm", "notifyUserForm", "deleteUserForm"];
 
 function toggleView(modal) {
-  // Close all modals except the one that was clicked.
   for (const arg of _MODALS.filter((m) => m !== modal)) {
     document.getElementById(arg).classList.add("hidden");
   }
 
-  // Close message.
   const container = document.querySelector(".message");
   container.classList.add("hidden");
 
-  // Open the clicked modal.
   document.getElementById(modal).classList.toggle("hidden");
 }
 
-async function showError(message) {
+function showError(message) {
   const container = document.querySelector(".message");
   container.classList.remove("hidden");
   const span = container.querySelector("span");
   span.textContent = message;
+}
+
+async function errorMessage(response) {
+  try {
+    const body = await response.json();
+    if (body?.error) return body.error;
+  } catch (_) {
+    // ignore parse errors
+  }
+
+  if (response.status === 401) return "Feil brukernavn eller passord.";
+  if (response.status === 400) return "Ugyldig forespørsel.";
+  return "Hmm, noe gikk galt...";
 }
 
 async function tryPost(endpoint, formData) {
@@ -32,11 +42,12 @@ async function tryPost(endpoint, formData) {
       body: JSON.stringify(formData),
     });
     if (!response.ok) {
-      throw new Error();
+      showError(await errorMessage(response));
+      return;
     }
     window.location.reload();
-  } catch (error) {
-    showError(`Hmm, noe gikk galt...`);
+  } catch (_) {
+    showError("Hmm, noe gikk galt...");
   }
 }
 
@@ -84,18 +95,3 @@ async function logout() {
 
 window.toggleView = toggleView;
 window.logout = logout;
-
-async function loadFavourites() {
-  try {
-    const response = await axios.get("/account/favourites");
-    const stores = response.data;
-
-    sessionStorage.setItem("favourites", JSON.stringify(stores));
-  } catch (error) {
-    console.debug("Unable to fetch favourites:", error);
-  }
-}
-
-document.addEventListener("DOMContentLoaded", async () => {
-  await loadFavourites();
-});

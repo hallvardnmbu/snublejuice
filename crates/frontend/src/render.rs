@@ -1,11 +1,8 @@
-use axum::{
-    extract::{Query, State},
-    http::HeaderMap,
-    response::Html,
-};
+use axum::{Json, extract::State, http::HeaderMap, response::Html};
 use minijinja::{Environment, Value, context};
 use regex::Regex;
 use rust_embed::RustEmbed;
+use serde::Serialize;
 use std::sync::OnceLock;
 
 use authentication::middle::MaybeAuthenticate;
@@ -57,22 +54,65 @@ fn get_env() -> &'static Environment<'static> {
     })
 }
 
+#[derive(Serialize)]
+pub struct ProductsResponse {
+    pub html: String,
+    pub page: i64,
+    pub max_page: u64,
+    pub favourites: bool,
+}
+
+pub fn empty_parameters() -> Parameters {
+    Parameters {
+        page: None,
+        sort: None,
+        ascending: None,
+        favourites: None,
+        category: None,
+        country: None,
+        price: None,
+        cprice: None,
+        volume: None,
+        cvolume: None,
+        alcohol: None,
+        calcohol: None,
+        year: None,
+        cyear: None,
+        search: None,
+        storelike: None,
+        store_vinmonopolet: None,
+        store_taxfree: None,
+    }
+}
+
 pub fn render_landing(user: Option<User>) -> String {
     let tmpl = get_env().get_template("landing.html").unwrap();
     tmpl.render(context! { user }).unwrap()
 }
 
-pub fn render_products(
+pub fn render_products_shell(is_taxfree: bool, user: Option<User>, landing_url: &str) -> String {
+    let parameters = empty_parameters();
+    let tmpl = get_env().get_template("products.html").unwrap();
+    tmpl.render(context! {
+        is_taxfree,
+        user,
+        parameters,
+        landing => false,
+        landing_url,
+    })
+    .unwrap()
+}
+
+pub fn render_product_results(
     data: &Vec<Product>,
     is_taxfree: bool,
     user: Option<User>,
     page: i64,
     max_page: u64,
     parameters: &Parameters,
-    landing_url: &str,
     prices_updated: bool,
 ) -> String {
-    let tmpl = get_env().get_template("products.html").unwrap();
+    let tmpl = get_env().get_template("partials/results.html").unwrap();
     tmpl.render(context! {
         data,
         is_taxfree,
@@ -80,8 +120,6 @@ pub fn render_products(
         page,
         max_page,
         parameters,
-        landing => false,
-        landing_url,
         prices_updated,
     })
     .unwrap()
@@ -91,7 +129,6 @@ pub fn render_products(
 mod tests {
     use super::*;
     use shared::models::{Product, Taxfree};
-    use shared::query::Parameters;
 
     fn sample_product() -> Product {
         Product {
@@ -133,29 +170,6 @@ mod tests {
         }
     }
 
-    fn empty_parameters() -> Parameters {
-        Parameters {
-            page: None,
-            sort: None,
-            ascending: None,
-            favourites: None,
-            category: None,
-            country: None,
-            price: None,
-            cprice: None,
-            volume: None,
-            cvolume: None,
-            alcohol: None,
-            calcohol: None,
-            year: None,
-            cyear: None,
-            search: None,
-            storelike: None,
-            store_vinmonopolet: None,
-            store_taxfree: None,
-        }
-    }
-
     #[test]
     fn templates_extend_base_and_render() {
         let landing = render_landing(None);
@@ -169,54 +183,38 @@ mod tests {
         assert!(landing.contains("itemprop=\"name\""));
         assert!(landing.contains("preview-tax"));
 
-        let parameters = empty_parameters();
-        let products = render_products(
-            &vec![],
-            false,
-            None,
-            1,
-            1,
-            &parameters,
-            "https://snublejuice.no",
-            true,
-        );
+        let products = render_products_shell(false, None, "https://snublejuice.no");
         assert!(products.contains(r#"href="/public/stylesheet.css""#));
-        assert!(products.contains("/public/scripts/stores.js"));
-        assert!(products.contains("/public/scripts/buttons.js"));
+        assert!(products.contains("/public/scripts/dropdowns.js"));
+        assert!(products.contains("/public/scripts/products.js"));
+        assert!(products.contains("/public/scripts/filters.js"));
+        assert!(products.contains(r#"id="product-results""#));
         assert!(products.contains(r#"id="nsearch""#));
         assert!(products.contains(r#"id="category""#));
+        assert!(products.contains(r#"id="applyFilters""#));
         assert!(!products.contains("landing"));
     }
 
     #[test]
     fn price_block_renders_vin_and_taxfree() {
         let parameters = empty_parameters();
-        let vin = render_products(
+        let vin = render_product_results(
             &vec![sample_product()],
             false,
             None,
             1,
             1,
             &parameters,
-            "https://snublejuice.no",
             true,
         );
         assert!(vin.contains(">NÅ</span>"));
         assert!(vin.contains(">FØR</span>"));
         assert!(vin.contains(">ENDRING</span>"));
         assert!(vin.contains("strikethrough"));
-        assert!(vin.contains("class=\"price-now\""));
+        assert!(vin.contains(r#"class="price""#));
 
-        let tax = render_products(
-            &vec![sample_product()],
-            true,
-            None,
-            1,
-            1,
-            &parameters,
-            "https://snublejuice.no",
-            true,
-        );
+        let tax =
+            render_product_results(&vec![sample_product()], true, None, 1, 1, &parameters, true);
         assert!(tax.contains(">POL</span>"));
         assert!(tax.contains(">TAX</span>"));
         assert!(tax.contains(">DIFF</span>"));
@@ -226,10 +224,9 @@ mod tests {
 }
 
 pub async fn site(
-    State(state): State<AppState>,
+    State(_state): State<AppState>,
     subdomain: Subdomain,
     headers: HeaderMap,
-    Query(parameters): Query<Parameters>,
     MaybeAuthenticate(user): MaybeAuthenticate,
 ) -> Html<String> {
     let host = headers
@@ -237,6 +234,33 @@ pub async fn site(
         .and_then(|h| h.to_str().ok())
         .unwrap_or("snublejuice.no");
     let landing_url = landing_url_from_host(host);
+
+    match subdomain {
+        Subdomain::Landing => {
+            let is_production = std::env::var("ENVIRONMENT")
+                .map(|e| e == "production")
+                .unwrap_or(false);
+            if is_production {
+                let month = chrono::Local::now().format("%Y-%m").to_string();
+                database::metadata::increment_visitor(&_state.db, &month, subdomain.name(), true)
+                    .await;
+            }
+            Html(render_landing(user))
+        }
+        Subdomain::Vinmonopolet | Subdomain::Taxfree => Html(render_products_shell(
+            subdomain.is_taxfree(),
+            user,
+            &landing_url,
+        )),
+    }
+}
+
+pub async fn fetch_products(
+    State(state): State<AppState>,
+    subdomain: Subdomain,
+    MaybeAuthenticate(user): MaybeAuthenticate,
+    Json(parameters): Json<Parameters>,
+) -> Json<ProductsResponse> {
     let is_production = std::env::var("ENVIRONMENT")
         .map(|e| e == "production")
         .unwrap_or(false);
@@ -252,31 +276,33 @@ pub async fn site(
         .await;
     }
 
-    match subdomain {
-        Subdomain::Landing => Html(render_landing(user)),
-        Subdomain::Vinmonopolet | Subdomain::Taxfree => {
-            let prices_updated =
-                database::metadata::get_prices_updated(&state.db, subdomain.name()).await;
-            let products = database::products::get_products(
-                &state.db,
-                parameters.to_pipeline(&subdomain, &user, prices_updated),
-            )
-            .await;
-            let max_page = database::products::get_max_page(
-                &state.db,
-                parameters.to_filter(&subdomain, &user, prices_updated),
-            )
-            .await;
-            Html(render_products(
-                &products,
-                subdomain.is_taxfree(),
-                user,
-                parameters.page.unwrap_or(1),
-                max_page,
-                &parameters,
-                &landing_url,
-                prices_updated,
-            ))
-        }
-    }
+    let prices_updated = database::metadata::get_prices_updated(&state.db, subdomain.name()).await;
+    let page = parameters.page.unwrap_or(1);
+    let products = database::products::get_products(
+        &state.db,
+        parameters.to_pipeline(&subdomain, &user, prices_updated),
+    )
+    .await;
+    let max_page = database::products::get_max_page(
+        &state.db,
+        parameters.to_filter(&subdomain, &user, prices_updated),
+    )
+    .await;
+    let favourites = parameters.favourites.unwrap_or(false);
+    let html = render_product_results(
+        &products,
+        subdomain.is_taxfree(),
+        user,
+        page,
+        max_page,
+        &parameters,
+        prices_updated,
+    );
+
+    Json(ProductsResponse {
+        html,
+        page,
+        max_page,
+        favourites,
+    })
 }

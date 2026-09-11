@@ -4,25 +4,16 @@
     --padding: 10px;
     --image: 92px;
 
-    --radius-inner: 14px;
-    --radius-outer: 10px;
+    --radius-card: 14px;
+    --radius-button: 10px;
 
-    --radius-xl: 18px;
-    --radius-lg: 14px;
-    --radius-md: 12px;
-    --radius-sm: 10px;
-    --radius-xs: 8px;
-
-    --control-h: 44px;
-    --control-h-sm: 40px;
-    --control-h-xs: 38px;
+    --height-button: 40px;
 
     --gap-xs: 3px;
     --gap-sm: 6px;
     --gap-md: 8px;
     --gap-lp: 12px;
     --gap-lp-md: 16px;
-    --padding-input: 12px;
     --padding-lg: 14px;
 
     --fontsize-label: 10.5px;
@@ -37,7 +28,6 @@
     --text-faint: #85827a;
     --clickable: var(--text-muted);
     --hover: #4d6750;
-    --price-change: #4d6750;
 
     --background: #fbfbfb;
     --foreground: #eeeeee;
@@ -61,7 +51,6 @@
     --accent-tax: #a07830;
     --accent-vin-dark: #8aad8e;
     --accent-tax-dark: #c89a50;
-    --warning: #a06020;
     --disclaimer: #b43c3c;
 
     --negative: #b48484;
@@ -106,7 +95,6 @@
 
     --accent-vin: var(--accent-vin-dark);
     --accent-tax: var(--accent-tax-dark);
-    --warning: #c89a50;
     --disclaimer: #9d6268;
 }
 
@@ -167,7 +155,7 @@ main > form {
 .card {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-card);
     transition:
         border-color 0.15s,
         box-shadow 0.15s;
@@ -193,13 +181,13 @@ button {
     appearance: none;
     background: var(--foreground);
     border: 1px solid var(--input-border);
-    border-radius: var(--radius-outer);
+    border-radius: var(--radius-button);
     padding: calc(2 * var(--margin)) var(--padding-lg);
     font-family: inherit;
     font-size: var(--fontsize);
     font-weight: 500;
     color: var(--text);
-    height: var(--control-h-sm);
+    height: var(--height-button);
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -258,7 +246,6 @@ nav ol {
     align-items: center;
     justify-content: space-between;
     gap: var(--padding);
-    min-height: var(--control-h-sm);
 }
 menu div:is(:first-child, :last-child) {
     display: inline-flex;
@@ -269,7 +256,7 @@ menu div:is(:first-child, :last-child) {
     max-width: 100%;
     background: var(--foreground);
     border: 1px solid var(--input-border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-button);
     overflow: hidden;
 }
 menu div:last-child {
@@ -445,10 +432,10 @@ input[type="password"],
 input[type="email"],
 input[type="search"],
 select {
-    height: var(--control-h-sm);
+    height: var(--height-button);
     background: var(--foreground);
     border: 1px solid var(--input-border);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-button);
     font-family: inherit;
     font-size: var(--fontsize);
     color: var(--text);
@@ -461,7 +448,7 @@ select {
 }
 select {
     width: 100%;
-    padding: 0 32px 0 var(--padding-input);
+    padding: 0 32px 0 var(--gap-lp);
     cursor: pointer;
     font-weight: 500;
 }
@@ -470,7 +457,7 @@ input[type="text"],
 input[type="password"],
 input[type="email"],
 input[type="search"] {
-    padding: 0 var(--padding-input);
+    padding: 0 var(--gap-lp);
 }
 input[type="text"],
 input[type="password"],
@@ -521,8 +508,8 @@ nav span {
     align-items: center;
     justify-content: center;
     font-weight: bold;
-    margin: var(--radius-lg);
-    border-radius: var(--radius-lg);
+    margin: var(--radius-card);
+    border-radius: var(--radius-card);
     border: 2px solid var(--disclaimer);
     color: var(--disclaimer);
 }
@@ -566,7 +553,7 @@ img.fallback {
     flex-shrink: 0;
     align-self: stretch;
     cursor: pointer;
-    border-radius: calc(var(--radius-lg) - var(--padding));
+    border-radius: calc(var(--radius-card) - var(--padding));
     position: relative;
     z-index: 1;
 }
@@ -869,16 +856,12 @@ aside .fractions tbody tr td:last-of-type {
         --fontsize: 11px;
         --fontsize-tag: 8px;
 
-        --control-h: 38px;
-        --control-h-sm: 34px;
-        --control-h-xs: 32px;
+        --height-button: 34px;
 
-        --gap-xs: 3px;
         --gap-sm: 4px;
         --gap-md: 6px;
         --gap-lp: 8px;
         --gap-lp-md: 12px;
-        --padding-input: 8px;
         --padding-lg: 10px;
     }
     #menu {
@@ -1064,7 +1047,7 @@ section.landing {
     height: 36px;
     display: grid;
     place-items: center;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-button);
     background: var(--foreground);
     border: 1px solid var(--input-border);
 }
@@ -1102,7 +1085,7 @@ section.landing {
     align-items: center;
     margin-top: auto;
     padding: var(--padding) var(--padding-lg);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-button);
     background: var(--text);
     color: var(--background);
     font-weight: 500;

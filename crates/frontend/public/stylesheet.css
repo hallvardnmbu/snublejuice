@@ -39,26 +39,23 @@
     --hover: #4d6750;
     --price-change: #4d6750;
 
-    --background: #f0eeea;
-    --foreground: #e6e4e0;
-    --card-bg: #f8f7f5;
-    --card-border: #e2dfd9;
+    --background: #fbfbfb;
+    --foreground: #eeeeee;
+    --card-bg: var(--background);
+    --card-border: #bbbbbb;
     --input-bg: var(--card-bg);
-    --input-border: #d6d2cb;
+    --input-border: var(--card-border);
 
     --star-fill: #c9a83f;
-    --star-bg: #dcd8d0;
+    --star-bg: var(--card-border);
     --star: var(--foreground);
 
-    --border-hover: #b5b1a9;
-    --btn-hover-bg: #2b2a28;
+    --border-hover: var(--text-faint);
+    --btn-hover-bg: var(--border-hover);
 
-    --shadow-card: rgba(40, 38, 32, 0.1);
-    --shadow-subtle: rgba(0, 0, 0, 0.05);
-    --shadow-inset: rgba(0, 0, 0, 0.05);
-    --shadow-inset-hover: rgba(0, 0, 0, 0.1);
-    --shadow-focus: rgba(107, 138, 111, 0.15);
-    --img-glow: rgba(255, 255, 255, 0.12);
+    --shadow-card: rgba(0, 0, 0, 0.05);
+    --shadow-focus: var(--shadow-card);
+    --img-glow-for-dark-mode: rgba(255, 255, 255, 0.12);
 
     --accent-vin: #6b8a6f;
     --accent-tax: #a07830;
@@ -102,8 +99,6 @@
     --btn-hover-bg: #3d3b38;
 
     --shadow-card: rgba(0, 0, 0, 0.3);
-    --shadow-inset: rgba(0, 0, 0, 0.2);
-    --shadow-inset-hover: rgba(0, 0, 0, 0.35);
 
     --positive: #768c78;
     --neutral: #8e8e8e;
@@ -123,7 +118,7 @@ footer {
     flex-direction: column;
 }
 body {
-    margin: 0;
+    margin: var(--padding) 0 0 0;
     align-items: center;
     gap: var(--padding);
     min-height: 100svh;
@@ -556,7 +551,7 @@ img.fallback {
     mix-blend-mode: normal;
 }
 [data-theme="dark"] .img-wrap img {
-    filter: drop-shadow(0 0 3px var(--img-glow));
+    filter: drop-shadow(0 0 3px var(--img-glow-for-dark-mode));
     mix-blend-mode: screen;
 }
 
@@ -565,11 +560,6 @@ img.fallback {
     display: grid;
     place-items: center;
     overflow: hidden;
-    background: linear-gradient(
-        150deg,
-        var(--foreground) 0%,
-        var(--background) 100%
-    );
 }
 :has(> img) {
     width: var(--image);
@@ -579,7 +569,6 @@ img.fallback {
     border-radius: calc(var(--radius-lg) - var(--padding));
     position: relative;
     z-index: 1;
-    box-shadow: 0 0 0 1px var(--shadow-subtle);
 }
 
 section.product,
@@ -774,12 +763,7 @@ a:has(> .price) {
     gap: var(--gap-xs);
     color: var(--text);
     padding: 5px var(--padding);
-    background: linear-gradient(
-        150deg,
-        var(--foreground) 0%,
-        var(--background) 100%
-    );
-    border-radius: calc(var(--radius-lg) - var(--padding));
+    border: none;
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
     margin-left: auto;
@@ -788,8 +772,6 @@ a:has(> .price) {
     flex-shrink: 0;
     text-decoration: none;
     z-index: 1;
-    box-shadow: 0 0 0 1px var(--shadow-subtle);
-    transition: box-shadow 0.15s;
 }
 
 .prices .card b {
@@ -863,7 +845,7 @@ aside .metadata tbody tr td:last-of-type {
     background: linear-gradient(
         to right,
         var(--color) var(--padding),
-        var(--background) var(--padding)
+        var(--shadow-card) var(--padding)
     );
 }
 aside .fractions tbody tr td:last-of-type {
@@ -875,7 +857,7 @@ aside .fractions tbody tr td:last-of-type {
     background: linear-gradient(
         to right,
         var(--color) 0 calc(var(--percentage) * 1%),
-        var(--background) calc(var(--percentage) * 1%) 100%
+        var(--shadow-card) calc(var(--percentage) * 1%) 100%
     );
 }
 

@@ -109,7 +109,7 @@ body {
     margin: var(--padding) 0 0 0;
     align-items: center;
     gap: var(--padding);
-    min-height: 100svh;
+    min-height: 98svh;
     padding-bottom: var(--padding);
     box-sizing: border-box;
     background: var(--background);

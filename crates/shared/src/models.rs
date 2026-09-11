@@ -44,7 +44,7 @@ pub struct Taxfree {
     pub url: String,
     pub price: f64,
     pub discount: f64,
-    pub stores: Vec<String>,
+    pub stores: Option<Vec<String>>,
 }
 
 #[derive(Debug, Serialize)]
@@ -70,7 +70,7 @@ pub struct Product {
     pub alcohol: f64,
     pub literprice: f64,
     pub url: String,
-    pub stores: Vec<String>,
+    pub stores: Option<Vec<String>>,
     pub category: String,
     pub subcategory: Option<String>,
     pub country: String,

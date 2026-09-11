@@ -4,8 +4,8 @@
     --padding: 10px;
     --image: 92px;
 
-    --radius-card: 14px;
-    --radius-button: 10px;
+    --radius-card: 8px;
+    --radius-button: 6px;
 
     --height-button: 40px;
 
@@ -553,7 +553,7 @@ img.fallback {
     flex-shrink: 0;
     align-self: stretch;
     cursor: pointer;
-    border-radius: calc(var(--radius-card) - var(--padding));
+    border-radius: calc(var(--radius-card) - var(--padding) / 2);
     position: relative;
     z-index: 1;
 }

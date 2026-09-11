@@ -383,16 +383,16 @@ main form > #advanced > div > div > div {
     gap: var(--gap-md);
     align-items: center;
 }
-main form > #advanced > div > div:last-of-type {
+main form > #advanced > div > div.controls {
     display: flex;
     flex-direction: row;
     gap: var(--gap-md);
     align-items: center;
     justify-content: space-between;
-    margin-top: var(--padding);
+    margin-bottom: var(--padding);
 }
 #applyFilters {
-    background: var(--btn-hover-bg);
+    background: var(--text-muted);
     border-color: var(--btn-hover-bg);
     color: var(--foreground);
 }

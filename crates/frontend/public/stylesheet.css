@@ -1,14 +1,15 @@
 :root {
     --fontsize: 13.5px;
+
     --margin: 4px;
     --padding: 10px;
     --image: 92px;
 
     --border-size: 1px;
     --radius-card: 8px;
-    --radius-button: 6px;
+    --radius-button: 8px;
 
-    --height-button: 40px;
+    --height-button: 30px;
 
     --gap-xs: 3px;
     --gap-sm: 6px;
@@ -27,22 +28,14 @@
     --text: #1c1b19;
     --text-muted: #484642;
     --text-faint: #85827a;
-    --clickable: var(--text-muted);
-    --hover: #4d6750;
 
     --background: #fbfbfb;
-    --foreground: #eeeeee;
-    --card-bg: var(--background);
-    --card-border: #bbbbbb;
-    --input-bg: var(--card-bg);
-    --input-border: var(--card-border);
+    --foreground: var(--background);
 
-    --star-fill: #c9a83f;
-    --star-bg: var(--card-border);
-    --star: var(--foreground);
-
+    --border-color: #bbbbbb;
     --border-hover: var(--text-faint);
-    --btn-hover-bg: var(--border-hover);
+
+    --star-background: #c9a83f;
 
     --shadow-card: rgba(0, 0, 0, 0.05);
     --shadow-focus: var(--shadow-card);
@@ -66,36 +59,26 @@
 }
 
 [data-theme="dark"] {
-    --text: #eae8e4;
+    --text: #dfdcd6;
     --text-muted: #b0ada6;
     --text-faint: #84807a;
 
-    --clickable: var(--text-muted);
-    --hover: var(--text);
-
     --background: #363431;
-    --foreground: #43413d;
-    --card-bg: #4d4b47;
-    --card-border: #5a5854;
-    --input-bg: #43413d;
-    --input-border: #65625c;
+    --foreground: var(--background);
 
-    --star-fill: #c9a83f;
-    --star-bg: #524f40;
-    --star: var(--foreground);
-
+    --border-color: #65625c;
     --border-hover: #686560;
-    --btn-hover-bg: #3d3b38;
 
-    --shadow-card: rgba(0, 0, 0, 0.3);
-
-    --positive: #768c78;
-    --neutral: #8e8e8e;
-    --color: var(--neutral);
+    --shadow-card: rgba(0, 0, 0, 0.2);
+    --shadow-focus: var(--shadow-card);
 
     --accent-vin: var(--accent-vin-dark);
     --accent-tax: var(--accent-tax-dark);
     --disclaimer: #9d6268;
+
+    --positive: #768c78;
+    --neutral: #8e8e8e;
+    --color: var(--neutral);
 }
 
 body,
@@ -153,15 +136,12 @@ main > form {
 }
 
 .card {
-    background: var(--card-bg);
-    border: var(--border-size) solid var(--card-border);
+    background: var(--foreground);
+    border: var(--border-size) solid var(--border-color);
     border-radius: var(--radius-card);
-    transition:
-        border-color 0.15s,
-        box-shadow 0.15s;
 }
 .card.inset {
-    background: var(--input-bg);
+    background: var(--foreground);
 }
 
 .label-mono {
@@ -180,7 +160,7 @@ main > form {
 button {
     appearance: none;
     background: var(--foreground);
-    border: var(--border-size) solid var(--input-border);
+    border: var(--border-size) solid var(--border-color);
     border-radius: var(--radius-button);
     padding: calc(2 * var(--margin)) var(--padding-lg);
     font-family: inherit;
@@ -193,9 +173,6 @@ button {
     align-items: center;
     gap: var(--gap-sm);
     white-space: nowrap;
-    transition:
-        background 0.12s,
-        border-color 0.12s;
 }
 button:disabled {
     opacity: 0.35;
@@ -212,6 +189,10 @@ a:visited {
     margin: 0;
     padding: 0;
 }
+td a {
+    font-weight: initial;
+    font-style: italic;
+}
 h1,
 h2,
 h3 {
@@ -223,7 +204,7 @@ h3 {
 a,
 a:visited {
     display: inline;
-    color: var(--clickable);
+    color: var(--text);
     font-size: var(--fontsize);
     text-decoration: none;
 }
@@ -255,7 +236,7 @@ menu div:is(:first-child, :last-child) {
     gap: 0;
     max-width: 100%;
     background: var(--foreground);
-    border: var(--border-size) solid var(--input-border);
+    border: var(--border-size) solid var(--border-color);
     border-radius: var(--radius-button);
     overflow: hidden;
 }
@@ -265,7 +246,7 @@ menu div:last-child {
 menu div:is(:first-child, :last-child) button {
     border: none;
     border-radius: 0;
-    border-left: 1px solid var(--input-border);
+    border-left: 1px solid var(--border-color);
     background: transparent;
 }
 menu div:is(:first-child, :last-child) button:first-child {
@@ -359,10 +340,6 @@ form > div > div > div {
 main form > #advanced {
     overflow: hidden;
     opacity: 0;
-    transition:
-        max-height 0.25s ease,
-        opacity 0.2s ease,
-        margin-top 0.2s ease;
 }
 main form > #advanced:not(.open) {
     display: none;
@@ -393,7 +370,7 @@ main form > #advanced > div > div.controls {
 }
 #applyFilters {
     background: var(--text-muted);
-    border-color: var(--btn-hover-bg);
+    border-color: var(--text-muted);
     color: var(--foreground);
 }
 #advanced hr {
@@ -402,7 +379,7 @@ main form > #advanced > div > div.controls {
     width: calc(100% + 2 * var(--padding-lg) + 2 * var(--border-size));
     height: var(--border-size);
     border: unset;
-    background: var(--card-border);
+    background: var(--border-color);
     margin: unset;
 }
 
@@ -443,7 +420,7 @@ input[type="search"],
 select {
     height: var(--height-button);
     background: var(--foreground);
-    border: var(--border-size) solid var(--input-border);
+    border: var(--border-size) solid var(--border-color);
     border-radius: var(--radius-button);
     font-family: inherit;
     font-size: var(--fontsize);
@@ -451,9 +428,6 @@ select {
     appearance: none;
     -webkit-appearance: none;
     outline: none;
-    transition:
-        border-color 0.15s,
-        box-shadow 0.15s;
 }
 select {
     width: 100%;
@@ -481,8 +455,7 @@ input[type="password"]:focus,
 input[type="email"]:focus,
 input[type="search"]:focus,
 select:focus {
-    border-color: var(--clickable);
-    box-shadow: 0 0 0 3px var(--shadow-focus);
+    border-color: var(--text);
 }
 input[type="search"]::placeholder {
     color: var(--text-faint);
@@ -696,7 +669,7 @@ section button {
 }
 
 .dot {
-    color: var(--input-border);
+    color: var(--border-color);
     font-size: calc(var(--fontsize) - 4px);
     padding: 0 1px;
 }
@@ -712,11 +685,11 @@ a.rating:visited {
     font-weight: 400;
 }
 .star {
-    color: var(--star-fill);
+    color: var(--star-background);
     background: linear-gradient(
         90deg,
         currentColor var(--fill),
-        var(--star-bg) var(--fill)
+        var(--border-color) var(--fill)
     );
     background-clip: text;
     -webkit-background-clip: text;
@@ -790,7 +763,7 @@ a:has(> .price) {
 
 aside {
     display: block;
-    border-top: 1px solid var(--card-border);
+    border-top: 1px solid var(--border-color);
     position: relative;
     z-index: 1;
 }
@@ -912,32 +885,32 @@ aside .fractions tbody tr td:last-of-type {
         content: "★";
         position: absolute;
         font-size: 0.9rem;
-        color: var(--hover);
+        color: var(--color);
     }
     a:hover,
     button:hover {
-        color: var(--hover);
+        color: var(--color);
         cursor: default;
     }
 
     button:hover:not(:disabled, #applyFilters) {
-        background: var(--btn-hover-bg);
-        border-color: var(--btn-hover-bg);
+        background: var(--text);
+        border-color: var(--text);
         color: var(--foreground);
         cursor: pointer;
     }
     button#applyFilters:hover {
-        background: var(--background);
-        border-color: var(--btn-hover-bg);
+        background: var(--foreground);
+        border-color: var(--text);
         color: var(--text);
         cursor: pointer;
     }
 
     .product:hover .img-wrap {
-        box-shadow: 0 0 0 1px var(--border-hover);
+        outline: var(--border-size) solid var(--border-hover);
     }
     .product .img-wrap:hover {
-        box-shadow: 0 0 0 2px var(--color);
+        outline-color: var(--text);
     }
 
     .card:hover {
@@ -947,25 +920,12 @@ aside .fractions tbody tr td:last-of-type {
     .product:hover {
         box-shadow: 0 4px 16px -4px var(--shadow-card);
     }
-    .product:hover .price-now {
-        box-shadow: 0 0 0 1px var(--border-hover);
-    }
 }
 
 @media (hover: none) {
-    .product {
-        transition:
-            border-color 0s,
-            box-shadow 0s;
-    }
-    .product .img-wrap,
-    .product .price-now {
-        transition: box-shadow 0s;
-    }
-
     a:active,
     button:active {
-        color: var(--hover);
+        color: var(--color);
     }
     button:active:not(:disabled) {
         opacity: 0.8;
@@ -1054,7 +1014,7 @@ section.landing {
     place-items: center;
     border-radius: var(--radius-button);
     background: var(--foreground);
-    border: var(--border-size) solid var(--input-border);
+    border: var(--border-size) solid var(--border-color);
 }
 .route h2 .label-mono {
     text-transform: none;

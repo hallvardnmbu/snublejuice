@@ -4,6 +4,7 @@
     --padding: 10px;
     --image: 92px;
 
+    --border-size: 1px;
     --radius-card: 8px;
     --radius-button: 6px;
 
@@ -153,7 +154,7 @@ main > form {
 
 .card {
     background: var(--card-bg);
-    border: 1px solid var(--card-border);
+    border: var(--border-size) solid var(--card-border);
     border-radius: var(--radius-card);
     transition:
         border-color 0.15s,
@@ -179,7 +180,7 @@ main > form {
 button {
     appearance: none;
     background: var(--foreground);
-    border: 1px solid var(--input-border);
+    border: var(--border-size) solid var(--input-border);
     border-radius: var(--radius-button);
     padding: calc(2 * var(--margin)) var(--padding-lg);
     font-family: inherit;
@@ -254,7 +255,7 @@ menu div:is(:first-child, :last-child) {
     gap: 0;
     max-width: 100%;
     background: var(--foreground);
-    border: 1px solid var(--input-border);
+    border: var(--border-size) solid var(--input-border);
     border-radius: var(--radius-button);
     overflow: hidden;
 }
@@ -388,12 +389,21 @@ main form > #advanced > div > div.controls {
     gap: var(--gap-md);
     align-items: center;
     justify-content: space-between;
-    margin-bottom: var(--padding);
+    margin-bottom: calc(var(--padding) - var(--gap-md) / 2);
 }
 #applyFilters {
     background: var(--text-muted);
     border-color: var(--btn-hover-bg);
     color: var(--foreground);
+}
+#advanced hr {
+    position: relative;
+    right: calc(var(--padding-lg) + var(--border-size));
+    width: calc(100% + 2 * var(--padding-lg) + 2 * var(--border-size));
+    height: var(--border-size);
+    border: unset;
+    background: var(--card-border);
+    margin: unset;
 }
 
 .label {
@@ -433,7 +443,7 @@ input[type="search"],
 select {
     height: var(--height-button);
     background: var(--foreground);
-    border: 1px solid var(--input-border);
+    border: var(--border-size) solid var(--input-border);
     border-radius: var(--radius-button);
     font-family: inherit;
     font-size: var(--fontsize);
@@ -1044,7 +1054,7 @@ section.landing {
     place-items: center;
     border-radius: var(--radius-button);
     background: var(--foreground);
-    border: 1px solid var(--input-border);
+    border: var(--border-size) solid var(--input-border);
 }
 .route h2 .label-mono {
     text-transform: none;

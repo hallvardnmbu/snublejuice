@@ -35,6 +35,8 @@
                 <button type="button" id="applyFilters">Filtrer</button>
             </div>
 
+            <hr />
+
             {% call adv_field("Søk") %}
                 <input type="search" id="nsearch" name="search" value="{{ parameters.search if parameters.search is not none else '' }}" placeholder="Produktnavn …">
             {% endcall %}

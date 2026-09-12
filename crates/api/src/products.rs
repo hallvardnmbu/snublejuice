@@ -1,10 +1,4 @@
-use axum::{
-    Json,
-    extract::{Path, State},
-    http::header,
-    response::IntoResponse,
-};
-use mongodb::Database;
+use axum::{extract::Path, http::header, response::IntoResponse};
 use regex::Regex;
 use serde::Serialize;
 use std::env;
@@ -12,7 +6,6 @@ use std::path::PathBuf;
 use std::sync::LazyLock;
 use tokio::fs;
 
-use database;
 use shared::{errors::AppError, models::Product};
 
 static RE_INDEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[0-9]+$").unwrap());
@@ -21,14 +14,6 @@ static RE_INDEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[0-9]+$").unwr
 pub struct PreviewResponse {
     vmp: Option<Product>,
     tax: Option<Product>,
-}
-
-pub async fn get_preview(State(db): State<Database>) -> Json<PreviewResponse> {
-    let (vmp, tax) = tokio::join!(
-        database::products::get_preview(&db, false),
-        database::products::get_preview(&db, true),
-    );
-    Json(PreviewResponse { vmp, tax })
 }
 
 pub async fn get_image(Path(index): Path<String>) -> Result<impl IntoResponse, AppError> {

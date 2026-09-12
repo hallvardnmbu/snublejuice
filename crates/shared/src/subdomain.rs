@@ -95,7 +95,9 @@ mod tests {
                 .unwrap()
                 .into_parts()
                 .0;
-            Subdomain::from_request_parts(&mut parts, &()).await.unwrap()
+            Subdomain::from_request_parts(&mut parts, &())
+                .await
+                .unwrap()
         }
 
         assert!(matches!(

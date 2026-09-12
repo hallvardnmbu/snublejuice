@@ -178,10 +178,8 @@ mod tests {
         assert!(landing.contains("application/ld+json"));
         assert!(landing.contains("landing"));
         assert!(landing.contains("hero"));
-        assert!(landing.contains("preview-vin"));
         assert!(landing.contains("itemscope"));
         assert!(landing.contains("itemprop=\"name\""));
-        assert!(landing.contains("preview-tax"));
 
         let products = render_products_shell(false, None, "https://snublejuice.no");
         assert!(products.contains(r#"href="/public/stylesheet.css""#));

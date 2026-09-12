@@ -60,6 +60,13 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("applyFilters")?.addEventListener("click", (event) => {
     event.preventDefault();
     window.fetchProducts({ page: 1 });
+
+    const panel = document.getElementById("advanced");
+    const btn = document.getElementById("toggleAdvanced");
+
+    panel?.classList.remove("open");
+    btn?.setAttribute("aria-expanded", "false");
+    sessionStorage.setItem("advanced", "false");
   });
 
   document.getElementById("clearFilters")?.addEventListener("click", (event) => {
@@ -93,6 +100,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     window.populateDropdowns?.();
     window.fetchProducts({ page: 1, favourites: false });
+
+    const panel = document.getElementById("advanced");
+    const btn = document.getElementById("toggleAdvanced");
+
+    panel?.classList.remove("open");
+    btn?.setAttribute("aria-expanded", "false");
+    sessionStorage.setItem("advanced", "false");
   });
 
   document.getElementById("toggleFavourites")?.addEventListener("click", () => {

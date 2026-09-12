@@ -19,9 +19,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("filter");
   if (!form) return;
 
+  const applyBtn = document.getElementById("applyFilters");
+  const markChanged = () => applyBtn?.classList.add("changed");
+  const clearChanged = () => applyBtn?.classList.remove("changed");
+
   form.addEventListener("submit", (event) => {
     event.preventDefault();
   });
+
+  form.addEventListener("input", markChanged);
+  form.addEventListener("change", markChanged);
 
   document.getElementById("sort")?.addEventListener("change", () => {
     window.fetchProducts({ page: 1 });
@@ -35,26 +42,31 @@ document.addEventListener("DOMContentLoaded", () => {
     input.value = descending ? "true" : "false";
     button.textContent = descending ? "stigende" : "synkende";
     window.fetchProducts({ page: 1 });
+    markChanged();
   });
 
   document.getElementById("togglePrice")?.addEventListener("click", (event) => {
     event.preventDefault();
     toggleComparator("cprice", "togglePrice", { on: "lik", off: "under" });
+    markChanged();
   });
 
   document.getElementById("toggleVolume")?.addEventListener("click", (event) => {
     event.preventDefault();
     toggleComparator("cvolume", "toggleVolume", { on: "lik", off: "over" });
+    markChanged();
   });
 
   document.getElementById("toggleAlcohol")?.addEventListener("click", (event) => {
     event.preventDefault();
     toggleComparator("calcohol", "toggleAlcohol", { on: "lik", off: "over" });
+    markChanged();
   });
 
   document.getElementById("toggleYear")?.addEventListener("click", (event) => {
     event.preventDefault();
     toggleComparator("cyear", "toggleYear", { on: "lik", off: "før" });
+    markChanged();
   });
 
   document.getElementById("applyFilters")?.addEventListener("click", (event) => {
@@ -67,6 +79,8 @@ document.addEventListener("DOMContentLoaded", () => {
     panel?.classList.remove("open");
     btn?.setAttribute("aria-expanded", "false");
     sessionStorage.setItem("advanced", "false");
+
+    clearChanged();
   });
 
   document.getElementById("clearFilters")?.addEventListener("click", (event) => {
@@ -107,6 +121,8 @@ document.addEventListener("DOMContentLoaded", () => {
     panel?.classList.remove("open");
     btn?.setAttribute("aria-expanded", "false");
     sessionStorage.setItem("advanced", "false");
+
+    clearChanged();
   });
 
   document.getElementById("toggleFavourites")?.addEventListener("click", () => {
@@ -114,6 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const active = input.value === "true";
     input.value = active ? "" : "true";
     window.fetchProducts({ page: 1 });
+    markChanged();
   });
 
   const isOpen = sessionStorage.getItem("advanced") === "true";

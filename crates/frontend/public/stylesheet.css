@@ -368,7 +368,7 @@ main form > #advanced > div > div.controls {
     justify-content: space-between;
     margin-bottom: calc(var(--padding) - var(--gap-md) / 2);
 }
-#applyFilters {
+#applyFilters.changed {
     background: var(--text-muted);
     border-color: var(--text-muted);
     color: var(--foreground);
@@ -897,13 +897,13 @@ aside .fractions tbody tr td:last-of-type {
         cursor: default;
     }
 
-    button:hover:not(:disabled, #applyFilters) {
+    button:hover:not(:disabled, #applyFilters.changed) {
         background: var(--text);
         border-color: var(--text);
         color: var(--foreground);
         cursor: pointer;
     }
-    button#applyFilters:hover {
+    button#applyFilters.changed:hover {
         background: var(--foreground);
         border-color: var(--text);
         color: var(--text);

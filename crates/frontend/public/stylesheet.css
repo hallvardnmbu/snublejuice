@@ -45,7 +45,6 @@
 
     --shadow-card: rgba(0, 0, 0, 0.05);
     --shadow-focus: var(--shadow-card);
-    --img-glow-for-dark-mode: rgba(255, 255, 255, 0.12);
 
     --accent-vin: #6b8a6f;
     --accent-tax: #a07830;
@@ -536,10 +535,6 @@ img {
 img.fallback {
     max-width: 100%;
     mix-blend-mode: normal;
-}
-[data-theme="dark"] .img-wrap img {
-    filter: drop-shadow(0 0 3px var(--img-glow-for-dark-mode));
-    mix-blend-mode: screen;
 }
 
 :has(> img),

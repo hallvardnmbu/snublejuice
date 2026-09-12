@@ -141,7 +141,7 @@ mod tests {
             alcohol: 13.5,
             literprice: 200.0,
             url: "https://example.com/vin".to_string(),
-            stores: vec![],
+            stores: Some(vec![]),
             category: "Rødvin".to_string(),
             subcategory: None,
             country: "Frankrike".to_string(),
@@ -165,7 +165,7 @@ mod tests {
                 url: "https://example.com/tax".to_string(),
                 price: 120.0,
                 discount: 20.0,
-                stores: vec![],
+                stores: Some(vec![]),
             }),
         }
     }

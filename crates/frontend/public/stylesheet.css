@@ -256,7 +256,7 @@ header form {
     max-width: var(--layout-max-narrow);
     align-self: center;
 }
-header form div,
+header form div div:not(#advanced),
 header form button {
     width: 100%;
 }
@@ -267,7 +267,6 @@ header form > div:first-of-type {
     padding: var(--padding);
     gap: var(--gap-md);
     align-items: center;
-    width: 100%;
 }
 header form > div:first-of-type > div:not(:has(input)) {
     display: flex;
@@ -337,6 +336,7 @@ main form > #advanced > div {
     gap: var(--gap-md);
     width: 100%;
     padding: var(--padding-lg);
+    box-sizing: border-box;
 }
 main form > #advanced > div > div > div {
     display: flex;
@@ -377,6 +377,7 @@ main form > #advanced > div > div.controls {
 
 main form > #advanced > div > div > div > input {
     flex: 1;
+    width: 100%;
 }
 
 div:has(> select) {
@@ -819,8 +820,6 @@ aside .fractions tbody tr td:last-of-type {
         --image: 72px;
         --fontsize: 11px;
         --fontsize-tag: 8px;
-
-        --height-button: 34px;
 
         --gap-sm: 4px;
         --gap-md: 6px;

@@ -519,6 +519,10 @@ img.fallback {
     max-width: 100%;
     mix-blend-mode: normal;
 }
+[data-theme="dark"] .img-wrap img:not(.fallback) {
+    filter: drop-shadow(0 0 3px #eeeeee);
+    mix-blend-mode: screen;
+}
 
 :has(> img),
 .preview:has(> svg) {

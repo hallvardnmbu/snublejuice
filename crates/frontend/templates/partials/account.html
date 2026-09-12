@@ -20,6 +20,9 @@
         {% endif %}
     </div>
     <div>
+        {% if landing_url %}
+            <button onclick="window.location.href='{{ landing_url }}'">Forside</button>
+        {% endif %}
         <button id="toggleTheme">Mørkt</button>
     </div>
 </menu>

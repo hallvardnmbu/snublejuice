@@ -3,26 +3,4 @@
     <span class="label">{{ label }}</span>
     {{ caller() }}
 </div>
-{% endmacro %} {% macro price_cell(label, href, value, class="") %}
-<a href="{{ href }}" target="_blank"
-    ><span class="label">{{ label }}</span><b class="price{% if class %} {{ class }}{% endif %}">{{ value }}</b></a
->
-{% endmacro %} {% macro price_block(item, taxfree) %} {% if taxfree %} {{ price_cell("POL", item.url, (item.price |
-round) | int) }} {{ price_cell("TAX", item.taxfree.url, (item.taxfree.price | round) | int) }} {{ price_cell("DIFF",
-item.taxfree.url, ((item.taxfree.discount | round) | int) ~ "%", "change") }}
-<div class="card">
-    <b>{{ (item.taxfree.discount | round) | int }}</b>
-    <span>%</span>
-    <span class="separator"></span>
-    <span>KR</span>
-    <b>{{ (item.taxfree.price | round) | int }}</b>
-</div>
-{% else %} {% if item.oldprice %} {{ price_cell("NÅ", item.url, (item.price | round) | int) }} {{ price_cell("FØR",
-item.url, (item.oldprice | round) | int, "strikethrough") }} {{ price_cell("ENDRING", item.url, ((item.discount | round)
-| int) ~ "%", "change") }} {% endif %}
-<div class="card">
-    {% if item.oldprice %}
-    <b>{{ (item.discount | round) | int }}</b><span>%</span> <span class="separator"></span>{% endif %}<span>KR</span
-    ><b>{{ (item.price | round) | int }}</b>
-</div>
-{% endif %} {% endmacro %}
+{% endmacro %}

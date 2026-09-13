@@ -1,4 +1,3 @@
-{% from "partials/macros.html" import price_block %}
 <section
     class="product card"
     id="{{ index }}"
@@ -29,30 +28,9 @@
                 <a href="{{ item.taxfree.url if taxfree else item.url }}" target="_blank">{{ item.name }}</a>
             </h2>
 
-            <span class="meta">
-                <p>{{ item.category }}</p>
-                {% if item.subcategory %}
-                <p class="dot">·</p>
-                <p><i>{{ item.subcategory }}</i></p>
-                {% endif %}
-            </span>
-
-            <span class="origin">
-                <p>{{ item.country }}</p>
-                {% if item.district %}
-                <p class="dot">·</p>
-                <i>{{ item.district }}</i>
-                {% endif %} {% if item.subdistrict %}
-                <p class="dot">·</p>
-                <p>{{ item.subdistrict }}</p>
-                {% endif %}
-            </span>
-
-            <span class="meta">
-                <p>{{ (item.volume | round) | int }} cL</p>
-                <p class="dot">·</p>
-                <p>{{ item.alcohol }}% alk.</p>
-            </span>
+            {% if item.description %}
+            <p class="description">{{ item.description }}</p>
+            {% endif %}
 
             {% if parameters.storelike %}
             <span class="list">
@@ -66,7 +44,9 @@
                 <p>• {{ store }}</p>
                 {% endfor %}
             </span>
-            {% endif %} {% if item.aperitif and item.aperitif.points is defined and item.aperitif.points != null %}
+            {% endif %}
+
+            {% if item.aperitif and item.aperitif.points is defined and item.aperitif.points != null %}
             <span class="product__rating">
                 {% if item.aperitif.url %}
                 <a
@@ -93,11 +73,58 @@
                 </a>
                 {% endif %}
             </span>
-            {% endif %} {% if item.description %}
-            <p class="description">{{ item.description }}</p>
             {% endif %}
 
-            <span class="prices"> {{ price_block(item, taxfree) }} </span>
+            <div class="columns">
+                <div class="metadata">
+                    <span class="origin">
+                        <p>{{ item.country }}</p>
+                        {% if item.district %}
+                        <p class="dot">·</p>
+                        <i>{{ item.district }}</i>
+                        {% endif %} {% if item.subdistrict %}
+                        <p class="dot">·</p>
+                        <p>{{ item.subdistrict }}</p>
+                        {% endif %}
+                    </span>
+
+                    <span class="meta">
+                        <p>{{ item.category }}</p>
+                        {% if item.subcategory %}
+                        <p class="dot">·</p>
+                        <p><i>{{ item.subcategory }}</i></p>
+                        {% endif %}
+                        <p class="dot">·</p>
+                        <p>{{ (item.volume | round) | int }} cL</p>
+                        <p class="dot">·</p>
+                        <p>{{ item.alcohol }}% alk.</p>
+                    </span>
+                </div>
+
+                <div class="prices">
+                    <div>
+                    <span>KR</span>
+                    {% if taxfree %}
+                        <b>{{ (item.taxfree.price | round) | int }}</b>
+                        </div>
+                        <b class="strikethrough">{{ (item.price | round) | int }}</b>
+                        <div>
+                            <b>{{ (item.taxfree.discount | round) | int }}</b>
+                            <span>%</span>
+                        </div>
+                    {% else %}
+                        <b>{{ (item.price | round) | int }}</b>
+                        </div>
+                        {% if item.oldprice %}
+                            <b class="strikethrough">{{ (item.oldprice | round) | int }}</b>
+                            <div>
+                                <b>{{ (item.discount | round) | int }}</b>
+                                <span>%</span>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
 

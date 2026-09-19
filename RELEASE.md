@@ -1,6 +1,6 @@
 # Setup
 
-# Compile and transfer
+## Refresh the app
 
 ```bash
 # Turn off app.
@@ -13,128 +13,101 @@ deploy
 # Turn on new app.
 # snuble -> sudo systemctl start snublejuice
 ```
-# Refresh the app
 
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl restart snublejuice
-```
-
-```bash
 sudo systemctl status snublejuice
 ```
 
-# First time
+## First-time setup
 
-## 1.
+### 1. Dependencies
 
 ```bash
 sudo apt update
-sudo apt install nginx
+sudo apt install nginx python3-certbot-dns-cloudflare python3-certbot-nginx
 ```
 
-## 2.
+### 2. Certificate (DNS-01 via Cloudflare)
+
+```bash
+sudo mkdir -p /etc/letsencrypt/cloudflare
+sudo vim /etc/letsencrypt/cloudflare/credentials.ini
+```
+
+```ini
+dns_cloudflare_api_token = your_scoped_token
+```
+
+```bash
+sudo chmod 600 /etc/letsencrypt/cloudflare/credentials.ini
+
+sudo cp /usr/lib/python3/dist-packages/certbot_nginx/_internal/tls_configs/options-ssl-nginx.conf \
+  /etc/letsencrypt/options-ssl-nginx.conf
+sudo openssl dhparam -out /etc/letsencrypt/ssl-dhparams.pem 2048
+
+sudo certbot certonly \
+  --dns-cloudflare \
+  --dns-cloudflare-credentials /etc/letsencrypt/cloudflare/credentials.ini \
+  --dns-cloudflare-propagation-seconds 30 \
+  --cert-name snublejuice \
+  -d snublejuice.no -d "*.snublejuice.no" \
+  -d snublejus.no -d "*.snublejus.no" \
+  --deploy-hook "systemctl reload nginx"
+```
+
+### 3. nginx
 
 ```bash
 sudo vim /etc/nginx/sites-available/snublejuice
 ```
 
-```raw
-# snublejuice.no
+```nginx
 server {
-	listen 80;
-	server_name snublejuice.no;
-
-	location / {
-		proxy_pass http://localhost:3000;
-		proxy_http_version 1.1;
-		proxy_set_header Upgrade $http_upgrade;
-		proxy_set_header Connection 'upgrade';
-		proxy_set_header Host $host;
-		proxy_set_header X-Real-IP $remote_addr;
-		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-		proxy_set_header X-Forwarded-Proto $scheme;
-		proxy_cache_bypass $http_upgrade;
-	}
+    listen 80;
+    listen [::]:80;
+    server_name snublejuice.no *.snublejuice.no snublejus.no *.snublejus.no;
+    return 301 https://$host$request_uri;
 }
 
-# www.snublejuice.no
 server {
-	listen 80;
-	server_name www.snublejuice.no;
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name snublejuice.no *.snublejuice.no snublejus.no *.snublejus.no;
 
-	location / {
-		proxy_pass http://localhost:3000;
-		proxy_http_version 1.1;
-		proxy_set_header Upgrade $http_upgrade;
-		proxy_set_header Connection 'upgrade';
-		proxy_set_header Host $host;
-		proxy_set_header X-Real-IP $remote_addr;
-		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-		proxy_set_header X-Forwarded-Proto $scheme;
-		proxy_cache_bypass $http_upgrade;
-	}
-}
+    ssl_certificate /etc/letsencrypt/live/snublejuice/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/snublejuice/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
-# vinmonopolet.snublejuice.no
-server {
-	listen 80;
-	server_name vinmonopolet.snublejuice.no;
-
-	location / {
-		proxy_pass http://localhost:3000;
-		proxy_http_version 1.1;
-		proxy_set_header Upgrade $http_upgrade;
-		proxy_set_header Connection 'upgrade';
-		proxy_set_header Host $host;
-		proxy_set_header X-Real-IP $remote_addr;
-		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-		proxy_set_header X-Forwarded-Proto $scheme;
-		proxy_cache_bypass $http_upgrade;
-	}
-}
-
-# taxfree.snublejuice.no
-server {
-	listen 80;
-	server_name taxfree.snublejuice.no;
-
-	location / {
-		proxy_pass http://localhost:3000;
-		proxy_http_version 1.1;
-		proxy_set_header Upgrade $http_upgrade;
-		proxy_set_header Connection 'upgrade';
-		proxy_set_header Host $host;
-		proxy_set_header X-Real-IP $remote_addr;
-		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-		proxy_set_header X-Forwarded-Proto $scheme;
-		proxy_cache_bypass $http_upgrade;
-	}
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
 }
 ```
-
-## 4.
-
-```bash
-sudo mkdir -p /var/www/html/.well-known/acme-challenge
-sudo chown -R www-data:www-data /var/www/html
-```
-
-## 5.
 
 ```bash
 sudo ln -s /etc/nginx/sites-available/snublejuice /etc/nginx/sites-enabled/
-sudo nginx -t  # Test config
+sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-## 5.
+### 4. systemd service
 
 ```bash
 sudo vim /etc/systemd/system/snublejuice.service
 ```
 
-```raw
+```ini
 [Unit]
 Description=snublejuice
 After=network.target
@@ -166,13 +139,8 @@ sudo systemctl start snublejuice
 sudo systemctl status snublejuice
 ```
 
-## 6.
+### 5. Verify renewal works
 
 ```bash
-sudo apt install certbot python3-certbot-nginx
-sudo certbot --nginx -d snublejuice.no
-sudo certbot --nginx -d www.snublejuice.no
-sudo certbot --nginx -d vinmonopolet.snublejuice.no
-sudo certbot --nginx -d taxfree.snublejuice.no
-sudo systemctl reload nginx
+sudo certbot renew --dry-run
 ```

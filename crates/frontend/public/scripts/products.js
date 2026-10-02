@@ -146,6 +146,28 @@ function bindProductInteractions() {
   });
 }
 
+function showSkeletons(results) {
+  const skeletonCard = `
+  <section class="product card skeleton" aria-hidden="true">
+      <div>
+          <a class="img-wrap">
+              <img class="fallback" src="/public/images/snublejuice.png" alt="" />
+          </a>
+          <div>
+          </div>
+      </div>
+  </section>`;
+  const skeletonNav = `
+  <nav aria-hidden="true">
+      <button type="button" disabled>←</button>
+      <span></span>
+      <button type="button" disabled>→</button>
+  </nav>`;
+
+  results.setAttribute("aria-busy", "true");
+  results.innerHTML = skeletonNav + skeletonCard.repeat(6) + skeletonNav;
+}
+
 async function fetchProducts(overrides = {}) {
   const results = document.getElementById("product-results");
   if (!results) return;
@@ -154,8 +176,9 @@ async function fetchProducts(overrides = {}) {
     document.querySelector('input[name="page"]').value = overrides.page;
   }
 
+  showSkeletons(results);
+
   const params = readParameters(overrides);
-  results.innerHTML = "<span>Laster …</span>";
 
   try {
     const response = await fetch("/data/products", {

@@ -955,3 +955,17 @@ section.landing {
     padding: var(--padding-lg);
     width: auto;
 }
+
+.skeleton > div {
+    animation: sk-flicker 1.8s ease-in-out infinite;
+}
+@keyframes sk-flicker {
+    0%, 100% { background-color: color-mix(in srgb, var(--border-color) 20%, transparent); }
+    50%      { background-color: transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .skeleton > div {
+        animation: none;
+        background-color: color-mix(in srgb, var(--border-color) 20%, transparent);
+    }
+}

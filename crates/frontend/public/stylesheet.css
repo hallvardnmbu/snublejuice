@@ -981,6 +981,7 @@ section.landing {
 }
 
 .landing > div.note {
+    align-self: center;
     max-width: 26rem;
     text-align: center;
 }

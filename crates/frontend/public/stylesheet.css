@@ -923,6 +923,11 @@ section.landing {
     width: 100%;
     max-width: var(--layout-width);
 }
+.landing > div:not(.hero, .routes) {
+    /* Align help text with the text inside the route cards. */
+    padding: 0 calc(var(--padding-lg) + var(--border-size));
+    box-sizing: border-box;
+}
 .landing p {
     color: var(--text-muted);
     font-size: calc(var(--fontsize) - 1px);
@@ -940,61 +945,20 @@ section.landing {
 }
 
 .routes {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: var(--gap-lp-md);
+    display: grid;
+    gap: var(--gap-lp);
     margin-bottom: var(--gap-lp-md);
 }
-.routes a,
-.routes a:visited {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--margin);
-    min-width: 12rem;
-    padding: var(--padding) var(--padding-lg);
-    border: var(--border-size) solid var(--border-color);
-    border-radius: var(--radius-button);
-    background: var(--foreground);
-    color: var(--text);
-    font-size: calc(var(--fontsize) + 0.15rem);
-    transition: background 0.15s, border-color 0.15s, color 0.15s;
-}
-.routes a span {
-    font-family: var(--font-mono);
-    font-size: var(--fontsize-label);
-    font-weight: 400;
-    color: var(--text-faint);
-    transition: color 0.15s;
-}
-@media (hover: hover) {
-    .routes a:hover {
-        background: var(--text);
-        border-color: var(--text);
-        color: var(--foreground);
-        cursor: pointer;
-    }
-    .routes a:hover span {
-        color: var(--border-color);
+@container landing (min-width: 44rem) {
+    .routes {
+        grid-template-columns: 1fr 1fr;
+        gap: var(--gap-lp-md);
     }
 }
 
-.landing > div.note {
-    align-self: center;
-    max-width: 26rem;
-    text-align: center;
-}
-.note h4 {
-    font-size: var(--fontsize-label);
-    font-weight: 500;
-    color: var(--text-faint);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-}
-.note p {
-    font-size: var(--fontsize-label);
-    color: var(--text-faint);
+.routes .card {
+    padding: var(--padding-lg);
+    width: auto;
 }
 
 .skeleton > div {

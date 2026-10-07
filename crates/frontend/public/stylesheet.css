@@ -980,6 +980,22 @@ section.landing {
     }
 }
 
+.landing > div.note {
+    max-width: 26rem;
+    text-align: center;
+}
+.note h4 {
+    font-size: var(--fontsize-label);
+    font-weight: 500;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+.note p {
+    font-size: var(--fontsize-label);
+    color: var(--text-faint);
+}
+
 .skeleton > div {
     animation: sk-flicker 1.8s ease-in-out infinite;
 }

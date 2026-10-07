@@ -958,8 +958,7 @@ section.landing {
 
 .skeleton > div {
     box-sizing: border-box;
-    /* Matches a card with a typical ~1:3 bottle image (see `img` max-width). */
-    height: calc(3 * (var(--image) - 4 * var(--padding)) + 2 * var(--padding));
+    height: calc(var(--image) + 2 * var(--padding) + 2 * var(--border-size));
     animation: sk-flicker 1.8s ease-in-out infinite;
 }
 @keyframes sk-flicker {

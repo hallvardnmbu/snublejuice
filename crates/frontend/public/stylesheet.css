@@ -923,6 +923,11 @@ section.landing {
     width: 100%;
     max-width: var(--layout-width);
 }
+.landing > div:not(.hero, .routes) {
+    /* Align help text with the text inside the route cards. */
+    padding: 0 calc(var(--padding-lg) + var(--border-size));
+    box-sizing: border-box;
+}
 .landing p {
     color: var(--text-muted);
     font-size: calc(var(--fontsize) - 1px);

@@ -957,6 +957,8 @@ section.landing {
 }
 
 .skeleton > div {
+    box-sizing: border-box;
+    height: calc(var(--image) + 2 * var(--padding));
     animation: sk-flicker 1.8s ease-in-out infinite;
 }
 @keyframes sk-flicker {

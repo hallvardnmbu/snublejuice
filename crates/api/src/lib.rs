@@ -28,4 +28,5 @@ pub fn router(state: AppState) -> Router<AppState> {
         .route("/data/image/{index}", get(products::get_image))
         .route("/data/stores", get(metadata::get_stores))
         .route("/data/countries", get(metadata::get_countries))
+        .route("/data/pairs", get(metadata::get_pairs))
 }

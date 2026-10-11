@@ -7,6 +7,7 @@ const _COUNTRY_DEFAULT = { text: "Alle land", value: "" };
 
 let _storesCache = null;
 let _countriesCache = null;
+let _pairsCache = null;
 
 function capitalize(text) {
   if (!text) return text;
@@ -47,6 +48,58 @@ async function fetchCountries() {
   return response.json();
 }
 
+async function fetchPairs() {
+  const response = await fetch("/data/pairs");
+  if (!response.ok) throw new Error("Failed to fetch pairs");
+  return response.json();
+}
+
+function updateMultiselectSummary(details) {
+  const summary = details.querySelector("summary");
+  const checked = [...details.querySelectorAll("input:checked")].map((input) => input.value);
+  if (checked.length === 0) {
+    summary.textContent = summary.dataset.default;
+  } else if (checked.length === 1) {
+    summary.textContent = checked[0];
+  } else {
+    summary.textContent = `${checked[0]} +${checked.length - 1}`;
+  }
+}
+
+function populatePairDropdown(pairs) {
+  const details = document.getElementById("pair");
+  const list = details?.querySelector(".card");
+  if (!list) return;
+
+  const checked = new Set([...list.querySelectorAll("input:checked")].map((input) => input.value));
+  list.replaceChildren();
+
+  for (const pair of pairs) {
+    if (!pair) continue;
+    const label = document.createElement("label");
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.name = "pair";
+    input.value = pair;
+    input.checked = checked.has(pair);
+    label.append(input, capitalize(pair));
+    list.appendChild(label);
+  }
+
+  updateMultiselectSummary(details);
+}
+
+document.addEventListener("change", (event) => {
+  const details = event.target.closest?.("details.multiselect");
+  if (details) updateMultiselectSummary(details);
+});
+
+document.addEventListener("click", (event) => {
+  document.querySelectorAll("details.multiselect[open]").forEach((details) => {
+    if (!details.contains(event.target)) details.open = false;
+  });
+});
+
 function populateStoreDropdowns(stores) {
   const subdomain = document.location.hostname.split(".")[0];
   const storeSelect = document.getElementById(`stores-${subdomain}`);
@@ -79,6 +132,15 @@ async function loadDropdowns() {
     populateCountryDropdown(_countriesCache);
   } catch (error) {
     console.error("Error fetching countries:", error);
+  }
+
+  try {
+    if (!_pairsCache) {
+      _pairsCache = await fetchPairs();
+    }
+    populatePairDropdown(_pairsCache);
+  } catch (error) {
+    console.error("Error fetching pairs:", error);
   }
 }
 

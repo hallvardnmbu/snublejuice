@@ -20,6 +20,7 @@
                 <option value="literprice" {{ 'selected' if parameters.sort == 'literprice' else '' }}>Literpris</option>
                 <option value="alcoholprice" {{ 'selected' if parameters.sort == 'alcoholprice' else '' }}>Alkoholpris</option>
                 <option value="alcohol" {{ 'selected' if parameters.sort == 'alcohol' else '' }}>Alkoholprosent</option>
+                <option value="added" {{ 'selected' if parameters.sort == 'added' else '' }}>Nyheter</option>
             </select>
         </div>
         <button type="button" id="toggleAdvanced" aria-expanded="false">
@@ -98,6 +99,13 @@
                     <select name="country" id="country">
                     </select>
                 </div>
+            {% endcall %}
+
+            {% call adv_field("Passer til") %}
+                <details class="multiselect" id="pair">
+                    <summary data-default="Alle retter">Alle retter</summary>
+                    <div class="card"></div>
+                </details>
             {% endcall %}
 
             {% call adv_field("Pris") %}

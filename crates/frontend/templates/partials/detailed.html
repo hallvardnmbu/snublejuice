@@ -22,7 +22,8 @@
             </tr>
             {% endif %} {% for label, value in [ ('Lukt', item.smell), ('Smak', item.taste), ('Lagring', item.storage),
             ('Farge', item.colour), ('Passer til', item.pair | join(' & ') if item.pair and item.pair | length > 0 else
-            none), ('Metode', item.method), ('Årgang', item.year), ] %} {% if value %}
+            none), ('Sukker', item.sugar or item.sukker), ('Syre', item.acid or item.syre), ('Lukking', item.cork),
+            ('Allergener', item.allergens), ('Årgang', item.year), ] %} {% if value %}
             <tr>
                 <td class="label">{{ label }}</td>
                 <td>{{ value }}</td>
@@ -31,21 +32,30 @@
         </tbody>
     </table>
 
-    {% if item.prices | length > 1 %} {% set prices_subset = item.prices[-12:] if item.prices | length >= 12 else
-    item.prices %}
-    <table class="metadata">
+    {% if item.prices | length > 1 %} {% set history = item.prices[-12:] %}
+    <table class="history">
         <tbody>
             <tr>
                 <th>PRISER SISTE ÅR</th>
                 <th></th>
             </tr>
-            {% for label, value in [ ('Laveste', (prices_subset | min | round) | int), ('Høyeste', (prices_subset | max
-            | round) | int), ] %}
             <tr>
-                <td class="label">{{ label }}</td>
-                <td>kr {{ value }}</td>
+                <td class="label">
+                    <span>kr {{ (history | max | round) | int }}</span>
+                    <span>kr {{ (history | min | round) | int }}</span>
+                </td>
+                <td>
+                    <svg
+                        viewBox="0 0 {{ history | length }} 100"
+                        preserveAspectRatio="none"
+                        role="img"
+                        aria-label="Prisutvikling over {{ history | length }} måneder"
+                    >
+                        <path class="area" d="{{ history | step_path(true) }}" />
+                        <path class="line" d="{{ history | step_path(false) }}" />
+                    </svg>
+                </td>
             </tr>
-            {% endfor %}
         </tbody>
     </table>
     {% endif %} {% if item.characteristics | length > 0 or item.ingredients | length > 0 %}

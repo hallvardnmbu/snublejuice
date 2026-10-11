@@ -7,7 +7,7 @@ use std::sync::OnceLock;
 
 use authentication::middle::MaybeAuthenticate;
 use shared::{
-    models::{Product, User},
+    models::{ONE_MONTH, Product, User},
     query::Parameters,
     state::AppState,
     subdomain::{Subdomain, landing_url_from_host},
@@ -41,6 +41,9 @@ fn get_env() -> &'static Environment<'static> {
             iter.filter(|s| s.as_str().map(|s| re.is_match(s)).unwrap_or(false))
                 .collect::<Vec<_>>()
         });
+        env.add_filter("step_path", |prices: Vec<f64>, closed: bool| {
+            step_path(&prices, closed)
+        });
         env.add_filter("truncate", |value: String, max: u32| -> String {
             let max = max as usize;
             let chars: Vec<char> = value.chars().collect();
@@ -52,6 +55,33 @@ fn get_env() -> &'static Environment<'static> {
         });
         env
     })
+}
+
+/// SVG path of prices as a step line in a `0 0 n 100` viewBox, one unit per price.
+/// With `closed`, the path is closed along the bottom edge (for a filled area).
+fn step_path(prices: &[f64], closed: bool) -> String {
+    const PAD: f64 = 8.0;
+    if prices.is_empty() {
+        return String::new();
+    }
+    let max = prices.iter().cloned().fold(f64::MIN, f64::max);
+    let min = prices.iter().cloned().fold(f64::MAX, f64::min);
+    let y = |p: f64| {
+        if max > min {
+            PAD + (max - p) / (max - min) * (100.0 - 2.0 * PAD)
+        } else {
+            50.0
+        }
+    };
+
+    let mut path = format!("M0 {:.1} H1", y(prices[0]));
+    for (i, &price) in prices.iter().enumerate().skip(1) {
+        path.push_str(&format!(" V{:.1} H{}", y(price), i + 1));
+    }
+    if closed {
+        path.push_str(" V100 H0 Z");
+    }
+    path
 }
 
 #[derive(Serialize)]
@@ -70,6 +100,7 @@ pub fn empty_parameters() -> Parameters {
         favourites: None,
         category: None,
         country: None,
+        pair: None,
         price: None,
         cprice: None,
         volume: None,
@@ -113,8 +144,10 @@ pub fn render_product_results(
     prices_updated: bool,
 ) -> String {
     let tmpl = get_env().get_template("partials/results.html").unwrap();
+    let new_since = chrono::Utc::now().timestamp_millis() - (ONE_MONTH as i64) * 1000;
     tmpl.render(context! {
         data,
+        new_since,
         is_taxfree,
         user,
         page,
@@ -157,6 +190,11 @@ mod tests {
             colour: None,
             sugar: None,
             acid: None,
+            sukker: None,
+            syre: None,
+            cork: None,
+            allergens: None,
+            added: None,
             characteristics: vec![],
             ingredients: vec![],
             updated: Some(true),
@@ -168,6 +206,35 @@ mod tests {
                 stores: Some(vec![]),
             }),
         }
+    }
+
+    #[test]
+    fn detailed_panel_renders_traits_history_and_new_tag() {
+        let mut product = sample_product();
+        product.prices = vec![200.0, 180.0, 150.0];
+        product.sukker = Some("Under 3 gram".to_string());
+        product.cork = Some("Skrukork".to_string());
+        product.added = Some(chrono::Utc::now().timestamp_millis());
+        let html = render_product_results(&vec![product], false, None, 1, 1, &empty_parameters(), true);
+        assert!(html.contains("Under 3 gram"));
+        assert!(html.contains("Skrukork"));
+        assert!(!html.contains("Allergener"));
+        assert!(html.contains(r#"class="history""#));
+        assert!(html.contains(r#"viewBox="0 0 3 100""#));
+        assert!(html.contains(r#"class="tag""#));
+
+        let mut old = sample_product();
+        old.added = Some(0);
+        let html = render_product_results(&vec![old], false, None, 1, 1, &empty_parameters(), true);
+        assert!(!html.contains(r#"class="tag""#));
+        assert!(!html.contains(r#"class="history""#));
+    }
+
+    #[test]
+    fn step_path_draws_steps_and_handles_flat_prices() {
+        assert_eq!(step_path(&[], false), "");
+        assert_eq!(step_path(&[100.0, 200.0], false), "M0 92.0 H1 V8.0 H2");
+        assert_eq!(step_path(&[100.0, 100.0], true), "M0 50.0 H1 V50.0 H2 V100 H0 Z");
     }
 
     #[test]

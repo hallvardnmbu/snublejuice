@@ -1,4 +1,4 @@
-use mongodb::bson::{DateTime, oid::ObjectId};
+use mongodb::bson::{Bson, DateTime, oid::ObjectId};
 use serde::{Deserialize, Serialize};
 
 pub const PRODUCTS_PER_PAGE: i64 = 15;
@@ -84,8 +84,22 @@ pub struct Product {
     pub year: Option<i32>,
     pub oldprice: Option<f64>,
     pub colour: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_text")]
     pub sugar: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_text")]
     pub acid: Option<String>,
+    // Older documents store sugar/acid under the Norwegian trait names.
+    #[serde(default, deserialize_with = "deserialize_text")]
+    pub sukker: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_text")]
+    pub syre: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_text")]
+    pub cork: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_text")]
+    pub allergens: Option<String>,
+    // Milliseconds since epoch; when the product first appeared.
+    #[serde(default, deserialize_with = "deserialize_millis")]
+    pub added: Option<i64>,
     #[serde(default, deserialize_with = "deserialize_characteristics")]
     pub characteristics: Vec<Characteristic>,
     #[serde(default, deserialize_with = "deserialize_ingredients")]
@@ -94,6 +108,34 @@ pub struct Product {
     // External integrations
     pub aperitif: Option<Aperitif>,
     pub taxfree: Option<Taxfree>,
+}
+
+/// Accepts a string or a list of strings (joined), anything else becomes `None`.
+fn deserialize_text<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let text = match Option::<Bson>::deserialize(deserializer)? {
+        Some(Bson::String(s)) => s,
+        Some(Bson::Array(items)) => items
+            .iter()
+            .filter_map(|item| item.as_str())
+            .collect::<Vec<_>>()
+            .join(", "),
+        _ => return Ok(None),
+    };
+    let text = text.trim();
+    Ok((!text.is_empty()).then(|| text.to_string()))
+}
+
+fn deserialize_millis<'de, D>(deserializer: D) -> Result<Option<i64>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    Ok(match Option::<Bson>::deserialize(deserializer)? {
+        Some(Bson::DateTime(date)) => Some(date.timestamp_millis()),
+        _ => None,
+    })
 }
 
 fn deserialize_characteristics<'de, D>(deserializer: D) -> Result<Vec<Characteristic>, D::Error>

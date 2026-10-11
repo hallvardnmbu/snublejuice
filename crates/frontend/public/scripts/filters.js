@@ -99,6 +99,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const country = document.getElementById("country");
     if (country) country.value = "";
 
+    const pair = document.getElementById("pair");
+    pair?.querySelectorAll("input:checked").forEach((input) => (input.checked = false));
+    if (pair) pair.open = false;
+
     const vinSelect = document.getElementById("stores-vinmonopolet");
     if (vinSelect) vinSelect.value = "";
 

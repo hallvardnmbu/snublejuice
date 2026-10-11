@@ -10,48 +10,53 @@
     <input type="hidden" name="calcohol" value="{{ parameters.calcohol if parameters.calcohol is not none else '' }}">
     <input type="hidden" name="cyear" value="{{ parameters.cyear if parameters.cyear is not none else '' }}">
 
-    <div>
-        <input type="search" id="nsearch" name="search" value="{{ parameters.search if parameters.search is not none else '' }}" placeholder="Søk etter produkt …" aria-label="Søk">
-    </div>
+    {% if not taxfree %}
+    <input type="hidden" name="store-taxfree" id="stores-taxfree" value="">
+    {% endif %}
+    {% if favourites or taxfree %}
+    <input type="hidden" name="store-vinmonopolet" id="stores-vinmonopolet" value="">
+    {% endif %}
 
-    <div>
+    <div class="card" id="primaryFilters">
         <div>
-            <select name="category" id="category" aria-label="Kategori">
-                <option value="null" {{ 'selected' if parameters.category == 'null' else '' }}>Alle kategorier</option>
-                <option value="alkoholfritt" {{ 'selected' if parameters.category == 'alkoholfritt' else '' }}>Alkoholfritt</option>
-                <option value="aromatisert" {{ 'selected' if parameters.category == 'aromatisert' else '' }}>Aromatisert vin</option>
-                <option value="brennevin" {{ 'selected' if parameters.category == 'brennevin' else '' }}>Brennevin</option>
-                <option value="fruktvin" {{ 'selected' if parameters.category == 'fruktvin' else '' }}>Fruktvin</option>
-                <option value="hvitvin" {{ 'selected' if parameters.category == 'hvitvin' else '' }}>Hvitvin</option>
-                <option value="mjød" {{ 'selected' if parameters.category == 'mjød' else '' }}>Mjød</option>
-                <option value="musserende" {{ 'selected' if parameters.category == 'musserende' else '' }}>Musserende vin</option>
-                <option value="perlende" {{ 'selected' if parameters.category == 'perlende' else '' }}>Perlende vin</option>
-                <option value="rosévin" {{ 'selected' if parameters.category == 'rosévin' else '' }}>Rosévin</option>
-                <option value="rødvin" {{ 'selected' if parameters.category == 'rødvin' else '' }}>Rødvin</option>
-                <option value="sake" {{ 'selected' if parameters.category == 'sake' else '' }}>Sake</option>
-                <option value="sider" {{ 'selected' if parameters.category == 'sider' else '' }}>Sider</option>
-                <option value="sterkvin" {{ 'selected' if parameters.category == 'sterkvin' else '' }}>Sterkvin</option>
-                <option value="øl" {{ 'selected' if parameters.category == 'øl' else '' }}>Øl</option>
-            </select>
+            <span class="label">Søk</span>
+            <input type="search" id="nsearch" name="search" value="{{ parameters.search if parameters.search is not none else '' }}" placeholder="Produktnavn …" aria-label="Søk">
         </div>
-
-        {% if taxfree %}
         <div>
-            <select name="store-taxfree" id="stores-taxfree" aria-label="Tax-free">
-            </select>
+            <div>
+                <span class="label">Kategori</span>
+                <select name="category" id="category" aria-label="Kategori">
+                    <option value="null" {{ 'selected' if parameters.category == 'null' else '' }}>Alle kategorier</option>
+                    <option value="alkoholfritt" {{ 'selected' if parameters.category == 'alkoholfritt' else '' }}>Alkoholfritt</option>
+                    <option value="aromatisert" {{ 'selected' if parameters.category == 'aromatisert' else '' }}>Aromatisert vin</option>
+                    <option value="brennevin" {{ 'selected' if parameters.category == 'brennevin' else '' }}>Brennevin</option>
+                    <option value="fruktvin" {{ 'selected' if parameters.category == 'fruktvin' else '' }}>Fruktvin</option>
+                    <option value="hvitvin" {{ 'selected' if parameters.category == 'hvitvin' else '' }}>Hvitvin</option>
+                    <option value="mjød" {{ 'selected' if parameters.category == 'mjød' else '' }}>Mjød</option>
+                    <option value="musserende" {{ 'selected' if parameters.category == 'musserende' else '' }}>Musserende vin</option>
+                    <option value="perlende" {{ 'selected' if parameters.category == 'perlende' else '' }}>Perlende vin</option>
+                    <option value="rosévin" {{ 'selected' if parameters.category == 'rosévin' else '' }}>Rosévin</option>
+                    <option value="rødvin" {{ 'selected' if parameters.category == 'rødvin' else '' }}>Rødvin</option>
+                    <option value="sake" {{ 'selected' if parameters.category == 'sake' else '' }}>Sake</option>
+                    <option value="sider" {{ 'selected' if parameters.category == 'sider' else '' }}>Sider</option>
+                    <option value="sterkvin" {{ 'selected' if parameters.category == 'sterkvin' else '' }}>Sterkvin</option>
+                    <option value="øl" {{ 'selected' if parameters.category == 'øl' else '' }}>Øl</option>
+                </select>
+            </div>
+            {% if taxfree %}
+            <div>
+                <span class="label">Flyplass</span>
+                <select name="store-taxfree" id="stores-taxfree" aria-label="Flyplass">
+                </select>
+            </div>
+            {% elif not favourites %}
+            <div id="store-vinmonopolet-field">
+                <span class="label">Butikk</span>
+                <select name="store-vinmonopolet" id="stores-vinmonopolet" aria-label="Butikk">
+                </select>
+            </div>
+            {% endif %}
         </div>
-        {% else %}
-        <input type="hidden" name="store-taxfree" id="stores-taxfree" value="">
-        {% endif %}
-
-        {% if not favourites and not taxfree %}
-        <div id="store-vinmonopolet-field">
-            <select name="store-vinmonopolet" id="stores-vinmonopolet" aria-label="Vinmonopol">
-            </select>
-        </div>
-        {% else %}
-        <input type="hidden" name="store-vinmonopolet" id="stores-vinmonopolet" value="">
-        {% endif %}
     </div>
 
     <div>

@@ -311,8 +311,39 @@ form > div > div > div {
     flex-direction: column;
     gap: var(--margin);
 }
-#filter > div + div {
-    padding-top: 0;
+#primaryFilters + div {
+    padding: var(--padding) 0 var(--padding-lg);
+}
+#primaryFilters {
+    flex-direction: column;
+    padding: 0;
+    gap: 0;
+}
+#primaryFilters:focus-within {
+    border-color: var(--text-faint);
+}
+#primaryFilters > div {
+    display: flex;
+}
+#primaryFilters > div + div {
+    border-top: var(--border-size) solid var(--border-color);
+}
+#primaryFilters > div:first-child,
+#primaryFilters > div > div {
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--margin);
+    padding: var(--gap-md) var(--padding-lg);
+}
+#primaryFilters > div > div + div {
+    border-left: var(--border-size) solid var(--border-color);
+}
+#primaryFilters :is(input, select) {
+    height: auto;
+    padding: 0 var(--padding-lg) 0 0;
+    border: none;
+    background: transparent;
 }
 main form > #advanced {
     width: var(--layout-width);
@@ -324,6 +355,7 @@ main form > #advanced {
 }
 main form > #advanced::backdrop {
     background: var(--semitransparent);
+    backdrop-filter: blur(2px);
 }
 main form > #advanced > div > div:not(.controls) {
     display: flex;

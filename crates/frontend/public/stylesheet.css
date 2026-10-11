@@ -271,7 +271,8 @@ header form > div:first-of-type > div:not(:has(input)) span:last-of-type {
     letter-spacing: 0.04em;
     word-wrap: anywhere;
 }
-form > div:first-of-type > div:has(select) {
+form > div:first-of-type > div:has(select),
+#filter > div > div:has(select) {
     flex: 1;
     min-width: 0;
 }
@@ -310,16 +311,24 @@ form > div > div > div {
     flex-direction: column;
     gap: var(--margin);
 }
-main form > #advanced {
-    overflow: hidden;
-    opacity: 0;
-}
-main form > #advanced:not(.open) {
-    display: none;
-}
-main form > #advanced.open {
-    opacity: 1;
+#filter > div + div {
     padding-top: 0;
+}
+main form > #advanced {
+    width: var(--layout-width);
+    max-width: var(--layout-max-narrow);
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--text);
+}
+main form > #advanced::backdrop {
+    background: var(--semitransparent);
+}
+main form > #advanced > div > div:not(.controls) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--margin);
 }
 main form > #advanced > div {
     display: flex;
@@ -340,7 +349,7 @@ main form > #advanced > div > div.controls {
     gap: var(--gap-md);
     align-items: center;
     justify-content: space-between;
-    margin-bottom: calc(var(--padding) - var(--gap-md) / 2);
+    margin-top: calc(var(--padding) - var(--gap-md) / 2);
 }
 #applyFilters.changed {
     background: var(--text-muted);

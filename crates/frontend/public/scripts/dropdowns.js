@@ -1,5 +1,5 @@
 const _STORE_DEFAULTS = {
-  vinmonopolet: { text: "Spesifikk butikk", value: "" },
+  vinmonopolet: { text: "Alle butikker", value: "" },
   taxfree: { text: "Alle flyplasser", value: "" },
 };
 

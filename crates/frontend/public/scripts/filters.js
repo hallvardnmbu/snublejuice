@@ -19,19 +19,30 @@ document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("filter");
   if (!form) return;
 
+  const dialog = document.getElementById("advanced");
   const applyBtn = document.getElementById("applyFilters");
   const markChanged = () => applyBtn?.classList.add("changed");
-  const clearChanged = () => applyBtn?.classList.remove("changed");
+  let searchTimer;
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
+    clearTimeout(searchTimer);
+    window.fetchProducts({ page: 1 });
   });
 
-  form.addEventListener("input", markChanged);
-  form.addEventListener("change", markChanged);
+  // The main filters apply immediately, while the dialog's fields apply when it closes.
+  dialog?.addEventListener("input", markChanged);
+  dialog?.addEventListener("change", markChanged);
 
-  document.getElementById("sort")?.addEventListener("change", () => {
-    window.fetchProducts({ page: 1 });
+  for (const id of ["sort", "category", "stores-vinmonopolet", "stores-taxfree"]) {
+    document.getElementById(id)?.addEventListener("change", () => {
+      window.fetchProducts({ page: 1 });
+    });
+  }
+
+  document.getElementById("nsearch")?.addEventListener("input", () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => window.fetchProducts({ page: 1 }), 400);
   });
 
   document.getElementById("toggleSort")?.addEventListener("click", (event) => {
@@ -42,7 +53,6 @@ document.addEventListener("DOMContentLoaded", () => {
     input.value = descending ? "true" : "false";
     button.textContent = descending ? "stigende" : "synkende";
     window.fetchProducts({ page: 1 });
-    markChanged();
   });
 
   document.getElementById("togglePrice")?.addEventListener("click", (event) => {
@@ -69,60 +79,41 @@ document.addEventListener("DOMContentLoaded", () => {
     markChanged();
   });
 
-  document.getElementById("applyFilters")?.addEventListener("click", (event) => {
+  document.getElementById("toggleAdvanced")?.addEventListener("click", (event) => {
     event.preventDefault();
+    dialog?.showModal();
+  });
+
+  // Every way of closing the dialog (button, backdrop, Escape) applies its filters.
+  dialog?.addEventListener("click", (event) => {
+    if (event.target === dialog) dialog.close();
+  });
+
+  dialog?.addEventListener("close", () => {
+    if (!applyBtn?.classList.contains("changed")) return;
+    applyBtn.classList.remove("changed");
     window.fetchProducts({ page: 1 });
+  });
 
-    const panel = document.getElementById("advanced");
-    const btn = document.getElementById("toggleAdvanced");
-
-    panel?.classList.remove("open");
-    btn?.setAttribute("aria-expanded", "false");
-    sessionStorage.setItem("advanced", "false");
-
-    clearChanged();
+  applyBtn?.addEventListener("click", (event) => {
+    event.preventDefault();
+    dialog?.close();
   });
 
   document.getElementById("clearFilters")?.addEventListener("click", (event) => {
     event.preventDefault();
 
-    document.getElementById("nsearch").value = "";
-    document.getElementById("category").value = "null";
-    document.getElementById("price").value = "";
-    document.getElementById("volume").value = "";
-    document.getElementById("alcohol").value = "";
-    document.getElementById("year").value = "";
-
-    const storelike = document.querySelector('[name="storelike"]');
-    if (storelike) storelike.value = "";
-
-    const country = document.getElementById("country");
-    if (country) country.value = "";
-
-    const vinSelect = document.getElementById("stores-vinmonopolet");
-    if (vinSelect) vinSelect.value = "";
-
-    const taxfreeSelect = document.getElementById("stores-taxfree");
-    if (taxfreeSelect) taxfreeSelect.value = "";
+    for (const id of ["stores-search-vinmonopolet", "country", "price", "volume", "alcohol", "year"]) {
+      const field = document.getElementById(id);
+      if (field) field.value = "";
+    }
 
     resetComparator("cprice", "togglePrice", "under");
     resetComparator("cvolume", "toggleVolume", "over");
     resetComparator("calcohol", "toggleAlcohol", "over");
     resetComparator("cyear", "toggleYear", "før");
 
-    document.querySelector('input[name="favourites"]').value = "";
-
-    window.populateDropdowns?.();
-    window.fetchProducts({ page: 1, favourites: false });
-
-    const panel = document.getElementById("advanced");
-    const btn = document.getElementById("toggleAdvanced");
-
-    panel?.classList.remove("open");
-    btn?.setAttribute("aria-expanded", "false");
-    sessionStorage.setItem("advanced", "false");
-
-    clearChanged();
+    markChanged();
   });
 
   document.getElementById("toggleFavourites")?.addEventListener("click", () => {
@@ -130,22 +121,5 @@ document.addEventListener("DOMContentLoaded", () => {
     const active = input.value === "true";
     input.value = active ? "" : "true";
     window.fetchProducts({ page: 1 });
-    markChanged();
-  });
-
-  const isOpen = sessionStorage.getItem("advanced") === "true";
-  if (isOpen) {
-    document.getElementById("advanced")?.classList.add("open");
-    const btn = document.getElementById("toggleAdvanced");
-    btn?.setAttribute("aria-expanded", "true");
-  }
-
-  document.getElementById("toggleAdvanced")?.addEventListener("click", (event) => {
-    event.preventDefault();
-    const panel = document.getElementById("advanced");
-    const btn = document.getElementById("toggleAdvanced");
-    const open = panel.classList.toggle("open");
-    btn.setAttribute("aria-expanded", open);
-    sessionStorage.setItem("advanced", open);
   });
 });

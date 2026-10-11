@@ -2,8 +2,13 @@ const BOOL_FIELDS = new Set(["ascending", "favourites", "cprice", "cvolume", "ca
 const INT_FIELDS = new Set(["page", "year"]);
 const FLOAT_FIELDS = new Set(["price", "volume", "alcohol"]);
 const ALWAYS = new Set(["ascending", "sort"]);
+// Filters that are always visible are left out of the badge on the "Flere filtre" button.
 const BADGE_SKIP = new Set([
   "page",
+  "search",
+  "category",
+  "store-vinmonopolet",
+  "store-taxfree",
   "ascending",
   "sort",
   "favourites",

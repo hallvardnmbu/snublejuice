@@ -72,7 +72,7 @@
             {% endif %}
 
             {% if taxfree %}
-            {% call adv_field("Tax-free (en av)") %}
+            {% call adv_field("Tax-free (en av valgte)") %}
                 {{ multiselect("stores-taxfree", "store-taxfree", "Alle flyplasser") }}
             {% endcall %}
             {% else %}
@@ -80,18 +80,18 @@
             {% endif %}
 
             {% if not favourites and not taxfree %}
-            {% call adv_field("Vinmonopol (en av)", "store-vinmonopolet-field", "{{ 'hidden' if favourites or taxfree else '' }}") %}
+            {% call adv_field("Vinmonopol (en av valgte)", "store-vinmonopolet-field", "{{ 'hidden' if favourites or taxfree else '' }}") %}
                 {{ multiselect("stores-vinmonopolet", "store-vinmonopolet", "Spesifikk butikk") }}
             {% endcall %}
             {% else %}
             <input type="hidden" name="store-vinmonopolet" id="stores-vinmonopolet" value="">
             {% endif %}
 
-            {% call adv_field("Land (en av)") %}
+            {% call adv_field("Land (en av valgte)") %}
                 {{ multiselect("country", "country", "Alle land") }}
             {% endcall %}
 
-            {% call adv_field("Passer til (alle)") %}
+            {% call adv_field("Passer til (alle valgte)") %}
                 {{ multiselect("pair", "pair", "Alle retter") }}
             {% endcall %}
 

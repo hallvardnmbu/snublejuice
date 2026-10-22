@@ -96,14 +96,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const storelike = document.querySelector('[name="storelike"]');
     if (storelike) storelike.value = "";
 
-    const country = document.getElementById("country");
-    if (country) country.value = "";
-
-    const vinSelect = document.getElementById("stores-vinmonopolet");
-    if (vinSelect) vinSelect.value = "";
-
-    const taxfreeSelect = document.getElementById("stores-taxfree");
-    if (taxfreeSelect) taxfreeSelect.value = "";
+    for (const id of ["country", "pair", "stores-vinmonopolet", "stores-taxfree"]) {
+      clearField(document.getElementById(id));
+    }
 
     resetComparator("cprice", "togglePrice", "under");
     resetComparator("cvolume", "toggleVolume", "over");

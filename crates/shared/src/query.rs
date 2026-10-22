@@ -12,7 +12,8 @@ pub struct Parameters {
     pub ascending: Option<bool>,
     pub favourites: Option<bool>,
     pub category: Option<String>,
-    pub country: Option<String>,
+    pub country: Option<Vec<String>>,
+    pub pair: Option<Vec<String>>,
     pub price: Option<f64>,
     pub cprice: Option<bool>,
     pub volume: Option<f64>,
@@ -24,9 +25,9 @@ pub struct Parameters {
     pub search: Option<String>,
     pub storelike: Option<String>,
     #[serde(rename = "store-vinmonopolet")]
-    pub store_vinmonopolet: Option<String>,
+    pub store_vinmonopolet: Option<Vec<String>>,
     #[serde(rename = "store-taxfree")]
-    pub store_taxfree: Option<String>,
+    pub store_taxfree: Option<Vec<String>>,
 }
 
 impl Parameters {
@@ -37,6 +38,7 @@ impl Parameters {
             && self.favourites.is_none()
             && self.category.is_none()
             && self.country.is_none()
+            && self.pair.is_none()
             && self.price.is_none()
             && self.cprice.is_none()
             && self.volume.is_none()
@@ -67,7 +69,12 @@ impl Parameters {
         }
     }
 
-    pub fn to_filter(&self, subdomain: &Subdomain, user: &Option<User>, prices_updated: bool) -> Document {
+    pub fn to_filter(
+        &self,
+        subdomain: &Subdomain,
+        user: &Option<User>,
+        prices_updated: bool,
+    ) -> Document {
         let mut filter = doc! {};
 
         let favourites: bool = self.favourites.unwrap_or(false);
@@ -112,18 +119,23 @@ impl Parameters {
             }
         }
 
-        if let Some(country) = &self.country {
-            filter.insert("country", country);
+        if let Some(country) = self.country.as_ref().filter(|c| !c.is_empty()) {
+            filter.insert("country", doc! { "$in": country });
+        }
+
+        // Pair must match every selected dish; country and stores any of the selected.
+        if let Some(pair) = self.pair.as_ref().filter(|p| !p.is_empty()) {
+            filter.insert("pair", doc! { "$all": pair });
         }
 
         // Availability.
-        if let Some(store) = &self.store_vinmonopolet {
+        if let Some(store) = self.store_vinmonopolet.as_ref().filter(|s| !s.is_empty()) {
             if self.storelike.is_none() && !taxfree {
-                filter.insert("stores", doc! { "$in": vec![store] });
+                filter.insert("stores", doc! { "$in": store });
             }
-        } else if let Some(store) = &self.store_taxfree {
+        } else if let Some(store) = self.store_taxfree.as_ref().filter(|s| !s.is_empty()) {
             if taxfree {
-                filter.insert("taxfree.stores", doc! { "$in": vec![store] });
+                filter.insert("taxfree.stores", doc! { "$in": store });
             }
         } else if self.storelike.is_none() && !favourites && !taxfree {
             filter.insert("orderable", true);
@@ -193,18 +205,21 @@ impl Parameters {
     pub fn to_options(&self, subdomain: &Subdomain) -> Vec<Document> {
         let mut options = Vec::new();
 
-        options.push(
-            doc! {
-                "$sort": {self.get_sort_by(subdomain): if self.ascending == Some(false) { -1 } else { 1 }}
-            }
-        );
+        let sort_by = self.get_sort_by(subdomain);
+        let direction = if self.ascending == Some(false) { -1 } else { 1 };
+        options.push(doc! { "$sort": { sort_by: direction } });
         options.push(doc! { "$skip": ((self.page.unwrap_or(1) - 1) * PRODUCTS_PER_PAGE) });
         options.push(doc! { "$limit": PRODUCTS_PER_PAGE });
 
         options
     }
 
-    pub fn to_pipeline(&self, subdomain: &Subdomain, user: &Option<User>, prices_updated: bool) -> Vec<Document> {
+    pub fn to_pipeline(
+        &self,
+        subdomain: &Subdomain,
+        user: &Option<User>,
+        prices_updated: bool,
+    ) -> Vec<Document> {
         let mut pipeline: Vec<Document> = Vec::new();
 
         if let Some(search) = &self.search {
@@ -306,6 +321,7 @@ mod tests {
             favourites: None,
             category: None,
             country: None,
+            pair: None,
             price: None,
             cprice: None,
             volume: None,
@@ -344,7 +360,10 @@ mod tests {
     fn to_filter_includes_base_vinmonopolet_constraints() {
         let filter = empty_params().to_filter(&Subdomain::Vinmonopolet, &None, true);
         assert_eq!(filter.get_bool("updated"), Ok(true));
-        assert_eq!(filter.get_document("price").unwrap().get_f64("$gt"), Ok(0.0));
+        assert_eq!(
+            filter.get_document("price").unwrap().get_f64("$gt"),
+            Ok(0.0)
+        );
         assert_eq!(filter.get_bool("orderable"), Ok(true));
     }
 
@@ -366,10 +385,41 @@ mod tests {
     fn to_filter_maps_category_slug_and_country() {
         let mut params = empty_params();
         params.category = Some("rødvin".to_string());
-        params.country = Some("Frankrike".to_string());
+        params.country = Some(vec!["Frankrike".to_string()]);
         let filter = params.to_filter(&Subdomain::Vinmonopolet, &None, true);
         assert_eq!(filter.get_str("category"), Ok("Rødvin"));
-        assert_eq!(filter.get_str("country"), Ok("Frankrike"));
+        assert_eq!(
+            filter
+                .get_document("country")
+                .unwrap()
+                .get_array("$in")
+                .unwrap(),
+            &vec![Bson::String("Frankrike".into())]
+        );
+    }
+
+    #[test]
+    fn to_filter_requires_all_selected_pairings() {
+        let mut params = empty_params();
+        params.pair = Some(vec!["Fisk".to_string(), "Skalldyr".to_string()]);
+        let filter = params.to_filter(&Subdomain::Vinmonopolet, &None, true);
+        assert_eq!(
+            filter
+                .get_document("pair")
+                .unwrap()
+                .get_array("$all")
+                .unwrap(),
+            &vec![Bson::String("Fisk".into()), Bson::String("Skalldyr".into())]
+        );
+
+        params.pair = Some(vec![]);
+        params.country = Some(vec![]);
+        params.store_vinmonopolet = Some(vec![]);
+        let filter = params.to_filter(&Subdomain::Vinmonopolet, &None, true);
+        assert!(!filter.contains_key("pair"));
+        assert!(!filter.contains_key("country"));
+        assert!(!filter.contains_key("stores"));
+        assert_eq!(filter.get_bool("orderable"), Ok(true));
     }
 
     #[test]
@@ -388,7 +438,11 @@ mod tests {
         let user = test_user(vec![1, 2, 3]);
         let filter = params.to_filter(&Subdomain::Vinmonopolet, &Some(user), true);
         assert_eq!(
-            filter.get_document("index").unwrap().get_array("$in").unwrap(),
+            filter
+                .get_document("index")
+                .unwrap()
+                .get_array("$in")
+                .unwrap(),
             &vec![Bson::Int64(1), Bson::Int64(2), Bson::Int64(3)]
         );
     }
@@ -400,7 +454,10 @@ mod tests {
         params.ascending = Some(false);
         let options = params.to_options(&Subdomain::Vinmonopolet);
         assert_eq!(
-            options[0].get_document("$sort").unwrap().get_i32("discount"),
+            options[0]
+                .get_document("$sort")
+                .unwrap()
+                .get_i32("discount"),
             Ok(-1)
         );
         assert_eq!(options[1].get_i64("$skip"), Ok(30));
@@ -410,7 +467,12 @@ mod tests {
     #[test]
     fn to_options_taxfree_defaults_to_taxfree_discount() {
         let options = empty_params().to_options(&Subdomain::Taxfree);
-        assert!(options[0].get_document("$sort").unwrap().contains_key("taxfree.discount"));
+        assert!(
+            options[0]
+                .get_document("$sort")
+                .unwrap()
+                .contains_key("taxfree.discount")
+        );
     }
 
     #[test]

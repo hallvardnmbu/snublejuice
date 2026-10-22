@@ -1,4 +1,4 @@
-{% from "partials/macros.html" import adv_field %}
+{% from "partials/macros.html" import adv_field, multiselect %}
 
 <form id="filter">
     <input type="hidden" name="page" value="{{ parameters.page if parameters.page is not none else '' }}">
@@ -72,32 +72,27 @@
             {% endif %}
 
             {% if taxfree %}
-            {% call adv_field("Tax-free") %}
-                <div>
-                    <select name="store-taxfree" id="stores-taxfree">
-                    </select>
-                </div>
+            {% call adv_field("Tax-free (en av valgte)") %}
+                {{ multiselect("stores-taxfree", "store-taxfree", "Alle flyplasser") }}
             {% endcall %}
             {% else %}
             <input type="hidden" name="store-taxfree" id="stores-taxfree" value="">
             {% endif %}
 
             {% if not favourites and not taxfree %}
-            {% call adv_field("Vinmonopol", "store-vinmonopolet-field", "{{ 'hidden' if favourites or taxfree else '' }}") %}
-                <div>
-                    <select name="store-vinmonopolet" id="stores-vinmonopolet">
-                    </select>
-                </div>
+            {% call adv_field("Vinmonopol (en av valgte)", "store-vinmonopolet-field", "{{ 'hidden' if favourites or taxfree else '' }}") %}
+                {{ multiselect("stores-vinmonopolet", "store-vinmonopolet", "Spesifikk butikk") }}
             {% endcall %}
             {% else %}
             <input type="hidden" name="store-vinmonopolet" id="stores-vinmonopolet" value="">
             {% endif %}
 
-            {% call adv_field("Land") %}
-                <div>
-                    <select name="country" id="country">
-                    </select>
-                </div>
+            {% call adv_field("Land (en av valgte)") %}
+                {{ multiselect("country", "country", "Alle land") }}
+            {% endcall %}
+
+            {% call adv_field("Passer til (alle valgte)") %}
+                {{ multiselect("pair", "pair", "Alle retter") }}
             {% endcall %}
 
             {% call adv_field("Pris") %}

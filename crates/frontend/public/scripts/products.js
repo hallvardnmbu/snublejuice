@@ -2,6 +2,7 @@ const BOOL_FIELDS = new Set(["ascending", "favourites", "cprice", "cvolume", "ca
 const INT_FIELDS = new Set(["page", "year"]);
 const FLOAT_FIELDS = new Set(["price", "volume", "alcohol"]);
 const ALWAYS = new Set(["ascending", "sort"]);
+const ARRAY_FIELDS = new Set(["pair", "country", "store-vinmonopolet", "store-taxfree"]);
 const BADGE_SKIP = new Set([
   "page",
   "ascending",
@@ -25,7 +26,9 @@ function readParameters(overrides = {}) {
       continue;
     }
 
-    if (BOOL_FIELDS.has(key)) {
+    if (ARRAY_FIELDS.has(key)) {
+      params[key] = [...(params[key] ?? []), value];
+    } else if (BOOL_FIELDS.has(key)) {
       params[key] = value === "true";
     } else if (INT_FIELDS.has(key)) {
       params[key] = parseInt(value, 10);
@@ -77,7 +80,7 @@ function syncFavouritesButton(favourites) {
 
 function updateStoreFieldVisibility(favourites) {
   const taxfreeSelect = document.getElementById("stores-taxfree");
-  const isTaxfree = taxfreeSelect?.tagName === "SELECT";
+  const isTaxfree = taxfreeSelect?.tagName === "DETAILS";
   const storelikeField = document.getElementById("storelike-field");
   const vinField = document.getElementById("store-vinmonopolet-field");
   if (!storelikeField || !vinField) return;
@@ -89,8 +92,7 @@ function updateStoreFieldVisibility(favourites) {
   if (hide) {
     const storelike = document.querySelector('[name="storelike"]');
     if (storelike) storelike.value = "";
-    const vinSelect = document.getElementById("stores-vinmonopolet");
-    if (vinSelect) vinSelect.value = "";
+    clearField(document.getElementById("stores-vinmonopolet"));
   }
 }
 

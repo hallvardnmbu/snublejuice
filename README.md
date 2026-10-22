@@ -1,7 +1,7 @@
 # Snublejuice
 
-> [!WARNING]  
-> Se [snublejuice-javascript](https://github.com/hallvardnmbu/snublejuice-javascript) for den ikke-maniske implementasjonen.
+> [!NOTE]  
+> Se [snublejuice-javascript](https://github.com/hallvardnmbu/snublejuice-javascript) eller [snublejuice-python](https://github.com/hallvardnmbu/snublejuice-python) for implementasjoner.
 
 Hei. [Hallvard](https://dilettant.no) her.
 

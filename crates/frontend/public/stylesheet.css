@@ -392,6 +392,7 @@ input[type="text"],
 input[type="password"],
 input[type="email"],
 input[type="search"],
+.multiselect summary,
 select {
     height: var(--height-button);
     background: var(--foreground);
@@ -444,6 +445,70 @@ input[type="search"]::-webkit-search-cancel-button,
 input[type="search"]::-webkit-search-results-button,
 input[type="search"]::-webkit-search-results-decoration {
     -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Checkbox list styled as a select; options float over the form. */
+.multiselect {
+    position: relative;
+    width: 100%;
+}
+.multiselect summary {
+    display: flex;
+    align-items: center;
+    padding: 0 32px 0 var(--gap-lp);
+    box-sizing: border-box;
+    cursor: pointer;
+    font-weight: 500;
+    list-style: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.multiselect summary::-webkit-details-marker {
+    display: none;
+}
+.multiselect summary:after {
+    content: "";
+    position: absolute;
+    right: var(--padding);
+    top: calc(var(--height-button) / 2);
+    transform: translateY(-50%);
+    width: var(--margin);
+    height: var(--margin);
+    border-radius: 50%;
+    background-color: var(--text-faint);
+}
+.multiselect[open] summary {
+    border-color: var(--text);
+}
+main form > #advanced > div > div > .multiselect > div {
+    position: absolute;
+    top: calc(var(--height-button) + var(--margin));
+    left: 0;
+    right: 0;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    max-height: calc(8 * var(--height-button));
+    overflow-y: auto;
+    padding: var(--margin);
+    background: var(--foreground);
+}
+.multiselect label {
+    display: flex;
+    align-items: center;
+    gap: var(--gap-md);
+    padding: var(--margin) var(--gap-md);
+    border-radius: var(--margin);
+    cursor: pointer;
+}
+.multiselect label:hover {
+    background: var(--semitransparent);
+}
+.multiselect input {
+    accent-color: var(--text-muted);
     margin: 0;
 }
 
@@ -587,9 +652,11 @@ section button {
 }
 .product > div > div > .list {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
     gap: var(--margin);
     align-items: left;
+    color: var(--text-faint);
 }
 .product h2 {
     font-size: calc(1.35 * var(--fontsize));
@@ -799,6 +866,47 @@ aside .fractions tbody tr td:last-of-type {
         var(--color) 0 calc(var(--percentage) * 1%),
         var(--semitransparent) calc(var(--percentage) * 1%) 100%
     );
+}
+
+/* Price history: max/min as a y-axis beside a step line. */
+aside .history tbody tr td:first-of-type {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+aside .history tbody tr td:last-of-type {
+    position: relative;
+    overflow: hidden;
+    border-radius: 2.5px 2.5px var(--margin) var(--margin);
+    margin-left: var(--margin);
+    width: 100%;
+    height: calc(var(--image) / 2);
+    background: none;
+    --cap: 2.5px; /* half the line width, keeps the round caps inside the area */
+}
+aside .history svg {
+    position: absolute;
+    display: block;
+    overflow: visible;
+}
+aside .history .area {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: var(--semitransparent);
+}
+aside .history .line {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: var(--color);
+    stroke-width: 5;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+}
+aside .history .line path {
+    vector-effect: non-scaling-stroke;
 }
 
 /* --- Mobile -------------------------------------------------- */

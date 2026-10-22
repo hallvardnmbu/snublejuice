@@ -43,6 +43,18 @@ fn get_env() -> &'static Environment<'static> {
             iter.filter(|s| s.as_str().map(|s| re.is_match(s)).unwrap_or(false))
                 .collect::<Vec<_>>()
         });
+        env.add_filter("only_in", |stores: Vec<String>, selected: Value| {
+            let selected: Vec<String> = selected
+                .try_iter()
+                .map(|iter| iter.filter_map(|s| s.as_str().map(String::from)).collect())
+                .unwrap_or_default();
+            let mut stores: Vec<String> = stores
+                .into_iter()
+                .filter(|s| selected.contains(s))
+                .collect();
+            stores.sort();
+            stores
+        });
         env.add_filter("truncate", |value: String, max: u32| -> String {
             let max = max as usize;
             let chars: Vec<char> = value.chars().collect();
@@ -72,6 +84,7 @@ pub fn empty_parameters() -> Parameters {
         favourites: None,
         category: None,
         country: None,
+        pair: None,
         price: None,
         cprice: None,
         volume: None,
@@ -159,6 +172,10 @@ mod tests {
             colour: None,
             sugar: None,
             acid: None,
+            sukker: None,
+            syre: None,
+            cork: None,
+            allergens: None,
             characteristics: vec![],
             ingredients: vec![],
             updated: Some(true),
@@ -170,6 +187,44 @@ mod tests {
                 stores: Some(vec![]),
             }),
         }
+    }
+
+    #[test]
+    fn detailed_panel_renders_traits_and_history() {
+        let mut product = sample_product();
+        product.prices = vec![200.0, 180.0, 150.0];
+        product.sukker = Some("Under 3 gram".to_string());
+        product.cork = Some("Skrukork".to_string());
+        let html =
+            render_product_results(&vec![product], false, None, 1, 1, &empty_parameters(), true);
+        assert!(html.contains("Under 3 gram"));
+        assert!(html.contains("Skrukork"));
+        assert!(!html.contains("Allergener"));
+        assert!(html.contains(r#"class="history""#));
+        assert!(html.contains(r#"data-prices="200.0,180.0,150.0""#));
+
+        let html = render_product_results(
+            &vec![sample_product()],
+            false,
+            None,
+            1,
+            1,
+            &empty_parameters(),
+            true,
+        );
+        assert!(!html.contains(r#"class="history""#));
+    }
+
+    #[test]
+    fn only_in_lists_just_selected_stores() {
+        let mut product = sample_product();
+        product.stores = Some(vec!["Oslo".into(), "Bergen".into(), "Voss".into()]);
+        let mut parameters = empty_parameters();
+        parameters.store_vinmonopolet = Some(vec!["Bergen".into()]);
+        let html = render_product_results(&vec![product], false, None, 1, 1, &parameters, true);
+        assert!(html.contains("Bergen"));
+        assert!(!html.contains("Oslo"));
+        assert!(!html.contains("Voss"));
     }
 
     #[test]

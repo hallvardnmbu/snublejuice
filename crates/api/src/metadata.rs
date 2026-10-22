@@ -23,3 +23,14 @@ pub async fn get_countries(
 
     Ok(Json(countries))
 }
+
+pub async fn get_pairs(
+    State(state): State<AppState>,
+    subdomain: Subdomain,
+) -> Result<Json<Vec<String>>, AppError> {
+    let mut pairs: Vec<String> =
+        database::metadata::get_distinct(&state.db, &"pair", subdomain.is_taxfree()).await;
+    pairs.sort();
+
+    Ok(Json(pairs))
+}

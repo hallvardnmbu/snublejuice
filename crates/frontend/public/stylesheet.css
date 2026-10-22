@@ -877,7 +877,8 @@ aside .history tbody tr td:last-of-type {
     overflow: hidden;
     border-radius: 2.5px 2.5px var(--margin) var(--margin);
     margin-left: var(--margin);
-    min-height: calc(2.5 * var(--fontsize));
+    width: 100%;
+    height: calc(var(--image) / 2);
     background: none;
     --cap: 2.5px; /* half the line width, keeps the round caps inside the area */
 }
@@ -893,10 +894,9 @@ aside .history .area {
     fill: var(--semitransparent);
 }
 aside .history .line {
-    top: var(--cap);
-    left: var(--cap);
-    width: calc(100% - 2 * var(--cap));
-    height: calc(100% - var(--cap));
+    inset: 0;
+    width: 100%;
+    height: 100%;
     fill: none;
     stroke: var(--color);
     stroke-width: 5;

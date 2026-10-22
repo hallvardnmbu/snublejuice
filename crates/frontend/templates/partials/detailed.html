@@ -46,17 +46,16 @@
                     <span>kr {{ (history | min | round) | int }}</span>
                 </td>
                 <td>
-                    <svg class="area" viewBox="0 0 {{ history | length }} 100" preserveAspectRatio="none" aria-hidden="true">
-                        <path d="{{ history | step_path(true) }}" />
+                    <svg class="area" data-prices="{{ history | join(',') }}" aria-hidden="true">
+                        <path />
                     </svg>
                     <svg
                         class="line"
-                        viewBox="0 0 {{ history | length }} 100"
-                        preserveAspectRatio="none"
+                        data-prices="{{ history | join(',') }}"
                         role="img"
                         aria-label="Prisutvikling over {{ history | length }} måneder"
                     >
-                        <path d="{{ history | step_path(false) }}" />
+                        <path />
                     </svg>
                 </td>
             </tr>

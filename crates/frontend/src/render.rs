@@ -43,8 +43,15 @@ fn get_env() -> &'static Environment<'static> {
             iter.filter(|s| s.as_str().map(|s| re.is_match(s)).unwrap_or(false))
                 .collect::<Vec<_>>()
         });
-        env.add_filter("step_path", |prices: Vec<f64>, closed: bool| {
-            step_path(&prices, closed)
+        env.add_filter("only_in", |stores: Vec<String>, selected: Value| {
+            let selected: Vec<String> = selected
+                .try_iter()
+                .map(|iter| iter.filter_map(|s| s.as_str().map(String::from)).collect())
+                .unwrap_or_default();
+            let mut stores: Vec<String> =
+                stores.into_iter().filter(|s| selected.contains(s)).collect();
+            stores.sort();
+            stores
         });
         env.add_filter("truncate", |value: String, max: u32| -> String {
             let max = max as usize;
@@ -57,33 +64,6 @@ fn get_env() -> &'static Environment<'static> {
         });
         env
     })
-}
-
-/// SVG path of prices as a step line in a `0 0 n 100` viewBox, one unit per price.
-/// With `closed`, the path is closed along the bottom edge (for a filled area).
-fn step_path(prices: &[f64], closed: bool) -> String {
-    const PAD: f64 = 25.0;
-    if prices.is_empty() {
-        return String::new();
-    }
-    let max = prices.iter().cloned().fold(f64::MIN, f64::max);
-    let min = prices.iter().cloned().fold(f64::MAX, f64::min);
-    let y = |p: f64| {
-        if max > min {
-            PAD + (max - p) / (max - min) * (100.0 - 2.0 * PAD)
-        } else {
-            50.0
-        }
-    };
-
-    let mut path = format!("M0 {:.1} H1", y(prices[0]));
-    for (i, &price) in prices.iter().enumerate().skip(1) {
-        path.push_str(&format!(" V{:.1} H{}", y(price), i + 1));
-    }
-    if closed {
-        path.push_str(" V100 H0 Z");
-    }
-    path
 }
 
 #[derive(Serialize)]
@@ -219,7 +199,7 @@ mod tests {
         assert!(html.contains("Skrukork"));
         assert!(!html.contains("Allergener"));
         assert!(html.contains(r#"class="history""#));
-        assert!(html.contains(r#"viewBox="0 0 3 100""#));
+        assert!(html.contains(r#"data-prices="200.0,180.0,150.0""#));
 
         let html = render_product_results(
             &vec![sample_product()],
@@ -234,13 +214,15 @@ mod tests {
     }
 
     #[test]
-    fn step_path_draws_steps_and_handles_flat_prices() {
-        assert_eq!(step_path(&[], false), "");
-        assert_eq!(step_path(&[100.0, 200.0], false), "M0 75.0 H1 V25.0 H2");
-        assert_eq!(
-            step_path(&[100.0, 100.0], true),
-            "M0 50.0 H1 V50.0 H2 V100 H0 Z"
-        );
+    fn only_in_lists_just_selected_stores() {
+        let mut product = sample_product();
+        product.stores = Some(vec!["Oslo".into(), "Bergen".into(), "Voss".into()]);
+        let mut parameters = empty_parameters();
+        parameters.store_vinmonopolet = Some(vec!["Bergen".into()]);
+        let html = render_product_results(&vec![product], false, None, 1, 1, &parameters, true);
+        assert!(html.contains("Bergen"));
+        assert!(!html.contains("Oslo"));
+        assert!(!html.contains("Voss"));
     }
 
     #[test]

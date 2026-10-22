@@ -119,7 +119,7 @@ impl Parameters {
             }
         }
 
-        if let Some(country) = &self.country {
+        if let Some(country) = self.country.as_ref().filter(|c| !c.is_empty()) {
             filter.insert("country", doc! { "$in": country });
         }
 
@@ -129,11 +129,11 @@ impl Parameters {
         }
 
         // Availability.
-        if let Some(store) = &self.store_vinmonopolet {
+        if let Some(store) = self.store_vinmonopolet.as_ref().filter(|s| !s.is_empty()) {
             if self.storelike.is_none() && !taxfree {
                 filter.insert("stores", doc! { "$in": store });
             }
-        } else if let Some(store) = &self.store_taxfree {
+        } else if let Some(store) = self.store_taxfree.as_ref().filter(|s| !s.is_empty()) {
             if taxfree {
                 filter.insert("taxfree.stores", doc! { "$in": store });
             }
@@ -413,8 +413,13 @@ mod tests {
         );
 
         params.pair = Some(vec![]);
+        params.country = Some(vec![]);
+        params.store_vinmonopolet = Some(vec![]);
         let filter = params.to_filter(&Subdomain::Vinmonopolet, &None, true);
         assert!(!filter.contains_key("pair"));
+        assert!(!filter.contains_key("country"));
+        assert!(!filter.contains_key("stores"));
+        assert_eq!(filter.get_bool("orderable"), Ok(true));
     }
 
     #[test]

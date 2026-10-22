@@ -12,7 +12,7 @@ pub struct Parameters {
     pub ascending: Option<bool>,
     pub favourites: Option<bool>,
     pub category: Option<String>,
-    pub country: Option<String>,
+    pub country: Option<Vec<String>>,
     pub pair: Option<Vec<String>>,
     pub price: Option<f64>,
     pub cprice: Option<bool>,
@@ -25,9 +25,9 @@ pub struct Parameters {
     pub search: Option<String>,
     pub storelike: Option<String>,
     #[serde(rename = "store-vinmonopolet")]
-    pub store_vinmonopolet: Option<String>,
+    pub store_vinmonopolet: Option<Vec<String>>,
     #[serde(rename = "store-taxfree")]
-    pub store_taxfree: Option<String>,
+    pub store_taxfree: Option<Vec<String>>,
 }
 
 impl Parameters {
@@ -120,10 +120,10 @@ impl Parameters {
         }
 
         if let Some(country) = &self.country {
-            filter.insert("country", country);
+            filter.insert("country", doc! { "$in": country });
         }
 
-        // Must pair with every selected dish.
+        // Pair must match every selected dish; country and stores any of the selected.
         if let Some(pair) = self.pair.as_ref().filter(|p| !p.is_empty()) {
             filter.insert("pair", doc! { "$all": pair });
         }
@@ -131,11 +131,11 @@ impl Parameters {
         // Availability.
         if let Some(store) = &self.store_vinmonopolet {
             if self.storelike.is_none() && !taxfree {
-                filter.insert("stores", doc! { "$in": vec![store] });
+                filter.insert("stores", doc! { "$in": store });
             }
         } else if let Some(store) = &self.store_taxfree {
             if taxfree {
-                filter.insert("taxfree.stores", doc! { "$in": vec![store] });
+                filter.insert("taxfree.stores", doc! { "$in": store });
             }
         } else if self.storelike.is_none() && !favourites && !taxfree {
             filter.insert("orderable", true);
@@ -385,10 +385,17 @@ mod tests {
     fn to_filter_maps_category_slug_and_country() {
         let mut params = empty_params();
         params.category = Some("rødvin".to_string());
-        params.country = Some("Frankrike".to_string());
+        params.country = Some(vec!["Frankrike".to_string()]);
         let filter = params.to_filter(&Subdomain::Vinmonopolet, &None, true);
         assert_eq!(filter.get_str("category"), Ok("Rødvin"));
-        assert_eq!(filter.get_str("country"), Ok("Frankrike"));
+        assert_eq!(
+            filter
+                .get_document("country")
+                .unwrap()
+                .get_array("$in")
+                .unwrap(),
+            &vec![Bson::String("Frankrike".into())]
+        );
     }
 
     #[test]

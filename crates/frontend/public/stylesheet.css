@@ -874,24 +874,37 @@ aside .history tbody tr td:first-of-type {
     height: calc(2.5 * var(--fontsize));
 }
 aside .history tbody tr td:last-of-type {
+    position: relative;
+    overflow: hidden;
+    border-radius: 2.5px 2.5px var(--margin) var(--margin);
     margin-left: var(--margin);
     height: calc(2.5 * var(--fontsize));
+    background: none;
+    --cap: 2.5px; /* half the line width, keeps the round caps inside the area */
 }
 aside .history svg {
+    position: absolute;
     display: block;
-    width: 100%;
-    height: 100%;
     overflow: visible;
 }
 aside .history .area {
-    fill: var(--color);
-    opacity: 0.15;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: var(--semitransparent);
 }
 aside .history .line {
+    top: var(--cap);
+    left: var(--cap);
+    width: calc(100% - 2 * var(--cap));
+    height: calc(100% - var(--cap));
     fill: none;
     stroke: var(--color);
-    stroke-width: 1.5;
-    stroke-linejoin: round;
+    stroke-width: 5;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+}
+aside .history .line path {
     vector-effect: non-scaling-stroke;
 }
 

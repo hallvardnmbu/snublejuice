@@ -4,3 +4,11 @@
     {{ caller() }}
 </div>
 {% endmacro %}
+
+{# Checkbox list styled as a select; options are filled in by dropdowns.js. #}
+{% macro multiselect(id, name, default) %}
+<details class="multiselect" id="{{ id }}" data-name="{{ name }}">
+    <summary data-default="{{ default }}">{{ default }}</summary>
+    <div class="card"></div>
+</details>
+{% endmacro %}

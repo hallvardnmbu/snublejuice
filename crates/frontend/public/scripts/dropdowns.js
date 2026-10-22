@@ -1,62 +1,24 @@
-const _STORE_DEFAULTS = {
-  vinmonopolet: { text: "Spesifikk butikk", value: "" },
-  taxfree: { text: "Alle flyplasser", value: "" },
-};
-
-const _COUNTRY_DEFAULT = { text: "Alle land", value: "" };
-
-let _storesCache = null;
-let _countriesCache = null;
-let _pairsCache = null;
+const _cache = {};
 
 function capitalize(text) {
   if (!text) return text;
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-function populateSelect(select, items, defaultOption, selectedValue) {
-  if (!select) return;
-
-  const value = selectedValue ?? select.value ?? defaultOption.value;
-  select.replaceChildren();
-
-  const defaultEl = document.createElement("option");
-  defaultEl.value = defaultOption.value;
-  defaultEl.text = defaultOption.text;
-  select.appendChild(defaultEl);
-
-  for (const item of items) {
-    if (!item) continue;
-    const option = document.createElement("option");
-    option.value = item;
-    option.text = capitalize(item);
-    select.appendChild(option);
+async function fetchList(path) {
+  if (!_cache[path]) {
+    const response = await fetch(path);
+    if (!response.ok) throw new Error(`Failed to fetch ${path}`);
+    _cache[path] = await response.json();
   }
-
-  select.value = value;
-}
-
-async function fetchStores() {
-  const response = await fetch("/data/stores");
-  if (!response.ok) throw new Error("Failed to fetch stores");
-  return response.json();
-}
-
-async function fetchCountries() {
-  const response = await fetch("/data/countries");
-  if (!response.ok) throw new Error("Failed to fetch countries");
-  return response.json();
-}
-
-async function fetchPairs() {
-  const response = await fetch("/data/pairs");
-  if (!response.ok) throw new Error("Failed to fetch pairs");
-  return response.json();
+  return _cache[path];
 }
 
 function updateMultiselectSummary(details) {
   const summary = details.querySelector("summary");
-  const [first, ...rest] = [...details.querySelectorAll("input:checked")].map((i) => i.value);
+  const [first, ...rest] = [...details.querySelectorAll("input:checked")].map(
+    (input) => input.parentElement.textContent,
+  );
   summary.textContent = !first
     ? summary.dataset.default
     : rest.length
@@ -64,23 +26,34 @@ function updateMultiselectSummary(details) {
       : first;
 }
 
-function populatePairDropdown(pairs) {
-  const details = document.getElementById("pair");
+// Resets a multiselect, or a plain/hidden input standing in for it.
+function clearField(element) {
+  if (!element) return;
+  if (element.tagName === "DETAILS") {
+    element.querySelectorAll("input:checked").forEach((input) => (input.checked = false));
+    element.open = false;
+    updateMultiselectSummary(element);
+  } else {
+    element.value = "";
+  }
+}
+
+function populateMultiselect(details, items) {
   const list = details?.querySelector(".card");
   if (!list) return;
 
   const checked = new Set([...list.querySelectorAll("input:checked")].map((input) => input.value));
   list.replaceChildren();
 
-  for (const pair of pairs) {
-    if (!pair) continue;
+  for (const item of items) {
+    if (!item) continue;
     const label = document.createElement("label");
     const input = document.createElement("input");
     input.type = "checkbox";
-    input.name = "pair";
-    input.value = pair;
-    input.checked = checked.has(pair);
-    label.append(input, capitalize(pair));
+    input.name = details.dataset.name;
+    input.value = item;
+    input.checked = checked.has(item);
+    label.append(input, capitalize(item));
     list.appendChild(label);
   }
 
@@ -98,47 +71,22 @@ document.addEventListener("click", (event) => {
   });
 });
 
-function populateStoreDropdowns(stores) {
-  const subdomain = document.location.hostname.split(".")[0];
-  const storeSelect = document.getElementById(`stores-${subdomain}`);
-  if (storeSelect) {
-    populateSelect(storeSelect, stores, _STORE_DEFAULTS[subdomain] ?? _STORE_DEFAULTS.vinmonopolet);
-  }
-}
-
-function populateCountryDropdown(countries) {
-  const countrySelect = document.getElementById("country");
-  if (countrySelect) {
-    populateSelect(countrySelect, countries, _COUNTRY_DEFAULT);
-  }
-}
-
 async function loadDropdowns() {
-  try {
-    if (!_storesCache) {
-      _storesCache = await fetchStores();
-    }
-    populateStoreDropdowns(_storesCache);
-  } catch (error) {
-    console.error("Error fetching stores:", error);
-  }
+  const subdomain = document.location.hostname.split(".")[0];
+  const dropdowns = [
+    [`stores-${subdomain}`, "/data/stores"],
+    ["country", "/data/countries"],
+    ["pair", "/data/pairs"],
+  ];
 
-  try {
-    if (!_countriesCache) {
-      _countriesCache = await fetchCountries();
+  for (const [id, path] of dropdowns) {
+    const details = document.getElementById(id);
+    if (details?.tagName !== "DETAILS") continue;
+    try {
+      populateMultiselect(details, await fetchList(path));
+    } catch (error) {
+      console.error(`Error fetching ${path}:`, error);
     }
-    populateCountryDropdown(_countriesCache);
-  } catch (error) {
-    console.error("Error fetching countries:", error);
-  }
-
-  try {
-    if (!_pairsCache) {
-      _pairsCache = await fetchPairs();
-    }
-    populatePairDropdown(_pairsCache);
-  } catch (error) {
-    console.error("Error fetching pairs:", error);
   }
 }
 

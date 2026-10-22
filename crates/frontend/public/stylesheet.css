@@ -601,7 +601,7 @@ section button {
     z-index: 1;
     display: flex;
     flex-direction: row;
-    gap: var(--margin);
+    gap: var(--padding);
     padding: var(--padding);
 }
 .product > div > div {

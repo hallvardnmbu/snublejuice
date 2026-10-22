@@ -35,19 +35,19 @@
             {% if parameters.storelike %}
             <span class="list">
                 {% for store in item.stores | storelike_filter(parameters.storelike) %}
-                <p>• {{ store }}</p>
+                <p>☖ {{ store }}</p>
                 {% endfor %}
             </span>
             {% elif not taxfree and parameters['store-vinmonopolet'] %}
             <span class="list">
                 {% for store in (item.stores or []) | only_in(parameters['store-vinmonopolet']) %}
-                <p>• {{ store }}</p>
+                <p>☖ {{ store }}</p>
                 {% endfor %}
             </span>
             {% elif taxfree and parameters['store-taxfree'] %}
             <span class="list">
                 {% for store in (item.taxfree.stores or []) | only_in(parameters['store-taxfree']) %}
-                <p>• {{ store }}</p>
+                <p>☖ {{ store }}</p>
                 {% endfor %}
             </span>
             {% endif %}

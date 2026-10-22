@@ -652,9 +652,11 @@ section button {
 }
 .product > div > div > .list {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
     gap: var(--margin);
     align-items: left;
+    color: var(--text-faint);
 }
 .product h2 {
     font-size: calc(1.35 * var(--fontsize));

@@ -14,7 +14,24 @@ async function fetchList(path) {
   return _cache[path];
 }
 
+// Checkboxes are built after load, so the browser can't restore them; keep them per tab.
+function loadSelection(details) {
+  try {
+    return JSON.parse(sessionStorage.getItem(`multiselect:${details.id}`)) ?? [];
+  } catch {
+    return [];
+  }
+}
+
+function saveSelection(details) {
+  const values = [...details.querySelectorAll("input:checked")].map((input) => input.value);
+  try {
+    sessionStorage.setItem(`multiselect:${details.id}`, JSON.stringify(values));
+  } catch {}
+}
+
 function updateMultiselectSummary(details) {
+  saveSelection(details);
   const summary = details.querySelector("summary");
   const [first, ...rest] = [...details.querySelectorAll("input:checked")].map(
     (input) => input.parentElement.textContent,
@@ -38,13 +55,11 @@ function clearField(element) {
   }
 }
 
-function populateMultiselect(details, items) {
+function renderOptions(details, items, checked) {
   const list = details?.querySelector(".card");
   if (!list) return;
 
-  const checked = new Set([...list.querySelectorAll("input:checked")].map((input) => input.value));
   list.replaceChildren();
-
   for (const item of items) {
     if (!item) continue;
     const label = document.createElement("label");
@@ -59,6 +74,20 @@ function populateMultiselect(details, items) {
 
   updateMultiselectSummary(details);
 }
+
+function populateMultiselect(details, items) {
+  const list = details?.querySelector(".card");
+  if (!list) return;
+  renderOptions(details, items, new Set([...list.querySelectorAll("input:checked")].map((input) => input.value)));
+}
+
+// Show the stored selection right away, so the first product fetch already uses it.
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll("details.multiselect").forEach((details) => {
+    const stored = loadSelection(details);
+    if (stored.length) renderOptions(details, stored, new Set(stored));
+  });
+});
 
 document.addEventListener("change", (event) => {
   const details = event.target.closest?.("details.multiselect");

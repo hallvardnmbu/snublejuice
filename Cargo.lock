@@ -806,6 +806,7 @@ dependencies = [
  "authentication",
  "axum",
  "axum-embed",
+ "axum-extra",
  "chrono",
  "database",
  "minijinja",
@@ -813,6 +814,7 @@ dependencies = [
  "rust-embed",
  "serde",
  "shared",
+ "time",
 ]
 
 [[package]]

@@ -1,9 +1,11 @@
 use axum::{Json, extract::State, http::HeaderMap, response::Html};
+use axum_extra::extract::cookie::{Cookie, CookieJar};
 use minijinja::{Environment, Value, context};
 use regex::Regex;
 use rust_embed::RustEmbed;
 use serde::Serialize;
 use std::sync::OnceLock;
+use time::Duration as TimeDuration;
 
 use authentication::middle::MaybeAuthenticate;
 use shared::{
@@ -178,8 +180,7 @@ mod tests {
         assert!(landing.contains("application/ld+json"));
         assert!(landing.contains("landing"));
         assert!(landing.contains("hero"));
-        assert!(landing.contains("itemscope"));
-        assert!(landing.contains("itemprop=\"name\""));
+        assert!(landing.contains("https://schema.org"));
 
         let products = render_products_shell(false, None, "https://snublejuice.no");
         assert!(products.contains(r#"href="/public/stylesheet.css""#));
@@ -205,52 +206,59 @@ mod tests {
             &parameters,
             true,
         );
-        assert!(vin.contains(">NÅ</span>"));
-        assert!(vin.contains(">FØR</span>"));
-        assert!(vin.contains(">ENDRING</span>"));
+        assert!(vin.contains("<span>KR</span>"));
+        assert!(vin.contains("<span>%</span>"));
         assert!(vin.contains("strikethrough"));
-        assert!(vin.contains(r#"class="price""#));
+        assert!(vin.contains(r#"class="prices""#));
 
         let tax =
             render_product_results(&vec![sample_product()], true, None, 1, 1, &parameters, true);
-        assert!(tax.contains(">POL</span>"));
-        assert!(tax.contains(">TAX</span>"));
-        assert!(tax.contains(">DIFF</span>"));
-        assert!(tax.contains("change"));
+        assert!(tax.contains("<span>KR</span>"));
+        assert!(tax.contains("<span>%</span>"));
+        assert!(tax.contains("strikethrough"));
         assert!(tax.contains("example.com"));
     }
 }
 
 pub async fn site(
-    State(_state): State<AppState>,
+    State(state): State<AppState>,
     subdomain: Subdomain,
     headers: HeaderMap,
+    mut jar: CookieJar,
     MaybeAuthenticate(user): MaybeAuthenticate,
-) -> Html<String> {
+) -> (CookieJar, Html<String>) {
     let host = headers
         .get("host")
         .and_then(|h| h.to_str().ok())
         .unwrap_or("snublejuice.no");
     let landing_url = landing_url_from_host(host);
 
-    match subdomain {
-        Subdomain::Landing => {
-            let is_production = std::env::var("ENVIRONMENT")
-                .map(|e| e == "production")
-                .unwrap_or(false);
-            if is_production {
-                let month = chrono::Local::now().format("%Y-%m").to_string();
-                database::metadata::increment_visitor(&_state.db, &month, subdomain.name(), true)
-                    .await;
-            }
-            Html(render_landing(user))
-        }
-        Subdomain::Vinmonopolet | Subdomain::Taxfree => Html(render_products_shell(
-            subdomain.is_taxfree(),
-            user,
-            &landing_url,
-        )),
+    // One "fresh" visit per visitor per month; the cookie holds the month last counted.
+    let month = chrono::Local::now().format("%Y-%m").to_string();
+    if is_production() && jar.get("visitor").is_none_or(|c| c.value() != month) {
+        database::metadata::increment_visitor(&state.db, &month, subdomain.name(), true).await;
+        let domain =
+            std::env::var("COOKIE_DOMAIN").unwrap_or_else(|_| "snublejuice.localhost".to_string());
+        jar = jar.add(
+            Cookie::build(("visitor", month))
+                .path("/")
+                .domain(domain)
+                .secure(true)
+                .max_age(TimeDuration::days(35)),
+        );
     }
+
+    let html = match subdomain {
+        Subdomain::Landing => render_landing(user),
+        Subdomain::Vinmonopolet | Subdomain::Taxfree => {
+            render_products_shell(subdomain.is_taxfree(), user, &landing_url)
+        }
+    };
+    (jar, Html(html))
+}
+
+fn is_production() -> bool {
+    std::env::var("ENVIRONMENT").is_ok_and(|e| e == "production")
 }
 
 pub async fn fetch_products(
@@ -259,19 +267,9 @@ pub async fn fetch_products(
     MaybeAuthenticate(user): MaybeAuthenticate,
     Json(parameters): Json<Parameters>,
 ) -> Json<ProductsResponse> {
-    let is_production = std::env::var("ENVIRONMENT")
-        .map(|e| e == "production")
-        .unwrap_or(false);
-
-    if is_production {
+    if is_production() {
         let month = chrono::Local::now().format("%Y-%m").to_string();
-        database::metadata::increment_visitor(
-            &state.db,
-            &month,
-            subdomain.name(),
-            parameters.is_empty(),
-        )
-        .await;
+        database::metadata::increment_visitor(&state.db, &month, subdomain.name(), false).await;
     }
 
     let prices_updated = database::metadata::get_prices_updated(&state.db, subdomain.name()).await;

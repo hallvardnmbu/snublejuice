@@ -48,8 +48,10 @@ fn get_env() -> &'static Environment<'static> {
                 .try_iter()
                 .map(|iter| iter.filter_map(|s| s.as_str().map(String::from)).collect())
                 .unwrap_or_default();
-            let mut stores: Vec<String> =
-                stores.into_iter().filter(|s| selected.contains(s)).collect();
+            let mut stores: Vec<String> = stores
+                .into_iter()
+                .filter(|s| selected.contains(s))
+                .collect();
             stores.sort();
             stores
         });

@@ -99,7 +99,9 @@ pub async fn notification(db: &Database, user_id: &ObjectId, notify: bool) -> Re
 pub async fn logout(db: &Database, session_id: &str) -> Result<(), AppError> {
     let collection = db.collection::<Session>("sessions");
 
-    collection.delete_one(doc! { "session_id": session_id }).await?;
+    collection
+        .delete_one(doc! { "session_id": session_id })
+        .await?;
     Ok(())
 }
 

@@ -2,8 +2,8 @@ use authentication::middle::Authenticate;
 use axum::{Json, extract::State};
 use axum_extra::extract::cookie::{Cookie, CookieJar};
 
-use database::users;
 use authentication::middle::verify_password;
+use database::users;
 use shared::{
     errors::AppError,
     models::{Index, Notify, User},

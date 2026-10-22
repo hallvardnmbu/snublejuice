@@ -9,6 +9,8 @@ database = { path = "../database" }
 authentication = { path = "../authentication" }
 
 axum = { workspace = true }
+axum-extra = { workspace = true }
+time = { workspace = true }
 axum-embed = "0.1.0"
 minijinja = { version = "2.18.0" }
 rust-embed = "8"

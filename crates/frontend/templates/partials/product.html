@@ -26,9 +26,6 @@
                 {% endif %}
 
                 <a href="{{ item.taxfree.url if taxfree else item.url }}" target="_blank">{{ item.name }}</a>
-                {% if item.added and item.added >= new_since %}
-                <span class="tag" title="Nytt hos Vinmonopolet">Ny</span>
-                {% endif %}
             </h2>
 
             {% if item.description %}

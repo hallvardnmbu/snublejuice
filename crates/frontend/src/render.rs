@@ -9,7 +9,7 @@ use time::Duration as TimeDuration;
 
 use authentication::middle::MaybeAuthenticate;
 use shared::{
-    models::{ONE_MONTH, Product, User},
+    models::{Product, User},
     query::Parameters,
     state::AppState,
     subdomain::{Subdomain, landing_url_from_host},
@@ -62,7 +62,7 @@ fn get_env() -> &'static Environment<'static> {
 /// SVG path of prices as a step line in a `0 0 n 100` viewBox, one unit per price.
 /// With `closed`, the path is closed along the bottom edge (for a filled area).
 fn step_path(prices: &[f64], closed: bool) -> String {
-    const PAD: f64 = 8.0;
+    const PAD: f64 = 25.0;
     if prices.is_empty() {
         return String::new();
     }
@@ -146,10 +146,8 @@ pub fn render_product_results(
     prices_updated: bool,
 ) -> String {
     let tmpl = get_env().get_template("partials/results.html").unwrap();
-    let new_since = chrono::Utc::now().timestamp_millis() - (ONE_MONTH as i64) * 1000;
     tmpl.render(context! {
         data,
-        new_since,
         is_taxfree,
         user,
         page,
@@ -196,7 +194,6 @@ mod tests {
             syre: None,
             cork: None,
             allergens: None,
-            added: None,
             characteristics: vec![],
             ingredients: vec![],
             updated: Some(true),
@@ -211,32 +208,39 @@ mod tests {
     }
 
     #[test]
-    fn detailed_panel_renders_traits_history_and_new_tag() {
+    fn detailed_panel_renders_traits_and_history() {
         let mut product = sample_product();
         product.prices = vec![200.0, 180.0, 150.0];
         product.sukker = Some("Under 3 gram".to_string());
         product.cork = Some("Skrukork".to_string());
-        product.added = Some(chrono::Utc::now().timestamp_millis());
-        let html = render_product_results(&vec![product], false, None, 1, 1, &empty_parameters(), true);
+        let html =
+            render_product_results(&vec![product], false, None, 1, 1, &empty_parameters(), true);
         assert!(html.contains("Under 3 gram"));
         assert!(html.contains("Skrukork"));
         assert!(!html.contains("Allergener"));
         assert!(html.contains(r#"class="history""#));
         assert!(html.contains(r#"viewBox="0 0 3 100""#));
-        assert!(html.contains(r#"class="tag""#));
 
-        let mut old = sample_product();
-        old.added = Some(0);
-        let html = render_product_results(&vec![old], false, None, 1, 1, &empty_parameters(), true);
-        assert!(!html.contains(r#"class="tag""#));
+        let html = render_product_results(
+            &vec![sample_product()],
+            false,
+            None,
+            1,
+            1,
+            &empty_parameters(),
+            true,
+        );
         assert!(!html.contains(r#"class="history""#));
     }
 
     #[test]
     fn step_path_draws_steps_and_handles_flat_prices() {
         assert_eq!(step_path(&[], false), "");
-        assert_eq!(step_path(&[100.0, 200.0], false), "M0 92.0 H1 V8.0 H2");
-        assert_eq!(step_path(&[100.0, 100.0], true), "M0 50.0 H1 V50.0 H2 V100 H0 Z");
+        assert_eq!(step_path(&[100.0, 200.0], false), "M0 75.0 H1 V25.0 H2");
+        assert_eq!(
+            step_path(&[100.0, 100.0], true),
+            "M0 50.0 H1 V50.0 H2 V100 H0 Z"
+        );
     }
 
     #[test]

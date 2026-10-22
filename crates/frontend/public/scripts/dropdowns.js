@@ -56,14 +56,12 @@ async function fetchPairs() {
 
 function updateMultiselectSummary(details) {
   const summary = details.querySelector("summary");
-  const checked = [...details.querySelectorAll("input:checked")].map((input) => input.value);
-  if (checked.length === 0) {
-    summary.textContent = summary.dataset.default;
-  } else if (checked.length === 1) {
-    summary.textContent = checked[0];
-  } else {
-    summary.textContent = `${checked[0]} +${checked.length - 1}`;
-  }
+  const [first, ...rest] = [...details.querySelectorAll("input:checked")].map((i) => i.value);
+  summary.textContent = !first
+    ? summary.dataset.default
+    : rest.length
+      ? `${first} +${rest.length}`
+      : first;
 }
 
 function populatePairDropdown(pairs) {

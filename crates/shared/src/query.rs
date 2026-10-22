@@ -55,7 +55,7 @@ impl Parameters {
 
     fn get_sort_by(&self, subdomain: &Subdomain) -> String {
         if let Some(sort) = &self.sort {
-            if subdomain.is_taxfree() && sort != "alcohol" && sort != "added" {
+            if subdomain.is_taxfree() && sort != "alcohol" {
                 format!("taxfree.{}", sort)
             } else if sort == "rating" {
                 "aperitif.points".to_string()
@@ -69,7 +69,12 @@ impl Parameters {
         }
     }
 
-    pub fn to_filter(&self, subdomain: &Subdomain, user: &Option<User>, prices_updated: bool) -> Document {
+    pub fn to_filter(
+        &self,
+        subdomain: &Subdomain,
+        user: &Option<User>,
+        prices_updated: bool,
+    ) -> Document {
         let mut filter = doc! {};
 
         let favourites: bool = self.favourites.unwrap_or(false);
@@ -119,10 +124,8 @@ impl Parameters {
         }
 
         // Must pair with every selected dish.
-        if let Some(pair) = &self.pair {
-            if !pair.is_empty() {
-                filter.insert("pair", doc! { "$all": pair });
-            }
+        if let Some(pair) = self.pair.as_ref().filter(|p| !p.is_empty()) {
+            filter.insert("pair", doc! { "$all": pair });
         }
 
         // Availability.
@@ -191,9 +194,7 @@ impl Parameters {
 
         // Sort field must exist and be non-null (skip if already constrained above).
         let sort_by = self.get_sort_by(subdomain);
-        if sort_by == "added" {
-            filter.insert(sort_by, doc! { "$exists": true, "$ne": Bson::Null });
-        } else if !filter.contains_key(&sort_by) {
+        if !filter.contains_key(&sort_by) {
             let is_discount = sort_by == "discount" || sort_by == "taxfree.discount";
             filter.insert(sort_by, doc! { "$exists": true, "$ne": Bson::Null, "$gt": if is_discount {-100.0} else {0.0}  });
         }
@@ -205,11 +206,7 @@ impl Parameters {
         let mut options = Vec::new();
 
         let sort_by = self.get_sort_by(subdomain);
-        let mut direction = if self.ascending == Some(false) { -1 } else { 1 };
-        // "Stigende" means best first; for novelty that is newest first.
-        if sort_by == "added" {
-            direction = -direction;
-        }
+        let direction = if self.ascending == Some(false) { -1 } else { 1 };
         options.push(doc! { "$sort": { sort_by: direction } });
         options.push(doc! { "$skip": ((self.page.unwrap_or(1) - 1) * PRODUCTS_PER_PAGE) });
         options.push(doc! { "$limit": PRODUCTS_PER_PAGE });
@@ -217,7 +214,12 @@ impl Parameters {
         options
     }
 
-    pub fn to_pipeline(&self, subdomain: &Subdomain, user: &Option<User>, prices_updated: bool) -> Vec<Document> {
+    pub fn to_pipeline(
+        &self,
+        subdomain: &Subdomain,
+        user: &Option<User>,
+        prices_updated: bool,
+    ) -> Vec<Document> {
         let mut pipeline: Vec<Document> = Vec::new();
 
         if let Some(search) = &self.search {
@@ -358,7 +360,10 @@ mod tests {
     fn to_filter_includes_base_vinmonopolet_constraints() {
         let filter = empty_params().to_filter(&Subdomain::Vinmonopolet, &None, true);
         assert_eq!(filter.get_bool("updated"), Ok(true));
-        assert_eq!(filter.get_document("price").unwrap().get_f64("$gt"), Ok(0.0));
+        assert_eq!(
+            filter.get_document("price").unwrap().get_f64("$gt"),
+            Ok(0.0)
+        );
         assert_eq!(filter.get_bool("orderable"), Ok(true));
     }
 
@@ -392,23 +397,17 @@ mod tests {
         params.pair = Some(vec!["Fisk".to_string(), "Skalldyr".to_string()]);
         let filter = params.to_filter(&Subdomain::Vinmonopolet, &None, true);
         assert_eq!(
-            filter.get_document("pair").unwrap().get_array("$all").unwrap(),
+            filter
+                .get_document("pair")
+                .unwrap()
+                .get_array("$all")
+                .unwrap(),
             &vec![Bson::String("Fisk".into()), Bson::String("Skalldyr".into())]
         );
 
         params.pair = Some(vec![]);
         let filter = params.to_filter(&Subdomain::Vinmonopolet, &None, true);
         assert!(!filter.contains_key("pair"));
-    }
-
-    #[test]
-    fn sort_by_added_is_newest_first_and_untouched_on_taxfree() {
-        let mut params = empty_params();
-        params.sort = Some("added".to_string());
-        let options = params.to_options(&Subdomain::Taxfree);
-        assert_eq!(options[0].get_document("$sort").unwrap().get_i32("added"), Ok(-1));
-        let filter = params.to_filter(&Subdomain::Vinmonopolet, &None, true);
-        assert!(!filter.get_document("added").unwrap().contains_key("$gt"));
     }
 
     #[test]
@@ -427,7 +426,11 @@ mod tests {
         let user = test_user(vec![1, 2, 3]);
         let filter = params.to_filter(&Subdomain::Vinmonopolet, &Some(user), true);
         assert_eq!(
-            filter.get_document("index").unwrap().get_array("$in").unwrap(),
+            filter
+                .get_document("index")
+                .unwrap()
+                .get_array("$in")
+                .unwrap(),
             &vec![Bson::Int64(1), Bson::Int64(2), Bson::Int64(3)]
         );
     }
@@ -439,7 +442,10 @@ mod tests {
         params.ascending = Some(false);
         let options = params.to_options(&Subdomain::Vinmonopolet);
         assert_eq!(
-            options[0].get_document("$sort").unwrap().get_i32("discount"),
+            options[0]
+                .get_document("$sort")
+                .unwrap()
+                .get_i32("discount"),
             Ok(-1)
         );
         assert_eq!(options[1].get_i64("$skip"), Ok(30));
@@ -449,7 +455,12 @@ mod tests {
     #[test]
     fn to_options_taxfree_defaults_to_taxfree_discount() {
         let options = empty_params().to_options(&Subdomain::Taxfree);
-        assert!(options[0].get_document("$sort").unwrap().contains_key("taxfree.discount"));
+        assert!(
+            options[0]
+                .get_document("$sort")
+                .unwrap()
+                .contains_key("taxfree.discount")
+        );
     }
 
     #[test]

@@ -22,7 +22,7 @@
             </tr>
             {% endif %} {% for label, value in [ ('Lukt', item.smell), ('Smak', item.taste), ('Lagring', item.storage),
             ('Farge', item.colour), ('Passer til', item.pair | join(' & ') if item.pair and item.pair | length > 0 else
-            none), ('Sukker', item.sugar or item.sukker), ('Syre', item.acid or item.syre), ('Lukking', item.cork),
+            none), ('Sukker', item.sugar or item.sukker), ('Syre', item.acid or item.syre), ('Kork', item.cork),
             ('Allergener', item.allergens), ('Årgang', item.year), ] %} {% if value %}
             <tr>
                 <td class="label">{{ label }}</td>
@@ -41,6 +41,7 @@
             </tr>
             <tr>
                 <td class="label">
+                    <span>Ytterpunkt</span>
                     <span>kr {{ (history | max | round) | int }}</span>
                     <span>kr {{ (history | min | round) | int }}</span>
                 </td>

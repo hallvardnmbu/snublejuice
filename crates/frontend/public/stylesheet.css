@@ -871,14 +871,13 @@ aside .history tbody tr td:first-of-type {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    height: calc(2.5 * var(--fontsize));
 }
 aside .history tbody tr td:last-of-type {
     position: relative;
     overflow: hidden;
     border-radius: 2.5px 2.5px var(--margin) var(--margin);
     margin-left: var(--margin);
-    height: calc(2.5 * var(--fontsize));
+    min-height: calc(2.5 * var(--fontsize));
     background: none;
     --cap: 2.5px; /* half the line width, keeps the round caps inside the area */
 }

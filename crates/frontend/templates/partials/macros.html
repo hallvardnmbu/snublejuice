@@ -12,3 +12,15 @@
     <div class="card"></div>
 </details>
 {% endmacro %}
+
+{# Single choice dropdown styled like multiselect; options is a list of (value, label). #}
+{% macro singleselect(id, name, options, current) %}
+<details class="singleselect" id="{{ id }}">
+    <summary>{% for value, label in options %}{% if value == current %}{{ label }}{% endif %}{% endfor %}</summary>
+    <div class="card">
+        {% for value, label in options %}
+        <label><input type="radio" name="{{ name }}" value="{{ value }}"{{ ' checked' if value == current else '' }}>{{ label }}</label>
+        {% endfor %}
+    </div>
+</details>
+{% endmacro %}

@@ -43,10 +43,20 @@ function updateMultiselectSummary(details) {
       : first;
 }
 
+function updateSingleselectSummary(details) {
+  const checked = details.querySelector("input:checked");
+  if (checked) details.querySelector("summary").textContent = checked.parentElement.textContent;
+}
+
 // Resets a multiselect, or a plain/hidden input standing in for it.
 function clearField(element) {
   if (!element) return;
-  if (element.tagName === "DETAILS") {
+  if (element.classList?.contains("singleselect")) {
+    const first = element.querySelector("input");
+    first.checked = true;
+    element.open = false;
+    updateSingleselectSummary(element);
+  } else if (element.tagName === "DETAILS") {
     element.querySelectorAll("input:checked").forEach((input) => (input.checked = false));
     element.open = false;
     updateMultiselectSummary(element);
@@ -89,13 +99,23 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll("details.singleselect").forEach(updateSingleselectSummary);
+});
+
 document.addEventListener("change", (event) => {
+  const single = event.target.closest?.("details.singleselect");
+  if (single) {
+    updateSingleselectSummary(single);
+    single.open = false;
+  }
+
   const details = event.target.closest?.("details.multiselect");
   if (details) updateMultiselectSummary(details);
 });
 
 document.addEventListener("click", (event) => {
-  document.querySelectorAll("details.multiselect[open]").forEach((details) => {
+  document.querySelectorAll("details.multiselect[open], details.singleselect[open]").forEach((details) => {
     if (!details.contains(event.target)) details.open = false;
   });
 });

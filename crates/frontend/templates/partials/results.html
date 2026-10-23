@@ -5,7 +5,9 @@
 </div>
 {% endif %}
 {% if data|length == 0 %}
-<span>Ingen resultater finnes for valgt kominasjon.</span>
+<div class="message">
+    <span>Ingen resultater finnes for valgt kominasjon.</span>
+</div>
 {% else %}
 {% for item in data %}
 {% with parameters=parameters, item=item, index=loop.index0, taxfree=is_taxfree %}

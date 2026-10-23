@@ -167,7 +167,7 @@ function showSkeletons(results) {
   </nav>`;
 
   results.setAttribute("aria-busy", "true");
-  results.innerHTML = skeletonNav + skeletonCard.repeat(6) + skeletonNav;
+  results.innerHTML = skeletonNav + skeletonCard.repeat(15) + skeletonNav;
 }
 
 async function fetchProducts(overrides = {}) {

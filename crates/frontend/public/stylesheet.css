@@ -405,6 +405,11 @@ select {
     -webkit-appearance: none;
     outline: none;
 }
+input[type="number"] {
+    -moz-appearance: textfield;
+    -webkit-appearance: textfield;
+    appearance: textfield;
+}
 select {
     width: 100%;
     padding: 0 32px 0 var(--gap-lp);
@@ -437,7 +442,6 @@ input[type="search"]::placeholder {
     color: var(--text-faint);
     font-weight: 400;
 }
-input[type="number"],
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button,
 input[type="search"]::-webkit-search-decoration,

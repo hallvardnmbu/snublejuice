@@ -271,7 +271,9 @@ header form > div:first-of-type > div:not(:has(input)) span:last-of-type {
     letter-spacing: 0.04em;
     word-wrap: anywhere;
 }
-form > div:first-of-type > div:has(select) {
+form > div:first-of-type > div:has(select),
+#filter > div > div:has(select),
+#filter > div > div:has(.singleselect) {
     flex: 1;
     min-width: 0;
 }
@@ -311,17 +313,20 @@ form > div > div > div {
     gap: var(--margin);
 }
 main form > #advanced {
-    overflow: hidden;
-    opacity: 0;
+    width: min(100vw - 2 * var(--margin), var(--layout-max-narrow));
+    max-height: calc(100vh - 2 * var(--margin));
+    padding: 0;
+    overflow: visible;
+    border: none;
+    background: transparent;
+    color: inherit;
 }
-main form > #advanced:not(.open) {
-    display: none;
-}
-main form > #advanced.open {
-    opacity: 1;
-    padding-top: 0;
+#advanced::backdrop {
+    background: var(--semitransparent);
+    backdrop-filter: blur(2px);
 }
 main form > #advanced > div {
+    box-shadow: 0 0 1em 1em var(--semitransparent);
     display: flex;
     flex-direction: column;
     gap: var(--gap-md);
@@ -393,6 +398,7 @@ input[type="password"],
 input[type="email"],
 input[type="search"],
 .multiselect summary,
+.singleselect summary,
 select {
     height: var(--height-button);
     background: var(--foreground);
@@ -449,11 +455,13 @@ input[type="search"]::-webkit-search-results-decoration {
 }
 
 /* Checkbox list styled as a select; options float over the form. */
-.multiselect {
+.multiselect,
+.singleselect {
     position: relative;
     width: 100%;
 }
-.multiselect summary {
+.multiselect summary,
+.singleselect summary {
     display: flex;
     align-items: center;
     padding: 0 32px 0 var(--gap-lp);
@@ -465,10 +473,12 @@ input[type="search"]::-webkit-search-results-decoration {
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.multiselect summary::-webkit-details-marker {
+.multiselect summary::-webkit-details-marker,
+.singleselect summary::-webkit-details-marker {
     display: none;
 }
-.multiselect summary:after {
+.multiselect summary:after,
+.singleselect summary:after {
     content: "";
     position: absolute;
     right: var(--padding);
@@ -479,10 +489,12 @@ input[type="search"]::-webkit-search-results-decoration {
     border-radius: 50%;
     background-color: var(--text-faint);
 }
-.multiselect[open] summary {
+.multiselect[open] summary,
+.singleselect[open] summary {
     border-color: var(--text);
 }
-main form > #advanced > div > div > .multiselect > div {
+main form > #advanced > div > div > .multiselect > div,
+.singleselect > div {
     position: absolute;
     top: calc(var(--height-button) + var(--margin));
     left: 0;
@@ -496,7 +508,8 @@ main form > #advanced > div > div > .multiselect > div {
     padding: var(--margin);
     background: var(--foreground);
 }
-.multiselect label {
+.multiselect label,
+.singleselect label {
     display: flex;
     align-items: center;
     gap: var(--gap-md);
@@ -504,12 +517,22 @@ main form > #advanced > div > div > .multiselect > div {
     border-radius: var(--margin);
     cursor: pointer;
 }
-.multiselect label:hover {
+.multiselect label:hover,
+.singleselect label:hover {
     background: var(--semitransparent);
 }
 .multiselect input {
     accent-color: var(--text-muted);
     margin: 0;
+}
+.singleselect input {
+    display: none;
+}
+.singleselect label {
+    justify-content: space-between;
+}
+.singleselect label:has(input:checked):after {
+    content: "✓";
 }
 
 nav {

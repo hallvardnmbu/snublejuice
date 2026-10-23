@@ -19,20 +19,23 @@ document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("filter");
   if (!form) return;
 
+  const dialog = document.getElementById("advanced");
   const applyBtn = document.getElementById("applyFilters");
   const markChanged = () => applyBtn?.classList.add("changed");
-  const clearChanged = () => applyBtn?.classList.remove("changed");
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
-  });
-
-  form.addEventListener("input", markChanged);
-  form.addEventListener("change", markChanged);
-
-  document.getElementById("sort")?.addEventListener("change", () => {
     window.fetchProducts({ page: 1 });
   });
+
+  dialog.addEventListener("input", markChanged);
+  dialog.addEventListener("change", markChanged);
+
+  for (const id of ["sort"]) {
+    document.getElementById(id)?.addEventListener("change", () => {
+      window.fetchProducts({ page: 1 });
+    });
+  }
 
   document.getElementById("toggleSort")?.addEventListener("click", (event) => {
     event.preventDefault();
@@ -42,7 +45,6 @@ document.addEventListener("DOMContentLoaded", () => {
     input.value = descending ? "true" : "false";
     button.textContent = descending ? "stigende" : "synkende";
     window.fetchProducts({ page: 1 });
-    markChanged();
   });
 
   document.getElementById("togglePrice")?.addEventListener("click", (event) => {
@@ -69,34 +71,34 @@ document.addEventListener("DOMContentLoaded", () => {
     markChanged();
   });
 
-  document.getElementById("applyFilters")?.addEventListener("click", (event) => {
+  document.getElementById("toggleAdvanced")?.addEventListener("click", (event) => {
     event.preventDefault();
+    dialog?.showModal();
+  });
+
+  dialog?.addEventListener("click", (event) => {
+    if (event.target === dialog) dialog.close();
+  });
+
+  dialog?.addEventListener("close", () => {
+    if (!applyBtn?.classList.contains("changed")) return;
+    applyBtn.classList.remove("changed");
     window.fetchProducts({ page: 1 });
+  });
 
-    const panel = document.getElementById("advanced");
-    const btn = document.getElementById("toggleAdvanced");
-
-    panel?.classList.remove("open");
-    btn?.setAttribute("aria-expanded", "false");
-    sessionStorage.setItem("advanced", "false");
-
-    clearChanged();
+  applyBtn?.addEventListener("click", (event) => {
+    event.preventDefault();
+    applyBtn.classList.remove("changed");
+    dialog?.close();
+    window.fetchProducts({ page: 1 });
   });
 
   document.getElementById("clearFilters")?.addEventListener("click", (event) => {
     event.preventDefault();
 
     document.getElementById("nsearch").value = "";
-    document.getElementById("category").value = "null";
-    document.getElementById("price").value = "";
-    document.getElementById("volume").value = "";
-    document.getElementById("alcohol").value = "";
-    document.getElementById("year").value = "";
 
-    const storelike = document.querySelector('[name="storelike"]');
-    if (storelike) storelike.value = "";
-
-    for (const id of ["country", "pair", "stores-vinmonopolet", "stores-taxfree"]) {
+    for (const id of ["category", "stores-search-vinmonopolet", "country", "pair", "stores-vinmonopolet", "stores-taxfree", "price", "volume", "alcohol", "year"]) {
       clearField(document.getElementById(id));
     }
 
@@ -105,19 +107,9 @@ document.addEventListener("DOMContentLoaded", () => {
     resetComparator("calcohol", "toggleAlcohol", "over");
     resetComparator("cyear", "toggleYear", "før");
 
-    document.querySelector('input[name="favourites"]').value = "";
-
-    window.populateDropdowns?.();
-    window.fetchProducts({ page: 1, favourites: false });
-
-    const panel = document.getElementById("advanced");
-    const btn = document.getElementById("toggleAdvanced");
-
-    panel?.classList.remove("open");
-    btn?.setAttribute("aria-expanded", "false");
-    sessionStorage.setItem("advanced", "false");
-
-    clearChanged();
+    applyBtn?.classList.remove("changed");
+    dialog?.close();
+    window.fetchProducts({ page: 1 });
   });
 
   document.getElementById("toggleFavourites")?.addEventListener("click", () => {
@@ -125,22 +117,5 @@ document.addEventListener("DOMContentLoaded", () => {
     const active = input.value === "true";
     input.value = active ? "" : "true";
     window.fetchProducts({ page: 1 });
-    markChanged();
-  });
-
-  const isOpen = sessionStorage.getItem("advanced") === "true";
-  if (isOpen) {
-    document.getElementById("advanced")?.classList.add("open");
-    const btn = document.getElementById("toggleAdvanced");
-    btn?.setAttribute("aria-expanded", "true");
-  }
-
-  document.getElementById("toggleAdvanced")?.addEventListener("click", (event) => {
-    event.preventDefault();
-    const panel = document.getElementById("advanced");
-    const btn = document.getElementById("toggleAdvanced");
-    const open = panel.classList.toggle("open");
-    btn.setAttribute("aria-expanded", open);
-    sessionStorage.setItem("advanced", open);
   });
 });

@@ -1,4 +1,4 @@
-{% from "partials/macros.html" import adv_field, multiselect %}
+{% from "partials/macros.html" import adv_field, multiselect, singleselect %}
 
 <form id="filter">
     <input type="hidden" name="page" value="{{ parameters.page if parameters.page is not none else '' }}">
@@ -13,22 +13,15 @@
     <div>
         <button type="button" id="toggleSort">{{ 'synkende' if parameters.ascending == false else 'stigende' }}</button>
         <div>
-            <select name="sort" id="sort">
-                <option value="discount" {{ 'selected' if parameters.sort == 'discount' or parameters.sort is none else '' }}>Tilbud</option>
-                <option value="rating" {{ 'selected' if parameters.sort == 'rating' else '' }}>Rating</option>
-                <option value="price" {{ 'selected' if parameters.sort == 'price' else '' }}>Pris</option>
-                <option value="literprice" {{ 'selected' if parameters.sort == 'literprice' else '' }}>Literpris</option>
-                <option value="alcoholprice" {{ 'selected' if parameters.sort == 'alcoholprice' else '' }}>Alkoholpris</option>
-                <option value="alcohol" {{ 'selected' if parameters.sort == 'alcohol' else '' }}>Alkoholprosent</option>
-            </select>
+            {{ singleselect("sort", "sort", [("discount", "Tilbud"), ("rating", "Rating"), ("price", "Pris"), ("literprice", "Literpris"), ("alcoholprice", "Alkoholpris"), ("alcohol", "Alkoholprosent")], parameters.sort or "discount") }}
         </div>
-        <button type="button" id="toggleAdvanced" aria-expanded="false">
+        <button type="button" id="toggleAdvanced" aria-haspopup="dialog">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
             <span class="filter-badge" id="filterBadge"></span>
         </button>
     </div>
 
-    <div id="advanced">
+    <dialog id="advanced">
         <div class="card inset">
             <div class="controls">
                 <button type="button" id="clearFilters">Nullstill</button>
@@ -43,23 +36,7 @@
 
             {% call adv_field("Kategori") %}
                 <div>
-                    <select name="category" id="category">
-                        <option value="null" {{ 'selected' if parameters.category == 'null' else '' }}>Alle kategorier</option>
-                        <option value="alkoholfritt" {{ 'selected' if parameters.category == 'alkoholfritt' else '' }}>Alkoholfritt</option>
-                        <option value="aromatisert" {{ 'selected' if parameters.category == 'aromatisert' else '' }}>Aromatisert vin</option>
-                        <option value="brennevin" {{ 'selected' if parameters.category == 'brennevin' else '' }}>Brennevin</option>
-                        <option value="fruktvin" {{ 'selected' if parameters.category == 'fruktvin' else '' }}>Fruktvin</option>
-                        <option value="hvitvin" {{ 'selected' if parameters.category == 'hvitvin' else '' }}>Hvitvin</option>
-                        <option value="mjød" {{ 'selected' if parameters.category == 'mjød' else '' }}>Mjød</option>
-                        <option value="musserende" {{ 'selected' if parameters.category == 'musserende' else '' }}>Musserende vin</option>
-                        <option value="perlende" {{ 'selected' if parameters.category == 'perlende' else '' }}>Perlende vin</option>
-                        <option value="rosévin" {{ 'selected' if parameters.category == 'rosévin' else '' }}>Rosévin</option>
-                        <option value="rødvin" {{ 'selected' if parameters.category == 'rødvin' else '' }}>Rødvin</option>
-                        <option value="sake" {{ 'selected' if parameters.category == 'sake' else '' }}>Sake</option>
-                        <option value="sider" {{ 'selected' if parameters.category == 'sider' else '' }}>Sider</option>
-                        <option value="sterkvin" {{ 'selected' if parameters.category == 'sterkvin' else '' }}>Sterkvin</option>
-                        <option value="øl" {{ 'selected' if parameters.category == 'øl' else '' }}>Øl</option>
-                    </select>
+                    {{ singleselect("category", "category", [("null", "Alle kategorier"), ("alkoholfritt", "Alkoholfritt"), ("aromatisert", "Aromatisert vin"), ("brennevin", "Brennevin"), ("fruktvin", "Fruktvin"), ("hvitvin", "Hvitvin"), ("mjød", "Mjød"), ("musserende", "Musserende vin"), ("perlende", "Perlende vin"), ("rosévin", "Rosévin"), ("rødvin", "Rødvin"), ("sake", "Sake"), ("sider", "Sider"), ("sterkvin", "Sterkvin"), ("øl", "Øl")], parameters.category or "null") }}
                 </div>
             {% endcall %}
 
@@ -81,7 +58,7 @@
 
             {% if not favourites and not taxfree %}
             {% call adv_field("Vinmonopol (en av valgte)", "store-vinmonopolet-field", "{{ 'hidden' if favourites or taxfree else '' }}") %}
-                {{ multiselect("stores-vinmonopolet", "store-vinmonopolet", "Spesifikk butikk") }}
+                {{ multiselect("stores-vinmonopolet", "store-vinmonopolet", "Alle butikker") }}
             {% endcall %}
             {% else %}
             <input type="hidden" name="store-vinmonopolet" id="stores-vinmonopolet" value="">
@@ -123,5 +100,5 @@
                 </div>
             {% endcall %}
         </div>
-    </div>
+    </dialog>
 </form>

@@ -57,7 +57,7 @@
     --foreground: var(--background);
 
     --border-color: #65625c;
-    --semitransparent: rgba(0, 0, 0, 0.2);
+    --semitransparent: rgba(255, 255, 255, 0.05);
 
     --disclaimer: #9d6268;
 
@@ -325,8 +325,11 @@ main form > #advanced {
     background: var(--semitransparent);
     backdrop-filter: blur(2px);
 }
-main form > #advanced > div {
+main form > #advanced > div.card,
+main form > #advanced > div.controls > button {
     box-shadow: 0 0 1em 1em var(--semitransparent);
+}
+main form > #advanced > div.card {
     display: flex;
     flex-direction: column;
     gap: var(--gap-md);
@@ -339,27 +342,18 @@ main form > #advanced > div > div > div {
     gap: var(--gap-md);
     align-items: center;
 }
-main form > #advanced > div > div.controls {
+main form > #advanced > div.controls {
     display: flex;
     flex-direction: row;
     gap: var(--gap-md);
     align-items: center;
     justify-content: space-between;
-    margin-bottom: calc(var(--padding) - var(--gap-md) / 2);
+    margin: calc(var(--padding) + var(--gap-md) / 2);
 }
 #applyFilters.changed {
     background: var(--text-muted);
     border-color: var(--text-muted);
     color: var(--foreground);
-}
-#advanced hr {
-    position: relative;
-    right: calc(var(--padding-lg) + var(--border-size));
-    width: calc(100% + 2 * var(--padding-lg) + 2 * var(--border-size));
-    height: var(--border-size);
-    border: unset;
-    background: var(--border-color);
-    margin: unset;
 }
 
 .label {

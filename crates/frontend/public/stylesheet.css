@@ -1090,18 +1090,21 @@ section.landing {
     width: auto;
 }
 
+.skeleton img {
+    filter: blur(4px);
+}
 .skeleton > div {
     box-sizing: border-box;
-    height: calc(var(--image) + 2 * var(--padding) + 2 * var(--border-size));
+    height: calc(var(--image) + 2 * var(--padding) + 6 * var(--border-size));
     animation: sk-flicker 1.8s ease-in-out infinite;
 }
 @keyframes sk-flicker {
-    0%, 100% { background-color: color-mix(in srgb, var(--border-color) 20%, transparent); }
+    0%, 100% { background-color: color-mix(in srgb, var(--border-color) 10%, transparent); }
     50%      { background-color: transparent; }
 }
 @media (prefers-reduced-motion: reduce) {
     .skeleton > div {
         animation: none;
-        background-color: color-mix(in srgb, var(--border-color) 20%, transparent);
+        background-color: color-mix(in srgb, var(--border-color) 10%, transparent);
     }
 }

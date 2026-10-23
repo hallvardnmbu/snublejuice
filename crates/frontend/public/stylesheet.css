@@ -307,23 +307,26 @@ form > div:not(header *) {
     flex-direction: row;
     gap: var(--padding);
 }
-form > div > div > div {
+form > dialog > div > div {
     display: flex;
     flex-direction: column;
     gap: var(--margin);
 }
 main form > #advanced {
     width: min(100vw - 2 * var(--margin), var(--layout-max-narrow));
-    max-height: calc(100vh - 2 * var(--margin));
+    max-height: calc(100dvh - 2 * var(--margin));
     padding: 0;
     overflow: visible;
     border: none;
     background: transparent;
     color: inherit;
+    bottom: auto;
+    top: var(--height-button);
 }
 #advanced::backdrop {
     background: var(--semitransparent);
     backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
 }
 main form > #advanced > div.card,
 main form > #advanced > div.controls > button {
@@ -332,10 +335,15 @@ main form > #advanced > div.controls > button {
 main form > #advanced > div.card {
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
+    overscroll-behavior: contain;
     gap: var(--gap-md);
     width: 100%;
     padding: var(--padding-lg);
     box-sizing: border-box;
+}
+html:has(dialog[open]) {
+    overflow: hidden;
 }
 main form > #advanced > div > div > div {
     display: flex;
@@ -348,7 +356,7 @@ main form > #advanced > div.controls {
     gap: var(--gap-md);
     align-items: center;
     justify-content: space-between;
-    margin: calc(var(--padding) + var(--gap-md) / 2);
+    padding: calc(var(--padding) + var(--gap-md) / 2);
 }
 #applyFilters.changed {
     background: var(--text-muted);
@@ -937,6 +945,8 @@ aside .history .line path {
         --image: 4.5rem;
         --fontsize: 0.6875rem;
         --fontsize-tag: 0.5rem;
+
+        --height-button: 1.375rem;
 
         --gap-sm: 0.25rem;
         --gap-md: 0.375rem;

@@ -2,7 +2,7 @@ use rusqlite::{OptionalExtension, Row, params};
 
 use shared::{
     errors::AppError,
-    models::{ONE_MONTH, Session, User, unix_now},
+    models::{ONE_MONTH, User, unix_now},
     state::Database,
 };
 
@@ -123,20 +123,14 @@ pub async fn logout(db: &Database, session_id: &str) -> Result<(), AppError> {
     Ok(())
 }
 
-pub async fn get_user_by_session_id(db: &Database, session_id: &str) -> Result<Session, AppError> {
+/// The user a valid (unexpired) session belongs to.
+pub async fn get_user_by_session_id(db: &Database, session_id: &str) -> Result<i64, AppError> {
     let session_id = session_id.to_string();
     connect::app(db, move |conn| {
         conn.query_row(
-            "SELECT user_id, session_id, expires_after FROM sessions
-             WHERE session_id = ? AND expires_after > ?",
+            "SELECT user_id FROM sessions WHERE session_id = ? AND expires_after > ?",
             params![session_id, unix_now()],
-            |row| {
-                Ok(Session {
-                    user_id: row.get(0)?,
-                    session_id: row.get(1)?,
-                    expires_after: row.get(2)?,
-                })
-            },
+            |row| row.get(0),
         )
         .optional()
     })
@@ -177,11 +171,12 @@ pub async fn delete_sessions_for_user(db: &Database, user_id: &i64) -> Result<()
     Ok(())
 }
 
-pub async fn store_session(db: &Database, session: Session) -> Result<(), AppError> {
+pub async fn store_session(db: &Database, user_id: i64, session_id: &str) -> Result<(), AppError> {
+    let session_id = session_id.to_string();
     connect::app(db, move |conn| {
         conn.execute(
             "INSERT INTO sessions (session_id, user_id, expires_after) VALUES (?, ?, ?)",
-            params![session.session_id, session.user_id, session.expires_after],
+            params![session_id, user_id, unix_now() + ONE_MONTH as i64],
         )
     })
     .await?;

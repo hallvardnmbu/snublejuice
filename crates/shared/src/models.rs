@@ -21,14 +21,6 @@ pub struct User {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Session {
-    pub user_id: i64,
-    pub session_id: String,
-    /// Unix seconds.
-    pub expires_after: i64,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
 pub struct Index {
     pub index: i64,
 }

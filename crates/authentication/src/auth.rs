@@ -7,7 +7,7 @@ use crate::middle;
 use database::users;
 use shared::{
     errors::AppError,
-    models::{ONE_MONTH, Session, User, unix_now},
+    models::{ONE_MONTH, User},
     query::{LoginRequest, SignupRequest},
     state::AppState,
 };
@@ -30,12 +30,7 @@ pub async fn login(
 
     let session_id = Uuid::new_v4().to_string();
 
-    let session = Session {
-        user_id: user.user_id,
-        session_id: session_id.clone(),
-        expires_after: unix_now() + ONE_MONTH as i64,
-    };
-    users::store_session(&state.db, session).await?;
+    users::store_session(&state.db, user.user_id, &session_id).await?;
 
     let domain =
         std::env::var("COOKIE_DOMAIN").unwrap_or_else(|_| "snublejuice.localhost".to_string());
@@ -79,12 +74,7 @@ pub async fn signup(
     .await?;
 
     let session_id = Uuid::new_v4().to_string();
-    let session = Session {
-        user_id,
-        session_id: session_id.clone(),
-        expires_after: unix_now() + ONE_MONTH as i64,
-    };
-    users::store_session(&state.db, session).await?;
+    users::store_session(&state.db, user_id, &session_id).await?;
 
     let domain =
         std::env::var("COOKIE_DOMAIN").unwrap_or_else(|_| "snublejuice.localhost".to_string());

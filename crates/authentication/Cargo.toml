@@ -10,10 +10,8 @@ database = { path = "../database" }
 axum = { workspace = true }
 axum-extra = { workspace = true }
 serde = { workspace = true }
-serde_json = { workspace = true }
 bcrypt = "0.19.0"
 uuid = { version = "1.22.0", features = ["v4"] }
-chrono = { workspace = true }
 tokio = { workspace = true }
 tower_governor = { version = "0.8", features = ["axum"] }
 time = { workspace = true }

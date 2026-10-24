@@ -36,11 +36,11 @@ where
             .ok_or(AppError::Unauthorized)?;
 
         // Check the session cookie validity.
-        let session = users::get_user_by_session_id(&db, &session_id)
+        let user_id = users::get_user_by_session_id(&db, &session_id)
             .await
             .map_err(|_| AppError::Unauthorized)?;
 
-        let user = users::get_user_by_id(&db, &session.user_id)
+        let user = users::get_user_by_id(&db, &user_id)
             .await
             .ok_or(AppError::Unauthorized)?;
 
@@ -52,7 +52,7 @@ where
         });
 
         Ok(Authenticate {
-            id: session.user_id,
+            id: user_id,
             session_id,
             user,
         })

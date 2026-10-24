@@ -66,10 +66,8 @@ dependencies = [
  "axum",
  "axum-extra",
  "bcrypt",
- "chrono",
  "database",
  "serde",
- "serde_json",
  "shared",
  "time",
  "tokio",
@@ -427,7 +425,6 @@ version = "0.1.0"
 dependencies = [
  "regex",
  "rusqlite",
- "serde",
  "serde_json",
  "shared",
  "tokio",

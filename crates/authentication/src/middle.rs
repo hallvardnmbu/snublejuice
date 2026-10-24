@@ -4,14 +4,13 @@ use axum::{
 };
 use axum_extra::extract::cookie::CookieJar;
 use bcrypt::{DEFAULT_COST, hash, verify};
-use mongodb::{Database, bson::oid::ObjectId};
 use tokio::spawn;
 
 use database::users;
-use shared::{errors::AppError, models::User};
+use shared::{errors::AppError, models::User, state::Database};
 
 pub struct Authenticate {
-    pub id: ObjectId,
+    pub id: i64,
     pub session_id: String,
     pub user: User,
 }

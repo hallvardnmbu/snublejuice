@@ -39,22 +39,17 @@ pub async fn get_prices_updated(db: &Database, subdomain: &str) -> bool {
 
 pub(crate) fn distinct(
     conn: &Connection,
-    path: &str,
+    field: &str,
     taxfree: bool,
 ) -> rusqlite::Result<Vec<String>> {
-    conn.prepare(
-        "SELECT DISTINCT t.value
-         FROM products p, json_tree(p.doc, ?1) t
-         WHERE t.type = 'text' AND (?2 = 0 OR json_type(p.doc, '$.taxfree') = 'object')
-         ORDER BY t.value",
-    )?
-    .query_map(params![path, taxfree], |row| row.get(0))?
-    .collect()
+    conn.prepare("SELECT value FROM facets WHERE taxfree = ?1 AND field = ?2 ORDER BY value")?
+        .query_map(params![taxfree, field], |row| row.get(0))?
+        .collect()
 }
 
-/// Distinct text values at a JSON `path` in the product documents; arrays are flattened.
-pub async fn get_distinct(db: &Database, path: &'static str, is_taxfree: bool) -> Vec<String> {
-    connect::products(db, move |conn| distinct(conn, path, is_taxfree))
+/// The dropdown values (`stores`, `country` or `pair`) that snublecron collected when publishing.
+pub async fn get_distinct(db: &Database, field: &'static str, is_taxfree: bool) -> Vec<String> {
+    connect::products(db, move |conn| distinct(conn, field, is_taxfree))
         .await
         .unwrap_or_else(|error| {
             eprintln!("No results found: {error:?}");

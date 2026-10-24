@@ -52,10 +52,10 @@ impl Where {
         self.params.extend(params);
     }
 
-    /// `EXISTS` over a JSON array in `doc` where an element satisfies `test`.
-    fn any_element(&mut self, path: &str, test: &str, params: impl IntoIterator<Item = Value>) {
+    /// `EXISTS` over a JSON array column where an element satisfies `test`.
+    fn any_element(&mut self, column: &str, test: &str, params: impl IntoIterator<Item = Value>) {
         self.add(
-            &format!("EXISTS (SELECT 1 FROM json_each(doc, '{path}') WHERE {test})"),
+            &format!("EXISTS (SELECT 1 FROM json_each({column}) WHERE {test})"),
             params,
         );
     }
@@ -140,10 +140,7 @@ impl Parameters {
         };
 
         if taxfree {
-            w.add(
-                "json_type(doc, '$.taxfree.stores') = 'array' AND tax_valid = 1",
-                [],
-            );
+            w.add("json_type(tax_stores) = 'array' AND tax_valid = 1", []);
         } else if prices_updated {
             // Only fully-updated products when the monthly update is complete.
             w.add("updated = 1", []);
@@ -158,7 +155,7 @@ impl Parameters {
                     r"(?i)(^|[^a-zæøåA-ZÆØÅ]){}([^a-zæøåA-ZÆØÅ]|$)",
                     regex::escape(storelike)
                 );
-                w.any_element("$.stores", "value REGEXP ?", [Value::from(pattern)]);
+                w.any_element("stores", "value REGEXP ?", [Value::from(pattern)]);
             }
         }
 
@@ -206,19 +203,19 @@ impl Parameters {
 
         // Pair must match every selected dish; country and stores any of the selected.
         for pair in self.pair.iter().flatten() {
-            w.any_element("$.pair", "value = ?", [Value::from(pair.clone())]);
+            w.any_element("pair", "value = ?", [Value::from(pair.clone())]);
         }
 
         // Availability.
         if let Some(store) = self.store_vinmonopolet.as_ref().filter(|s| !s.is_empty()) {
             if self.storelike.is_none() && !taxfree {
                 let test = format!("value IN ({})", placeholders(store.len()));
-                w.any_element("$.stores", &test, texts(store));
+                w.any_element("stores", &test, texts(store));
             }
         } else if let Some(store) = self.store_taxfree.as_ref().filter(|s| !s.is_empty()) {
             if taxfree {
                 let test = format!("value IN ({})", placeholders(store.len()));
-                w.any_element("$.taxfree.stores", &test, texts(store));
+                w.any_element("tax_stores", &test, texts(store));
             }
         } else if self.storelike.is_none() && !favourites && !taxfree {
             w.add("orderable = 1", []);
@@ -402,7 +399,7 @@ mod tests {
         let mut params = empty_params();
         params.pair = Some(vec!["Fisk".to_string(), "Skalldyr".to_string()]);
         let sql = params.to_sql(&Subdomain::Vinmonopolet, &None, true);
-        assert_eq!(sql.filter.matches("json_each(doc, '$.pair')").count(), 2);
+        assert_eq!(sql.filter.matches("json_each(pair)").count(), 2);
 
         params.pair = Some(vec![]);
         params.country = Some(vec![]);

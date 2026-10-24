@@ -159,7 +159,9 @@ mod tests {
         )
         .unwrap();
         conn.execute(
-            "INSERT INTO metadata VALUES ('stock', '{\"prices\":{\"vinmonopolet\":true,\"taxfree\":false}}')",
+            "INSERT INTO metadata VALUES ('stock', json_object('prices', json_object(
+                'vinmonopolet', strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
+                'taxfree', '2000-01-01T00:00:00.000Z')))",
             [],
         )
         .unwrap();

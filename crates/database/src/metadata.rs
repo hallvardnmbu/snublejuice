@@ -18,10 +18,13 @@ pub async fn increment_visitor(db: &Database, month: &str, subdomain: &str, fres
     .await;
 }
 
+/// Whether this month's price update has finished: `prices.<subdomain>` is the (ISO) time snublecron
+/// finished it, and any time within the current month counts. Until then the site shows a notice
+/// and lists products regardless of whether they have been updated yet.
 pub(crate) fn prices_updated(conn: &Connection, subdomain: &str) -> rusqlite::Result<bool> {
     Ok(conn
         .query_row(
-            "SELECT json_extract(doc, ?1) FROM metadata WHERE id = 'stock'",
+            "SELECT json_extract(doc, ?1) >= strftime('%Y-%m', 'now') FROM metadata WHERE id = 'stock'",
             [format!("$.prices.{subdomain}")],
             |row| row.get::<_, Option<bool>>(0),
         )

@@ -1,57 +1,61 @@
-use mongodb::{
-    Collection, Database,
-    bson::{Document, doc, from_bson},
-    options::UpdateOptions,
-};
+use rusqlite::{Connection, OptionalExtension, params};
+use shared::state::Database;
+
+use crate::connect;
 
 pub async fn increment_visitor(db: &Database, month: &str, subdomain: &str, fresh: bool) {
-    let collection: Collection<Document> = db.collection("metadata");
-    let current = if fresh { "fresh" } else { "newpage" };
-    let _ = collection
-        .update_one(
-            doc! { "id": "visitors" },
-            doc! {
-                "$inc": {
-                    format!("{}.total", current): 1,
-                    format!("{}.month.{}.{}", current, month, subdomain): 1,
-                }
-            },
+    let column = if fresh { "fresh" } else { "newpage" };
+    let (month, subdomain) = (month.to_string(), subdomain.to_string());
+    let _ = connect::app(db, move |conn| {
+        conn.execute(
+            &format!(
+                "INSERT INTO visitors (month, subdomain, {column}) VALUES (?1, ?2, 1)
+                 ON CONFLICT (month, subdomain) DO UPDATE SET {column} = {column} + 1"
+            ),
+            params![month, subdomain],
         )
-        .with_options(UpdateOptions::builder().upsert(true).build())
-        .await;
+    })
+    .await;
+}
+
+/// Whether this month's price update has finished: `prices.<subdomain>` is the (ISO) time snublecron
+/// finished it, and any time within the current month counts. Until then the site shows a notice
+/// and lists products regardless of whether they have been updated yet.
+pub(crate) fn prices_updated(conn: &Connection, subdomain: &str) -> rusqlite::Result<bool> {
+    Ok(conn
+        .query_row(
+            "SELECT json_extract(doc, ?1) >= strftime('%Y-%m', 'now') FROM metadata WHERE id = 'stock'",
+            [format!("$.prices.{subdomain}")],
+            |row| row.get::<_, Option<bool>>(0),
+        )
+        .optional()?
+        .flatten()
+        .unwrap_or(false))
 }
 
 pub async fn get_prices_updated(db: &Database, subdomain: &str) -> bool {
-    let collection: Collection<Document> = db.collection("metadata");
-    let Ok(Some(doc)) = collection.find_one(doc! { "id": "stock" }).await else {
-        return false;
-    };
-    doc.get_document("prices")
-        .ok()
-        .and_then(|prices| prices.get_bool(subdomain).ok())
+    let subdomain = subdomain.to_string();
+    connect::products(db, move |conn| prices_updated(conn, &subdomain))
+        .await
         .unwrap_or(false)
 }
 
-pub async fn get_distinct(db: &Database, field: &str, is_taxfree: bool) -> Vec<String> {
-    let collection: Collection<Document> = db.collection("products");
+pub(crate) fn distinct(
+    conn: &Connection,
+    field: &str,
+    taxfree: bool,
+) -> rusqlite::Result<Vec<String>> {
+    conn.prepare("SELECT value FROM facets WHERE taxfree = ?1 AND field = ?2 ORDER BY value")?
+        .query_map(params![taxfree, field], |row| row.get(0))?
+        .collect()
+}
 
-    let mut filter = doc! { field: { "$exists": true } };
-    if is_taxfree {
-        filter.insert("taxfree", doc! { "$exists": true, "$ne": null });
-    }
-
-    match collection.distinct(field, filter).await {
-        Ok(cursor) => cursor
-            .into_iter()
-            .map(|bson| from_bson::<String>(bson))
-            .collect::<Result<Vec<String>, _>>()
-            .unwrap_or_else(|e| {
-                eprintln!("Deserialization error: {:?}", e);
-                vec![]
-            }),
-        Err(error) => {
-            println!("No results found: {:?}", error);
+/// The dropdown values (`stores`, `country` or `pair`) that snublecron collected when publishing.
+pub async fn get_distinct(db: &Database, field: &'static str, is_taxfree: bool) -> Vec<String> {
+    connect::products(db, move |conn| distinct(conn, field, is_taxfree))
+        .await
+        .unwrap_or_else(|error| {
+            eprintln!("No results found: {error:?}");
             vec![]
-        }
-    }
+        })
 }

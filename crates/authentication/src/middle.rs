@@ -4,14 +4,13 @@ use axum::{
 };
 use axum_extra::extract::cookie::CookieJar;
 use bcrypt::{DEFAULT_COST, hash, verify};
-use mongodb::{Database, bson::oid::ObjectId};
 use tokio::spawn;
 
 use database::users;
-use shared::{errors::AppError, models::User};
+use shared::{errors::AppError, models::User, state::Database};
 
 pub struct Authenticate {
-    pub id: ObjectId,
+    pub id: i64,
     pub session_id: String,
     pub user: User,
 }
@@ -37,11 +36,11 @@ where
             .ok_or(AppError::Unauthorized)?;
 
         // Check the session cookie validity.
-        let session = users::get_user_by_session_id(&db, &session_id)
+        let user_id = users::get_user_by_session_id(&db, &session_id)
             .await
             .map_err(|_| AppError::Unauthorized)?;
 
-        let user = users::get_user_by_id(&db, &session.user_id)
+        let user = users::get_user_by_id(&db, &user_id)
             .await
             .ok_or(AppError::Unauthorized)?;
 
@@ -53,7 +52,7 @@ where
         });
 
         Ok(Authenticate {
-            id: session.user_id,
+            id: user_id,
             session_id,
             user,
         })

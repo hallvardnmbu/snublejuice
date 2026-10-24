@@ -1,26 +1,23 @@
-use mongodb::bson::{Bson, DateTime, oid::ObjectId};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 pub const PRODUCTS_PER_PAGE: i64 = 15;
 pub const ONE_MONTH: u64 = 60 * 60 * 24 * 30;
 
+pub fn unix_now() -> i64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_or(0, |elapsed| elapsed.as_secs() as i64)
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
-    #[serde(rename = "_id")]
-    pub user_id: ObjectId,
+    pub user_id: i64,
     pub username: String,
     pub password: String,
     pub email: String,
     pub favourites: Vec<i64>,
     pub notify: bool,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Session {
-    pub user_id: ObjectId,
-    pub session_id: String,
-    #[serde(rename = "expiresAfter")]
-    pub expires_after: DateTime,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -112,9 +109,9 @@ fn deserialize_text<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
 where
     D: serde::Deserializer<'de>,
 {
-    let text = match Option::<Bson>::deserialize(deserializer)? {
-        Some(Bson::String(s)) => s,
-        Some(Bson::Array(items)) => items
+    let text = match Option::<Value>::deserialize(deserializer)? {
+        Some(Value::String(s)) => s,
+        Some(Value::Array(items)) => items
             .iter()
             .filter_map(|item| item.as_str())
             .collect::<Vec<_>>()

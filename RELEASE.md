@@ -121,7 +121,8 @@ Environment=ENVIRONMENT=production
 Environment=COOKIE_DOMAIN=.snublejuice.no
 Environment=PORT=3000
 
-Environment=MONGODB=...
+Environment=PRODUCTS_DB=/home/snuble/products.db
+Environment=APP_DB=/home/snuble/app.db
 Environment=IMAGE_DIR=...
 
 ExecStart=/home/snuble/snublejuice
@@ -131,6 +132,8 @@ RestartSec=3
 [Install]
 WantedBy=multi-user.target
 ```
+
+`products.db` is delivered by snublecron (scp + atomic `mv`) and is only read here. `app.db` (users, sessions, visitors) is created on first start. snublecron reads and backs it up with `sqlite3` over ssh as `snuble`, so install `sqlite3` and make sure that user can access `app.db` (e.g. run the service as `snuble`; it is a WAL database, so the directory must be writable for readers too).
 
 ```bash
 sudo systemctl daemon-reload
@@ -144,3 +147,9 @@ sudo systemctl status snublejuice
 ```bash
 sudo certbot renew --dry-run
 ```
+
+### Migrating from MongoDB
+
+1. snublecron: `bun run utilities/migrate.mjs <date of a backup in backups/backup>`, then `bun run utilities/publish.mjs`. This writes `app.sql` (users, visitor counts).
+2. Server: set `PRODUCTS_DB` and `APP_DB`, deploy this version and start it once (creates `app.db`).
+3. `sqlite3 ~/app.db < app.sql`. Everyone has to log in again (sessions are not migrated).

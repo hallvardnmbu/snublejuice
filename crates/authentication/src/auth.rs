@@ -1,7 +1,5 @@
 use axum::{Json, extract::State};
 use axum_extra::extract::cookie::{Cookie, CookieJar, SameSite};
-use mongodb::bson::DateTime;
-use std::time::{Duration, SystemTime};
 use time::Duration as TimeDuration;
 use uuid::Uuid;
 
@@ -9,7 +7,7 @@ use crate::middle;
 use database::users;
 use shared::{
     errors::AppError,
-    models::{ONE_MONTH, Session, User},
+    models::{ONE_MONTH, User},
     query::{LoginRequest, SignupRequest},
     state::AppState,
 };
@@ -32,14 +30,7 @@ pub async fn login(
 
     let session_id = Uuid::new_v4().to_string();
 
-    let expires_after =
-        DateTime::from_system_time(SystemTime::now() + Duration::from_secs(ONE_MONTH));
-    let session = Session {
-        user_id: user.user_id,
-        session_id: session_id.clone(),
-        expires_after,
-    };
-    users::store_session(&state.db, session).await?;
+    users::store_session(&state.db, user.user_id, &session_id).await?;
 
     let domain =
         std::env::var("COOKIE_DOMAIN").unwrap_or_else(|_| "snublejuice.localhost".to_string());
@@ -73,28 +64,17 @@ pub async fn signup(
     let hashed_password =
         middle::hash_password(&payload.password).map_err(|_| AppError::InternalServerError)?;
 
-    let user_id = mongodb::bson::oid::ObjectId::new();
-
-    let new_user = User {
-        user_id,
-        username: payload.username.clone(),
-        password: hashed_password,
-        email: payload.email.clone(),
-        favourites: vec![],
-        notify: payload.notify,
-    };
-
-    users::create_user(&state.db, &new_user).await?;
+    let user_id = users::create_user(
+        &state.db,
+        &payload.username,
+        &hashed_password,
+        &payload.email,
+        payload.notify,
+    )
+    .await?;
 
     let session_id = Uuid::new_v4().to_string();
-    let expires_after =
-        DateTime::from_system_time(SystemTime::now() + Duration::from_secs(ONE_MONTH));
-    let session = Session {
-        user_id,
-        session_id: session_id.clone(),
-        expires_after,
-    };
-    users::store_session(&state.db, session).await?;
+    users::store_session(&state.db, user_id, &session_id).await?;
 
     let domain =
         std::env::var("COOKIE_DOMAIN").unwrap_or_else(|_| "snublejuice.localhost".to_string());

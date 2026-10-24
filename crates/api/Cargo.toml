@@ -15,5 +15,4 @@ axum = { workspace = true }
 axum-extra = { workspace = true }
 tower = "0.5.3"
 tower-http = { workspace = true, features = ["fs"] }
-mongodb = { workspace = true }
 regex = { workspace = true }

@@ -1,8 +1,7 @@
-use mongodb::bson::{Bson, Document, doc};
-use regex;
+use rusqlite::types::Value;
 use serde::{Deserialize, Serialize};
 
-use crate::models::{PRODUCTS_PER_PAGE, User};
+use crate::models::User;
 use crate::subdomain::Subdomain;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -30,6 +29,56 @@ pub struct Parameters {
     pub store_taxfree: Option<Vec<String>>,
 }
 
+/// A product query. Everything user-controlled is bound; the SQL text itself only ever contains
+/// fixed column names. Columns (`price`, `tax_discount`, ...) are generated from the `doc` JSON
+/// in snublecron's schema, and `products_fts` indexes the name.
+#[derive(Clone)]
+pub struct Sql {
+    pub from: &'static str,
+    pub filter: String,
+    pub order: String,
+    pub params: Vec<Value>,
+}
+
+#[derive(Default)]
+struct Where {
+    conditions: Vec<String>,
+    params: Vec<Value>,
+}
+
+impl Where {
+    fn add(&mut self, condition: &str, params: impl IntoIterator<Item = Value>) {
+        self.conditions.push(condition.to_string());
+        self.params.extend(params);
+    }
+
+    /// `EXISTS` over a JSON array in `doc` where an element satisfies `test`.
+    fn any_element(&mut self, path: &str, test: &str, params: impl IntoIterator<Item = Value>) {
+        self.add(
+            &format!("EXISTS (SELECT 1 FROM json_each(doc, '{path}') WHERE {test})"),
+            params,
+        );
+    }
+}
+
+fn placeholders(n: usize) -> String {
+    vec!["?"; n].join(",")
+}
+
+fn texts(values: &[String]) -> impl Iterator<Item = Value> {
+    values.iter().cloned().map(Value::from)
+}
+
+/// Every word becomes a prefix match, so "ries" finds "Riesling".
+fn fts_query(search: &str) -> String {
+    search
+        .split(|c: char| !c.is_alphanumeric())
+        .filter(|word| !word.is_empty())
+        .map(|word| format!("\"{word}\"*"))
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
 impl Parameters {
     pub fn is_empty(&self) -> bool {
         self.page.is_none()
@@ -53,217 +102,168 @@ impl Parameters {
             && self.store_taxfree.is_none()
     }
 
-    fn get_sort_by(&self, subdomain: &Subdomain) -> String {
-        if let Some(sort) = &self.sort {
-            if subdomain.is_taxfree() && sort != "alcohol" {
-                format!("taxfree.{}", sort)
-            } else if sort == "rating" {
-                "aperitif.points".to_string()
-            } else {
-                sort.clone()
-            }
-        } else if subdomain.is_taxfree() {
-            "taxfree.discount".to_string()
-        } else {
-            "discount".to_string()
+    fn sort_column(&self, taxfree: bool) -> &'static str {
+        match (self.sort.as_deref(), taxfree) {
+            (Some("rating"), _) => "rating",
+            (Some("alcohol"), _) => "alcohol",
+            (Some("price"), false) => "price",
+            (Some("price"), true) => "tax_price",
+            (Some("literprice"), false) => "literprice",
+            (Some("literprice"), true) => "tax_literprice",
+            (Some("alcoholprice"), false) => "alcoholprice",
+            (Some("alcoholprice"), true) => "tax_alcoholprice",
+            (_, false) => "discount",
+            (_, true) => "tax_discount",
         }
     }
 
-    pub fn to_filter(
-        &self,
-        subdomain: &Subdomain,
-        user: &Option<User>,
-        prices_updated: bool,
-    ) -> Document {
-        let mut filter = doc! {};
+    pub fn to_sql(&self, subdomain: &Subdomain, user: &Option<User>, prices_updated: bool) -> Sql {
+        let mut w = Where::default();
 
         let favourites: bool = self.favourites.unwrap_or(false);
         let taxfree: bool = subdomain.is_taxfree();
 
+        let (from, search_order) = match &self.search {
+            Some(search) => {
+                let query = fts_query(search);
+                if query.is_empty() {
+                    w.add("0", []);
+                } else {
+                    w.add("products_fts MATCH ?", [Value::from(query)]);
+                }
+                (
+                    "products_fts f JOIN products p ON p.id = f.rowid",
+                    Some("f.rank"),
+                )
+            }
+            None => ("products p", None),
+        };
+
         if taxfree {
-            filter.insert(
-                "taxfree.stores",
-                doc! { "$exists": true, "$ne": Bson::Null },
+            w.add(
+                "json_type(doc, '$.taxfree.stores') = 'array' AND tax_valid = 1",
+                [],
             );
-            filter.insert("taxfree.valid", doc! { "$exists": true, "$eq": true });
         } else if prices_updated {
             // Only fully-updated products when the monthly update is complete.
-            filter.insert("updated", true);
+            w.add("updated = 1", []);
         }
 
         // Must have a price.
-        filter.insert("price", doc! { "$gt": 0.0 });
+        w.add("price > 0", []);
 
         if let Some(storelike) = &self.storelike {
             if !favourites && !taxfree {
                 let pattern = format!(
-                    r"(^|[^a-zæøåA-ZÆØÅ]){}([^a-zæøåA-ZÆØÅ]|$)",
+                    r"(?i)(^|[^a-zæøåA-ZÆØÅ]){}([^a-zæøåA-ZÆØÅ]|$)",
                     regex::escape(storelike)
                 );
-                filter.insert("stores", doc! { "$regex": pattern, "$options": "i" });
+                w.any_element("$.stores", "value REGEXP ?", [Value::from(pattern)]);
             }
         }
 
         if favourites && let Some(user) = user {
-            filter.insert("index", doc! { "$in": user.favourites.clone() });
+            w.add(
+                "id IN (SELECT value FROM json_each(?))",
+                [Value::from(serde_json::json!(user.favourites).to_string())],
+            );
         }
 
+        let sort_by = self.sort_column(taxfree);
+        let direction = if self.ascending == Some(false) {
+            "DESC"
+        } else {
+            "ASC"
+        };
+        let order = match search_order {
+            Some(order) => order.to_string(),
+            None => format!("{sort_by} {direction}, p.id"),
+        };
+        let done = |w: Where| Sql {
+            from,
+            filter: w.conditions.join(" AND "),
+            order,
+            params: w.params,
+        };
+
         // Early return for searches.
-        if let Some(_) = &self.search {
-            return filter;
+        if self.search.is_some() {
+            return done(w);
         }
 
         if let Some(category) = &self.category {
             if let Some(name) = category_name(category) {
-                filter.insert("category", name);
+                w.add("category = ?", [Value::from(name.to_string())]);
             }
         }
 
         if let Some(country) = self.country.as_ref().filter(|c| !c.is_empty()) {
-            filter.insert("country", doc! { "$in": country });
+            w.add(
+                &format!("country IN ({})", placeholders(country.len())),
+                texts(country),
+            );
         }
 
         // Pair must match every selected dish; country and stores any of the selected.
-        if let Some(pair) = self.pair.as_ref().filter(|p| !p.is_empty()) {
-            filter.insert("pair", doc! { "$all": pair });
+        for pair in self.pair.iter().flatten() {
+            w.any_element("$.pair", "value = ?", [Value::from(pair.clone())]);
         }
 
         // Availability.
         if let Some(store) = self.store_vinmonopolet.as_ref().filter(|s| !s.is_empty()) {
             if self.storelike.is_none() && !taxfree {
-                filter.insert("stores", doc! { "$in": store });
+                let test = format!("value IN ({})", placeholders(store.len()));
+                w.any_element("$.stores", &test, texts(store));
             }
         } else if let Some(store) = self.store_taxfree.as_ref().filter(|s| !s.is_empty()) {
             if taxfree {
-                filter.insert("taxfree.stores", doc! { "$in": store });
+                let test = format!("value IN ({})", placeholders(store.len()));
+                w.any_element("$.taxfree.stores", &test, texts(store));
             }
         } else if self.storelike.is_none() && !favourites && !taxfree {
-            filter.insert("orderable", true);
+            w.add("orderable = 1", []);
         }
 
         // Numeric filters
         if let Some(limit) = self.price {
-            filter.insert(
-                "price",
-                if self.cprice == Some(true) {
-                    doc! { "$eq": limit }
-                } else {
-                    doc! { "$lte": limit, "$gt": 0.0 }
-                },
-            );
+            let op = if self.cprice == Some(true) { "=" } else { "<=" };
+            w.add(&format!("price {op} ?"), [Value::from(limit)]);
         }
 
         if let Some(limit) = self.volume {
-            filter.insert(
-                "volume",
-                if self.cvolume == Some(true) {
-                    doc! { "$eq": limit }
-                } else {
-                    doc! { "$gte": limit }
-                },
-            );
+            let op = if self.cvolume == Some(true) {
+                "="
+            } else {
+                ">="
+            };
+            w.add(&format!("volume {op} ?"), [Value::from(limit)]);
         }
 
+        // Always exclude non-alcoholic.
+        w.add("alcohol > 0", []);
         if let Some(limit) = self.alcohol {
-            filter.insert(
-                "alcohol",
-                if self.calcohol == Some(true) {
-                    doc! { "$eq": limit, "$exists": true, "$ne": Bson::Null, "$gt": 0 }
-                } else {
-                    doc! { "$gte": limit, "$exists": true, "$ne": Bson::Null, "$gt": 0 }
-                },
-            );
-        } else {
-            // No alcohol filter; still exclude non-alcoholic.
-            filter.insert(
-                "alcohol",
-                doc! { "$exists": true, "$ne": Bson::Null, "$gt": 0 },
-            );
+            let op = if self.calcohol == Some(true) {
+                "="
+            } else {
+                ">="
+            };
+            w.add(&format!("alcohol {op} ?"), [Value::from(limit)]);
         }
 
         if let Some(limit) = self.year {
-            filter.insert(
-                "year",
-                if self.cyear == Some(true) {
-                    doc! { "$eq": limit }
-                } else {
-                    doc! { "$lte": limit }
-                },
-            );
+            let op = if self.cyear == Some(true) { "=" } else { "<=" };
+            w.add(&format!("year {op} ?"), [Value::from(limit)]);
         }
 
-        // Sort field must exist and be non-null (skip if already constrained above).
-        let sort_by = self.get_sort_by(subdomain);
-        if !filter.contains_key(&sort_by) {
-            let is_discount = sort_by == "discount" || sort_by == "taxfree.discount";
-            filter.insert(sort_by, doc! { "$exists": true, "$ne": Bson::Null, "$gt": if is_discount {-100.0} else {0.0}  });
-        }
+        // Sort field must exist (and be positive, except for discounts).
+        let min = if sort_by.ends_with("discount") {
+            -100
+        } else {
+            0
+        };
+        w.add(&format!("{sort_by} > {min}"), []);
 
-        filter
-    }
-
-    pub fn to_options(&self, subdomain: &Subdomain) -> Vec<Document> {
-        let mut options = Vec::new();
-
-        let sort_by = self.get_sort_by(subdomain);
-        let direction = if self.ascending == Some(false) { -1 } else { 1 };
-        options.push(doc! { "$sort": { sort_by: direction } });
-        options.push(doc! { "$skip": ((self.page.unwrap_or(1) - 1) * PRODUCTS_PER_PAGE) });
-        options.push(doc! { "$limit": PRODUCTS_PER_PAGE });
-
-        options
-    }
-
-    pub fn to_pipeline(
-        &self,
-        subdomain: &Subdomain,
-        user: &Option<User>,
-        prices_updated: bool,
-    ) -> Vec<Document> {
-        let mut pipeline: Vec<Document> = Vec::new();
-
-        if let Some(search) = &self.search {
-            pipeline.push(doc! {
-                "$search": {
-                    "index": "name",
-                    "compound": {
-                        "should": [
-                            {
-                                "text": {
-                                    "query": search,
-                                    "path": "name",
-                                    "score": { "boost": { "value": 10 } },
-                                },
-                            },
-                            {
-                                "text": {
-                                    "query": search,
-                                    "path": "name",
-                                    "fuzzy": {
-                                        "maxEdits": 2, // Max single-character edits
-                                        "prefixLength": 1, // Exact beginning of word matches
-                                        "maxExpansions": 1, // Max variations
-                                    },
-                                },
-                            },
-                        ],
-                    },
-                },
-            });
-
-            pipeline.push(doc! { "$match": self.to_filter(subdomain, user, prices_updated) });
-
-            pipeline.push(doc! { "$skip": ((self.page.unwrap_or(1) - 1) * PRODUCTS_PER_PAGE) });
-            pipeline.push(doc! { "$limit": PRODUCTS_PER_PAGE });
-
-            return pipeline;
-        }
-
-        pipeline.push(doc! { "$match": self.to_filter(subdomain, user, prices_updated) });
-
-        pipeline.extend(self.to_options(subdomain));
-
-        pipeline
+        done(w)
     }
 }
 
@@ -311,7 +311,10 @@ pub struct SignupRequest {
 mod tests {
     use super::*;
     use crate::models::User;
-    use mongodb::bson::oid::ObjectId;
+
+    fn text(value: &str) -> Value {
+        Value::from(value.to_string())
+    }
 
     fn empty_params() -> Parameters {
         Parameters {
@@ -339,7 +342,7 @@ mod tests {
 
     fn test_user(favourites: Vec<i64>) -> User {
         User {
-            user_id: ObjectId::new(),
+            user_id: 1,
             username: "test".to_string(),
             password: "hash".to_string(),
             email: "test@example.com".to_string(),
@@ -357,141 +360,115 @@ mod tests {
     }
 
     #[test]
-    fn to_filter_includes_base_vinmonopolet_constraints() {
-        let filter = empty_params().to_filter(&Subdomain::Vinmonopolet, &None, true);
-        assert_eq!(filter.get_bool("updated"), Ok(true));
-        assert_eq!(
-            filter.get_document("price").unwrap().get_f64("$gt"),
-            Ok(0.0)
-        );
-        assert_eq!(filter.get_bool("orderable"), Ok(true));
+    fn includes_base_vinmonopolet_constraints() {
+        let sql = empty_params().to_sql(&Subdomain::Vinmonopolet, &None, true);
+        assert!(sql.filter.contains("updated = 1"));
+        assert!(sql.filter.contains("price > 0"));
+        assert!(sql.filter.contains("orderable = 1"));
+        assert!(sql.filter.contains("discount > -100"));
+        assert_eq!(sql.order, "discount ASC, p.id");
+        assert!(sql.params.is_empty());
+
+        let sql = empty_params().to_sql(&Subdomain::Vinmonopolet, &None, false);
+        assert!(!sql.filter.contains("updated = 1"));
     }
 
     #[test]
-    fn to_filter_includes_taxfree_constraints() {
-        let filter = empty_params().to_filter(&Subdomain::Taxfree, &None, true);
-        assert!(filter.contains_key("taxfree.stores"));
-        assert_eq!(
-            filter
-                .get_document("taxfree.valid")
-                .unwrap()
-                .get_bool("$eq"),
-            Ok(true)
-        );
-        assert!(!filter.contains_key("updated"));
+    fn includes_taxfree_constraints() {
+        let sql = empty_params().to_sql(&Subdomain::Taxfree, &None, true);
+        assert!(sql.filter.contains("tax_valid = 1"));
+        assert!(sql.filter.contains("tax_discount > -100"));
+        assert!(!sql.filter.contains("updated"));
+        assert!(!sql.filter.contains("orderable"));
+        assert_eq!(sql.order, "tax_discount ASC, p.id");
     }
 
     #[test]
-    fn to_filter_maps_category_slug_and_country() {
+    fn maps_category_slug_and_country() {
         let mut params = empty_params();
         params.category = Some("rødvin".to_string());
-        params.country = Some(vec!["Frankrike".to_string()]);
-        let filter = params.to_filter(&Subdomain::Vinmonopolet, &None, true);
-        assert_eq!(filter.get_str("category"), Ok("Rødvin"));
+        params.country = Some(vec!["Frankrike".to_string(), "Italia".to_string()]);
+        let sql = params.to_sql(&Subdomain::Vinmonopolet, &None, true);
+        assert!(sql.filter.contains("category = ?"));
+        assert!(sql.filter.contains("country IN (?,?)"));
         assert_eq!(
-            filter
-                .get_document("country")
-                .unwrap()
-                .get_array("$in")
-                .unwrap(),
-            &vec![Bson::String("Frankrike".into())]
+            sql.params,
+            vec![text("Rødvin"), text("Frankrike"), text("Italia")]
         );
     }
 
     #[test]
-    fn to_filter_requires_all_selected_pairings() {
+    fn requires_all_selected_pairings() {
         let mut params = empty_params();
         params.pair = Some(vec!["Fisk".to_string(), "Skalldyr".to_string()]);
-        let filter = params.to_filter(&Subdomain::Vinmonopolet, &None, true);
-        assert_eq!(
-            filter
-                .get_document("pair")
-                .unwrap()
-                .get_array("$all")
-                .unwrap(),
-            &vec![Bson::String("Fisk".into()), Bson::String("Skalldyr".into())]
-        );
+        let sql = params.to_sql(&Subdomain::Vinmonopolet, &None, true);
+        assert_eq!(sql.filter.matches("json_each(doc, '$.pair')").count(), 2);
 
         params.pair = Some(vec![]);
         params.country = Some(vec![]);
         params.store_vinmonopolet = Some(vec![]);
-        let filter = params.to_filter(&Subdomain::Vinmonopolet, &None, true);
-        assert!(!filter.contains_key("pair"));
-        assert!(!filter.contains_key("country"));
-        assert!(!filter.contains_key("stores"));
-        assert_eq!(filter.get_bool("orderable"), Ok(true));
+        let sql = params.to_sql(&Subdomain::Vinmonopolet, &None, true);
+        assert!(!sql.filter.contains("pair"));
+        assert!(!sql.filter.contains("country"));
+        assert!(!sql.filter.contains("stores"));
+        assert!(sql.filter.contains("orderable = 1"));
     }
 
     #[test]
-    fn to_filter_search_returns_early_without_category_filters() {
+    fn search_skips_category_filters_and_orders_by_rank() {
         let mut params = empty_params();
-        params.search = Some("cabernet".to_string());
+        params.search = Some("Cabernet  sauv".to_string());
         params.category = Some("rødvin".to_string());
-        let filter = params.to_filter(&Subdomain::Vinmonopolet, &None, true);
-        assert!(!filter.contains_key("category"));
+        let sql = params.to_sql(&Subdomain::Vinmonopolet, &None, true);
+        assert!(sql.filter.starts_with("products_fts MATCH ?"));
+        assert!(!sql.filter.contains("category"));
+        assert_eq!(sql.order, "f.rank");
+        assert_eq!(sql.params, vec![text("\"Cabernet\"* \"sauv\"*")]);
     }
 
     #[test]
-    fn to_filter_favourites_restricts_to_user_indices() {
+    fn search_without_words_matches_nothing() {
+        let mut params = empty_params();
+        params.search = Some(" \" - ".to_string());
+        let sql = params.to_sql(&Subdomain::Vinmonopolet, &None, true);
+        assert!(sql.filter.starts_with("0 AND"));
+        assert!(sql.params.is_empty());
+    }
+
+    #[test]
+    fn favourites_restrict_to_user_indices() {
         let mut params = empty_params();
         params.favourites = Some(true);
-        let user = test_user(vec![1, 2, 3]);
-        let filter = params.to_filter(&Subdomain::Vinmonopolet, &Some(user), true);
-        assert_eq!(
-            filter
-                .get_document("index")
-                .unwrap()
-                .get_array("$in")
-                .unwrap(),
-            &vec![Bson::Int64(1), Bson::Int64(2), Bson::Int64(3)]
+        let sql = params.to_sql(
+            &Subdomain::Vinmonopolet,
+            &Some(test_user(vec![1, 2, 3])),
+            true,
         );
-    }
-
-    #[test]
-    fn to_options_sorts_and_paginates() {
-        let mut params = empty_params();
-        params.page = Some(3);
-        params.ascending = Some(false);
-        let options = params.to_options(&Subdomain::Vinmonopolet);
-        assert_eq!(
-            options[0]
-                .get_document("$sort")
-                .unwrap()
-                .get_i32("discount"),
-            Ok(-1)
-        );
-        assert_eq!(options[1].get_i64("$skip"), Ok(30));
-        assert_eq!(options[2].get_i64("$limit"), Ok(PRODUCTS_PER_PAGE));
-    }
-
-    #[test]
-    fn to_options_taxfree_defaults_to_taxfree_discount() {
-        let options = empty_params().to_options(&Subdomain::Taxfree);
         assert!(
-            options[0]
-                .get_document("$sort")
-                .unwrap()
-                .contains_key("taxfree.discount")
+            sql.filter
+                .contains("id IN (SELECT value FROM json_each(?))")
         );
+        assert_eq!(sql.params, vec![text("[1,2,3]")]);
+        assert!(!sql.filter.contains("orderable"));
     }
 
     #[test]
-    fn to_pipeline_with_search_includes_search_stage() {
+    fn sort_is_whitelisted_and_directional() {
         let mut params = empty_params();
-        params.search = Some("riesling".to_string());
-        let pipeline = params.to_pipeline(&Subdomain::Vinmonopolet, &None, true);
-        assert!(pipeline[0].contains_key("$search"));
-        assert!(pipeline[1].contains_key("$match"));
-        assert!(!pipeline.iter().any(|stage| stage.contains_key("$sort")));
-    }
+        params.sort = Some("price; DROP TABLE products".to_string());
+        params.ascending = Some(false);
+        let sql = params.to_sql(&Subdomain::Vinmonopolet, &None, true);
+        assert_eq!(sql.order, "discount DESC, p.id");
 
-    #[test]
-    fn to_pipeline_without_search_uses_match_sort_skip_and_limit() {
-        let pipeline = empty_params().to_pipeline(&Subdomain::Vinmonopolet, &None, true);
-        assert_eq!(pipeline.len(), 4);
-        assert!(pipeline[0].contains_key("$match"));
-        assert!(pipeline[1].contains_key("$sort"));
-        assert!(pipeline[2].contains_key("$skip"));
-        assert!(pipeline[3].contains_key("$limit"));
+        params.sort = Some("literprice".to_string());
+        assert_eq!(
+            params.to_sql(&Subdomain::Taxfree, &None, true).order,
+            "tax_literprice DESC, p.id"
+        );
+        params.sort = Some("alcohol".to_string());
+        assert_eq!(
+            params.to_sql(&Subdomain::Taxfree, &None, true).order,
+            "alcohol DESC, p.id"
+        );
     }
 }

@@ -329,16 +329,9 @@ pub async fn fetch_products(
 
     let prices_updated = database::metadata::get_prices_updated(&state.db, subdomain.name()).await;
     let page = parameters.page.unwrap_or(1);
-    let products = database::products::get_products(
-        &state.db,
-        parameters.to_pipeline(&subdomain, &user, prices_updated),
-    )
-    .await;
-    let max_page = database::products::get_max_page(
-        &state.db,
-        parameters.to_filter(&subdomain, &user, prices_updated),
-    )
-    .await;
+    let sql = parameters.to_sql(&subdomain, &user, prices_updated);
+    let products = database::products::get_products(&state.db, &sql, page).await;
+    let max_page = database::products::get_max_page(&state.db, &sql).await;
     let favourites = parameters.favourites.unwrap_or(false);
     let html = render_product_results(
         &products,

@@ -5,9 +5,8 @@ edition = "2024"
 
 [dependencies]
 axum = { workspace = true }
-bson = { workspace = true }
 chrono = { workspace = true }
-mongodb = { workspace = true }
+rusqlite = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 serde_with = "3.18.0"

@@ -62,30 +62,36 @@ mod tests {
     const SCHEMA: &str = "
         CREATE TABLE products (
             id INTEGER PRIMARY KEY,
-            doc TEXT NOT NULL,
-            name TEXT AS (doc ->> '$.name'),
-            price REAL AS (doc ->> '$.price'),
-            discount REAL AS (doc ->> '$.discount'),
-            literprice REAL AS (doc ->> '$.literprice'),
-            alcoholprice REAL AS (doc ->> '$.alcoholprice'),
-            volume REAL AS (doc ->> '$.volume'),
-            alcohol REAL AS (doc ->> '$.alcohol'),
-            year INTEGER AS (doc ->> '$.year'),
-            category TEXT AS (doc ->> '$.category'),
-            country TEXT AS (doc ->> '$.country'),
-            orderable INTEGER AS (doc ->> '$.orderable'),
-            updated INTEGER AS (doc ->> '$.updated'),
-            rating INTEGER AS (doc ->> '$.aperitif.points'),
-            tax_valid INTEGER AS (doc ->> '$.taxfree.valid'),
-            tax_price REAL AS (doc ->> '$.taxfree.price'),
-            tax_discount REAL AS (doc ->> '$.taxfree.discount'),
-            tax_literprice REAL AS (doc ->> '$.taxfree.literprice'),
-            tax_alcoholprice REAL AS (doc ->> '$.taxfree.alcoholprice')
+            name TEXT AS (doc ->> '$.name') STORED,
+            price REAL AS (doc ->> '$.price') STORED,
+            discount REAL AS (doc ->> '$.discount') STORED,
+            literprice REAL AS (doc ->> '$.literprice') STORED,
+            alcoholprice REAL AS (doc ->> '$.alcoholprice') STORED,
+            volume REAL AS (doc ->> '$.volume') STORED,
+            alcohol REAL AS (doc ->> '$.alcohol') STORED,
+            year INTEGER AS (doc ->> '$.year') STORED,
+            category TEXT AS (doc ->> '$.category') STORED,
+            country TEXT AS (doc ->> '$.country') STORED,
+            orderable INTEGER AS (doc ->> '$.orderable') STORED,
+            updated INTEGER AS (doc ->> '$.updated') STORED,
+            rating INTEGER AS (doc ->> '$.aperitif.points') STORED,
+            stores TEXT AS (doc -> '$.stores') STORED,
+            pair TEXT AS (doc -> '$.pair') STORED,
+            tax_valid INTEGER AS (doc ->> '$.taxfree.valid') STORED,
+            tax_price REAL AS (doc ->> '$.taxfree.price') STORED,
+            tax_discount REAL AS (doc ->> '$.taxfree.discount') STORED,
+            tax_literprice REAL AS (doc ->> '$.taxfree.literprice') STORED,
+            tax_alcoholprice REAL AS (doc ->> '$.taxfree.alcoholprice') STORED,
+            tax_stores TEXT AS (doc -> '$.taxfree.stores') STORED,
+            doc TEXT NOT NULL
         );
         CREATE VIRTUAL TABLE products_fts USING fts5(
             name, content = 'products', content_rowid = 'id', tokenize = 'unicode61 remove_diacritics 2'
         );
-        CREATE TABLE metadata (id TEXT PRIMARY KEY, doc TEXT NOT NULL);";
+        CREATE TABLE metadata (id TEXT PRIMARY KEY, doc TEXT NOT NULL);
+        CREATE TABLE facets (taxfree INTEGER, field TEXT, value TEXT);
+        INSERT INTO facets VALUES (0, 'country', 'Tyskland'), (0, 'country', 'Frankrike'),
+            (1, 'country', 'Tyskland'), (0, 'stores', 'Bergen');";
 
     fn conn() -> Connection {
         let conn = Connection::open_in_memory().unwrap();
@@ -257,9 +263,9 @@ mod tests {
         assert!(!prices_updated(&conn, "taxfree").unwrap());
         assert!(!prices_updated(&conn, "landing").unwrap());
 
-        let distinct = |path, taxfree| distinct(&conn, path, taxfree).unwrap();
-        assert_eq!(distinct("$.country", false), vec!["Frankrike", "Tyskland"]);
-        assert_eq!(distinct("$.country", true), vec!["Tyskland"]);
-        assert_eq!(distinct("$.stores", false).len(), 4);
+        let distinct = |field, taxfree| distinct(&conn, field, taxfree).unwrap();
+        assert_eq!(distinct("country", false), vec!["Frankrike", "Tyskland"]);
+        assert_eq!(distinct("country", true), vec!["Tyskland"]);
+        assert_eq!(distinct("stores", true), Vec::<String>::new());
     }
 }

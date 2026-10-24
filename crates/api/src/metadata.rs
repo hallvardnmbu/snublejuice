@@ -7,13 +7,7 @@ pub async fn get_stores(
     subdomain: Subdomain,
 ) -> Result<Json<Vec<String>>, AppError> {
     let taxfree = subdomain.is_taxfree();
-    let path = if taxfree {
-        "$.taxfree.stores"
-    } else {
-        "$.stores"
-    };
-
-    let stores: Vec<String> = database::metadata::get_distinct(&state.db, path, taxfree).await;
+    let stores: Vec<String> = database::metadata::get_distinct(&state.db, "stores", taxfree).await;
 
     Ok(Json(stores))
 }
@@ -23,7 +17,7 @@ pub async fn get_countries(
     subdomain: Subdomain,
 ) -> Result<Json<Vec<String>>, AppError> {
     let countries: Vec<String> =
-        database::metadata::get_distinct(&state.db, "$.country", subdomain.is_taxfree()).await;
+        database::metadata::get_distinct(&state.db, "country", subdomain.is_taxfree()).await;
 
     Ok(Json(countries))
 }
@@ -33,7 +27,7 @@ pub async fn get_pairs(
     subdomain: Subdomain,
 ) -> Result<Json<Vec<String>>, AppError> {
     let mut pairs: Vec<String> =
-        database::metadata::get_distinct(&state.db, "$.pair", subdomain.is_taxfree()).await;
+        database::metadata::get_distinct(&state.db, "pair", subdomain.is_taxfree()).await;
     pairs.sort();
 
     Ok(Json(pairs))

@@ -5,6 +5,7 @@ use axum::{
 use axum_extra::extract::cookie::CookieJar;
 use bcrypt::{DEFAULT_COST, hash, verify};
 use mongodb::{Database, bson::oid::ObjectId};
+use std::sync::LazyLock;
 use tokio::spawn;
 
 use database::users;
@@ -62,6 +63,13 @@ where
 
 pub fn verify_password(password: &str, hashed: &str) -> bool {
     verify(password, hashed).unwrap_or(false)
+}
+
+/// A valid hash to verify against when the user does not exist, to even out timing.
+pub fn dummy_hash() -> &'static str {
+    static HASH: LazyLock<String> =
+        LazyLock::new(|| hash_password("dummy-password").unwrap_or_default());
+    &HASH
 }
 
 pub fn hash_password(password: &str) -> Result<String, bcrypt::BcryptError> {

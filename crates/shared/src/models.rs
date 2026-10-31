@@ -18,6 +18,8 @@ pub struct User {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Session {
     pub user_id: ObjectId,
+    #[serde(default)]
+    pub username: String,
     pub session_id: String,
     #[serde(rename = "expiresAfter")]
     pub expires_after: DateTime,

@@ -3,15 +3,10 @@
 ## Refresh the app
 
 ```bash
-# Turn off app.
-# snuble -> sudo systemctl stop snublejuice
-
 cargo build --release --target x86_64-unknown-linux-musl
-# alias deploy="scp target/x86_64-unknown-linux-musl/release/server {USERNAME}@{IP}:/home/snuble/snublejuice"
-deploy
 
-# Turn on new app.
-# snuble -> sudo systemctl start snublejuice
+scp target/x86_64-unknown-linux-musl/release/server snuble:/home/snuble/snublejuice.new \
+  && ssh snuble 'mv /home/snuble/snublejuice.new /home/snuble/snublejuice && sudo -n systemctl restart snublejuice'
 ```
 
 ```bash

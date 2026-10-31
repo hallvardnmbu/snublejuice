@@ -1,6 +1,8 @@
 use mongodb::{
     Collection, Database,
     bson::{DateTime, doc, oid::ObjectId},
+    error::{ErrorKind, WriteFailure},
+    options::{Collation, CollationStrength},
 };
 use std::time::{Duration, SystemTime};
 
@@ -12,7 +14,17 @@ use shared::{
 pub async fn get_user_by_name(db: &Database, username: &str) -> Option<User> {
     let collection: Collection<User> = db.collection("users");
 
-    match collection.find_one(doc! { "username": username }).await {
+    // Case-insensitive, so "Bob" and "bob" are the same account.
+    let collation = Collation::builder()
+        .locale("en")
+        .strength(CollationStrength::Secondary)
+        .build();
+
+    match collection
+        .find_one(doc! { "username": username })
+        .collation(collation)
+        .await
+    {
         Ok(user) => return user,
         Err(_) => return None,
     }
@@ -21,8 +33,21 @@ pub async fn get_user_by_name(db: &Database, username: &str) -> Option<User> {
 pub async fn create_user(db: &Database, user: &User) -> Result<(), AppError> {
     let collection = db.collection::<User>("users");
 
-    collection.insert_one(user).await?;
-    Ok(())
+    match collection.insert_one(user).await {
+        Ok(_) => Ok(()),
+        // Lost a race against a concurrent signup (needs a unique index on username).
+        Err(error)
+            if matches!(
+                &*error.kind,
+                ErrorKind::Write(WriteFailure::WriteError(e)) if e.code == 11000
+            ) =>
+        {
+            Err(AppError::BadRequest(
+                "Brukeren finnes allerede.".to_string(),
+            ))
+        }
+        Err(error) => Err(error.into()),
+    }
 }
 
 pub async fn get_user_by_id(db: &Database, user_id: &ObjectId) -> Option<User> {

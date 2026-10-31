@@ -1,6 +1,8 @@
 use authentication::middle::Authenticate;
 use axum::{Json, extract::State};
 use axum_extra::extract::cookie::{Cookie, CookieJar};
+use mongodb::bson::oid::ObjectId;
+use serde::Serialize;
 
 use authentication::middle::verify_password;
 use database::users;
@@ -11,14 +13,31 @@ use shared::{
     state::AppState,
 };
 
+/// The user as exposed to clients; never includes the password hash.
+#[derive(Serialize)]
+pub struct PublicUser {
+    #[serde(rename = "_id")]
+    user_id: ObjectId,
+    username: String,
+    email: String,
+    favourites: Vec<i64>,
+    notify: bool,
+}
+
 pub async fn get_user(
     State(state): State<AppState>,
     auth: Authenticate,
-) -> Result<Json<User>, AppError> {
+) -> Result<Json<PublicUser>, AppError> {
     let user: User = users::get_user_by_id(&state.db, &auth.id)
         .await
         .ok_or(AppError::NotFound)?;
-    Ok(Json(user))
+    Ok(Json(PublicUser {
+        user_id: user.user_id,
+        username: user.username,
+        email: user.email,
+        favourites: user.favourites,
+        notify: user.notify,
+    }))
 }
 
 pub async fn logout(

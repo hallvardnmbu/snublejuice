@@ -24,12 +24,12 @@ impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         let (status, error_message) = match self {
             AppError::MongoError(_) | AppError::InternalServerError => {
-                (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error")
+                (StatusCode::INTERNAL_SERVER_ERROR, "Intern server-feil")
             }
-            AppError::NotFound => (StatusCode::NOT_FOUND, "Not found"),
+            AppError::NotFound => (StatusCode::NOT_FOUND, "Ikke funnet"),
             AppError::BadRequest(ref msg) => (StatusCode::BAD_REQUEST, msg.as_str()),
-            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "Unauthorized"),
-            AppError::NotImplemented => (StatusCode::NOT_IMPLEMENTED, "Not implemented"),
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "Uautorisert"),
+            AppError::NotImplemented => (StatusCode::NOT_IMPLEMENTED, "Ikke implementert"),
         };
 
         let body = axum::Json(serde_json::json!({

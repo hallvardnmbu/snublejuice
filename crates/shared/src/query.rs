@@ -53,6 +53,11 @@ impl Parameters {
             && self.store_taxfree.is_none()
     }
 
+    /// The requested page, clamped to a sane range (also keeps `$skip` from overflowing).
+    pub fn page(&self) -> i64 {
+        self.page.unwrap_or(1).clamp(1, 10_000)
+    }
+
     fn get_sort_by(&self, subdomain: &Subdomain) -> String {
         if let Some(sort) = &self.sort {
             if subdomain.is_taxfree() && sort != "alcohol" {
@@ -208,7 +213,7 @@ impl Parameters {
         let sort_by = self.get_sort_by(subdomain);
         let direction = if self.ascending == Some(false) { -1 } else { 1 };
         options.push(doc! { "$sort": { sort_by: direction } });
-        options.push(doc! { "$skip": ((self.page.unwrap_or(1) - 1) * PRODUCTS_PER_PAGE) });
+        options.push(doc! { "$skip": ((self.page() - 1) * PRODUCTS_PER_PAGE) });
         options.push(doc! { "$limit": PRODUCTS_PER_PAGE });
 
         options
@@ -253,7 +258,7 @@ impl Parameters {
 
             pipeline.push(doc! { "$match": self.to_filter(subdomain, user, prices_updated) });
 
-            pipeline.push(doc! { "$skip": ((self.page.unwrap_or(1) - 1) * PRODUCTS_PER_PAGE) });
+            pipeline.push(doc! { "$skip": ((self.page() - 1) * PRODUCTS_PER_PAGE) });
             pipeline.push(doc! { "$limit": PRODUCTS_PER_PAGE });
 
             return pipeline;

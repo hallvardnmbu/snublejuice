@@ -288,16 +288,14 @@ pub async fn site(
         .unwrap_or("snublejuice.no");
     let landing_url = landing_url_from_host(host);
 
-    // One "fresh" visit per visitor per month; the cookie holds the month last counted.
+    // One "fresh" visit per visitor per month per subdomain; the cookie holds the month last counted.
+    // No `Domain` attribute, so the cookie is host-only and each subdomain counts the visitor separately.
     let month = chrono::Local::now().format("%Y-%m").to_string();
     if is_production() && jar.get("visitor").is_none_or(|c| c.value() != month) {
         database::metadata::increment_visitor(&state.db, &month, subdomain.name(), true).await;
-        let domain =
-            std::env::var("COOKIE_DOMAIN").unwrap_or_else(|_| "snublejuice.localhost".to_string());
         jar = jar.add(
             Cookie::build(("visitor", month))
                 .path("/")
-                .domain(domain)
                 .secure(true)
                 .max_age(TimeDuration::days(35)),
         );

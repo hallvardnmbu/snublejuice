@@ -10,6 +10,7 @@
     --radius-button: 0.5rem;
 
     --height-button: 1.875rem;
+    --transition-time: 0.25s;
 
     --gap-sm: 0.375rem;
     --gap-md: 0.5rem;
@@ -322,11 +323,41 @@ main form > #advanced {
     color: inherit;
     bottom: auto;
     top: var(--height-button);
+
+    opacity: 0;
+    transition:
+        opacity var(--transition-time) ease-out,
+        display var(--transition-time) allow-discrete,
+        overlay var(--transition-time) allow-discrete;
+}
+main form > #advanced[open] {
+    opacity: 1;
+}
+@starting-style {
+    main form > #advanced[open] {
+        opacity: 0;
+    }
 }
 #advanced::backdrop {
+    background: transparent;
+    backdrop-filter: blur(0);
+    -webkit-backdrop-filter: blur(0);
+    transition:
+        background var(--transition-time) ease-out,
+        backdrop-filter var(--transition-time) ease-out,
+        display var(--transition-time) allow-discrete,
+        overlay var(--transition-time) allow-discrete;
+}
+#advanced[open]::backdrop {
     background: var(--semitransparent);
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
+}
+@starting-style {
+    #advanced[open]::backdrop {
+        background: transparent;
+        backdrop-filter: blur(0);
+    }
 }
 main form > #advanced > div.card,
 main form > #advanced > div.controls > button {
@@ -836,6 +867,24 @@ aside {
     border-top: 1px solid var(--border-color);
     position: relative;
     z-index: 1;
+
+    /* Animate height to/from auto; toggled via .hidden from products.js. */
+    interpolate-size: allow-keywords;
+    overflow: hidden;
+    height: auto;
+    transition:
+        height var(--transition-time) ease-out,
+        opacity var(--transition-time) ease-out,
+        border-top-width var(--transition-time) ease-out,
+        visibility var(--transition-time);
+}
+/* Override the global .hidden (display: none) so the collapse can animate. */
+aside.hidden {
+    display: block !important;
+    height: 0;
+    opacity: 0;
+    border-top-width: 0;
+    visibility: hidden;
 }
 
 aside table {

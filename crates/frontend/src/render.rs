@@ -82,6 +82,8 @@ pub fn empty_parameters() -> Parameters {
         sort: None,
         ascending: None,
         favourites: None,
+        latitude: None,
+        longitude: None,
         category: None,
         country: None,
         pair: None,
@@ -126,6 +128,7 @@ pub fn render_product_results(
     max_page: u64,
     parameters: &Parameters,
     prices_updated: bool,
+    nearby_stores: Vec<String>,
 ) -> String {
     let tmpl = get_env().get_template("partials/results.html").unwrap();
     tmpl.render(context! {
@@ -136,6 +139,7 @@ pub fn render_product_results(
         max_page,
         parameters,
         prices_updated,
+        nearby_stores,
     })
     .unwrap()
 }
@@ -195,8 +199,16 @@ mod tests {
         product.prices = vec![200.0, 180.0, 150.0];
         product.sukker = Some("Under 3 gram".to_string());
         product.cork = Some("Skrukork".to_string());
-        let html =
-            render_product_results(&vec![product], false, None, 1, 1, &empty_parameters(), true);
+        let html = render_product_results(
+            &vec![product],
+            false,
+            None,
+            1,
+            1,
+            &empty_parameters(),
+            true,
+            Vec::new(),
+        );
         assert!(html.contains("Under 3 gram"));
         assert!(html.contains("Skrukork"));
         assert!(!html.contains("Allergener"));
@@ -211,6 +223,7 @@ mod tests {
             1,
             &empty_parameters(),
             true,
+            Vec::new(),
         );
         assert!(!html.contains(r#"class="history""#));
     }
@@ -221,7 +234,16 @@ mod tests {
         product.stores = Some(vec!["Oslo".into(), "Bergen".into(), "Voss".into()]);
         let mut parameters = empty_parameters();
         parameters.store_vinmonopolet = Some(vec!["Bergen".into()]);
-        let html = render_product_results(&vec![product], false, None, 1, 1, &parameters, true);
+        let html = render_product_results(
+            &vec![product],
+            false,
+            None,
+            1,
+            1,
+            &parameters,
+            true,
+            Vec::new(),
+        );
         assert!(html.contains("Bergen"));
         assert!(!html.contains("Oslo"));
         assert!(!html.contains("Voss"));
@@ -260,14 +282,23 @@ mod tests {
             1,
             &parameters,
             true,
+            Vec::new(),
         );
         assert!(vin.contains("<span>KR</span>"));
         assert!(vin.contains("<span>%</span>"));
         assert!(vin.contains("strikethrough"));
         assert!(vin.contains(r#"class="prices""#));
 
-        let tax =
-            render_product_results(&vec![sample_product()], true, None, 1, 1, &parameters, true);
+        let tax = render_product_results(
+            &vec![sample_product()],
+            true,
+            None,
+            1,
+            1,
+            &parameters,
+            true,
+            Vec::new(),
+        );
         assert!(tax.contains("<span>KR</span>"));
         assert!(tax.contains("<span>%</span>"));
         assert!(tax.contains("strikethrough"));
@@ -327,14 +358,26 @@ pub async fn fetch_products(
 
     let prices_updated = database::metadata::get_prices_updated(&state.db, subdomain.name()).await;
     let page = parameters.page();
+
+    let nearby_stores = database::stores::get_closest_stores(&state.db, &subdomain, &parameters)
+        .await
+        .filter(|stores| !stores.is_empty())
+        .map(|stores| {
+            stores
+                .into_iter()
+                .map(|store| store.name)
+                .collect::<Vec<String>>()
+        })
+        .unwrap_or_default();
+
     let products = database::products::get_products(
         &state.db,
-        parameters.to_pipeline(&subdomain, &user, prices_updated),
+        parameters.to_pipeline(&subdomain, &user, prices_updated, &nearby_stores),
     )
     .await;
     let max_page = database::products::get_max_page(
         &state.db,
-        parameters.to_filter(&subdomain, &user, prices_updated),
+        parameters.to_filter(&subdomain, &user, prices_updated, &nearby_stores),
     )
     .await;
     let favourites = parameters.favourites.unwrap_or(false);
@@ -346,6 +389,7 @@ pub async fn fetch_products(
         max_page,
         &parameters,
         prices_updated,
+        nearby_stores,
     );
 
     Json(ProductsResponse {

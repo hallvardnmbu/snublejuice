@@ -10,6 +10,9 @@
     <input type="hidden" name="calcohol" value="{{ parameters.calcohol if parameters.calcohol is not none else '' }}">
     <input type="hidden" name="cyear" value="{{ parameters.cyear if parameters.cyear is not none else '' }}">
 
+    <input type="hidden" name="latitude" value="{{ parameters.latitude if parameters.latitude is not none else '' }}">
+    <input type="hidden" name="longitude" value="{{ parameters.longitude if parameters.longitude is not none else '' }}">
+
     <div>
         <button type="button" id="toggleSort">{{ 'synkende' if parameters.ascending == false else 'stigende' }}</button>
         <div>
@@ -19,6 +22,13 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
             <span class="filter-badge" id="filterBadge"></span>
         </button>
+
+        {% if not favourites and not taxfree %}
+        <button type="button" id="toggleNearby"
+                aria-pressed="{{ 'true' if parameters.latitude and parameters.longitude else 'false' }}">
+            Nærmeste butikker
+        </button>
+        {% endif %}
     </div>
 
     <dialog id="advanced">

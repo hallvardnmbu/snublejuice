@@ -10,7 +10,7 @@
 </div>
 {% else %}
 {% for item in data %}
-{% with parameters=parameters, item=item, index=loop.index0, taxfree=is_taxfree %}
+{% with parameters=parameters, item=item, index=loop.index0, taxfree=is_taxfree, nearby_stores=nearby_stores %}
 {% include "partials/product.html" %}
 {% endwith %}
 {% endfor %}

@@ -47,6 +47,47 @@ document.addEventListener("DOMContentLoaded", () => {
     window.fetchProducts({ page: 1 });
   });
 
+  const nearbyBtn = document.getElementById("toggleNearby");
+  const setNearby = (pos) => {
+    if (form.elements.latitude) form.elements.latitude.value = pos ? pos.coords.latitude.toFixed(3) : "";
+    if (form.elements.longitude) form.elements.longitude.value = pos ? pos.coords.longitude.toFixed(3) : "";
+    nearbyBtn?.setAttribute("aria-pressed", String(!!pos));
+  };
+
+  if (nearbyBtn) {
+    nearbyBtn.addEventListener("click", () => {
+      // Toggle off
+      if (nearbyBtn.getAttribute("aria-pressed") === "true") {
+        setNearby(null);
+        window.fetchProducts({ page: 1 });
+        return;
+      }
+
+      // Toggle on
+      if (!("geolocation" in navigator)) {
+        alert("Posisjonering støttes ikke i denne nettleseren.");
+        return;
+      }
+
+      nearbyBtn.disabled = true;
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          nearbyBtn.disabled = false;
+          setNearby(pos);
+          window.fetchProducts({ page: 1 });
+        },
+        (err) => {
+          nearbyBtn.disabled = false;
+          setNearby(null);
+          alert(err.code === 1
+            ? "Du har ikke gitt tilgang til posisjon."
+            : "Kunne ikke hente posisjonen din.");
+        },
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 5 * 60 * 1000 }
+      );
+    });
+  }
+
   document.getElementById("togglePrice")?.addEventListener("click", (event) => {
     event.preventDefault();
     toggleComparator("cprice", "togglePrice", { on: "lik", off: "under" });
@@ -106,6 +147,8 @@ document.addEventListener("DOMContentLoaded", () => {
     resetComparator("cvolume", "toggleVolume", "over");
     resetComparator("calcohol", "toggleAlcohol", "over");
     resetComparator("cyear", "toggleYear", "før");
+
+    setNearby(null);
 
     applyBtn?.classList.remove("changed");
     dialog?.close();

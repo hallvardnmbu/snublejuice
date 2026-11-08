@@ -14,3 +14,4 @@ mongodb = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+geo = "0.33.1"

@@ -1,6 +1,6 @@
 const BOOL_FIELDS = new Set(["ascending", "favourites", "cprice", "cvolume", "calcohol", "cyear"]);
 const INT_FIELDS = new Set(["page", "year"]);
-const FLOAT_FIELDS = new Set(["price", "volume", "alcohol"]);
+const FLOAT_FIELDS = new Set(["price", "volume", "alcohol", "latitude", "longitude"]);
 const ALWAYS = new Set(["ascending", "sort"]);
 const ARRAY_FIELDS = new Set(["pair", "country", "store-vinmonopolet", "store-taxfree"]);
 const BADGE_SKIP = new Set([
@@ -12,6 +12,7 @@ const BADGE_SKIP = new Set([
   "cvolume",
   "calcohol",
   "cyear",
+  "latitude",
 ]);
 
 let lastAppliedParams = {};

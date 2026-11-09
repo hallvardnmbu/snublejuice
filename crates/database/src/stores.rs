@@ -2,7 +2,7 @@ use futures::StreamExt;
 use geo::{Distance, Haversine, Point};
 use mongodb::{Collection, Database, bson::doc};
 use shared::{
-    models::{MAX_DISTANCE_M, MAX_STORES_IN_DISTANCE, Store},
+    models::{MAX_STORES_IN_DISTANCE, Store},
     query::Parameters,
     subdomain::Subdomain,
 };
@@ -11,7 +11,6 @@ fn nearest_stores(
     stores: &[Store],
     latitude: f64,
     longitude: f64,
-    max_result: usize,
     max_distance_m: f64,
 ) -> Vec<(&Store, f64)> {
     let user = Point::new(longitude, latitude);
@@ -31,7 +30,7 @@ fn nearest_stores(
         .collect();
 
     hits.sort_by(|a, b| a.1.total_cmp(&b.1));
-    hits.truncate(max_result);
+    hits.truncate(MAX_STORES_IN_DISTANCE);
     hits
 }
 
@@ -44,8 +43,8 @@ pub async fn get_closest_stores(
         return None;
     };
 
-    let (latitude, longitude) = match (parameters.latitude, parameters.longitude) {
-        (Some(lat), Some(lon)) => (lat, lon),
+    let (latitude, longitude, distance) = match (parameters.latitude, parameters.longitude, parameters.distance) {
+        (Some(lat), Some(lon), Some(dis)) => (lat, lon, dis),
         _ => {
             return None;
         }
@@ -74,8 +73,7 @@ pub async fn get_closest_stores(
             &stores,
             latitude,
             longitude,
-            MAX_STORES_IN_DISTANCE,
-            MAX_DISTANCE_M,
+            distance,
         )
         .into_iter()
         .map(|(store, _distance)| store.clone())

@@ -4,8 +4,7 @@ use serde::{Deserialize, Serialize};
 pub const PRODUCTS_PER_PAGE: i64 = 15;
 pub const ONE_MONTH: u64 = 60 * 60 * 24 * 30;
 
-pub const MAX_STORES_IN_DISTANCE: usize = 3;
-pub const MAX_DISTANCE_M: f64 = 10000.0;
+pub const MAX_STORES_IN_DISTANCE: usize = 5;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {

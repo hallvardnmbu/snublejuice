@@ -11,6 +11,6 @@ taxfree=is_taxfree, favourites=parameters.favourites %}{% include "partials/form
 {% endblock %} {% block footer %} {% with landing=false %}{% include "partials/footer.html" %}{% endwith %} {% endblock
 %} {% block scripts %}
 <script src="/public/scripts/products.js"></script>
-<script src="/public/scripts/filters.js"></script>
+<script type="module" src="/public/scripts/filters.js"></script>
 <script src="/public/scripts/history.js"></script>
 {% endblock %}

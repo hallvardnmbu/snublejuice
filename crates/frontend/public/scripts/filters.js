@@ -1,3 +1,5 @@
+import { initNearby } from "./nearby.js";
+
 function toggleComparator(inputName, buttonId, labels) {
   const input = document.querySelector(`input[name="${inputName}"]`);
   const button = document.getElementById(buttonId);
@@ -18,6 +20,8 @@ function resetComparator(inputName, buttonId, offLabel) {
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("filter");
   if (!form) return;
+
+  const { setNearby } = initNearby(form);
 
   const dialog = document.getElementById("advanced");
   const applyBtn = document.getElementById("applyFilters");
@@ -46,47 +50,6 @@ document.addEventListener("DOMContentLoaded", () => {
     button.textContent = descending ? "stigende" : "synkende";
     window.fetchProducts({ page: 1 });
   });
-
-  const nearbyBtn = document.getElementById("toggleNearby");
-  const setNearby = (pos) => {
-    if (form.elements.latitude) form.elements.latitude.value = pos ? pos.coords.latitude.toFixed(3) : "";
-    if (form.elements.longitude) form.elements.longitude.value = pos ? pos.coords.longitude.toFixed(3) : "";
-    nearbyBtn?.setAttribute("aria-pressed", String(!!pos));
-  };
-
-  if (nearbyBtn) {
-    nearbyBtn.addEventListener("click", () => {
-      // Toggle off
-      if (nearbyBtn.getAttribute("aria-pressed") === "true") {
-        setNearby(null);
-        window.fetchProducts({ page: 1 });
-        return;
-      }
-
-      // Toggle on
-      if (!("geolocation" in navigator)) {
-        alert("Posisjonering støttes ikke i denne nettleseren.");
-        return;
-      }
-
-      nearbyBtn.disabled = true;
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          nearbyBtn.disabled = false;
-          setNearby(pos);
-          window.fetchProducts({ page: 1 });
-        },
-        (err) => {
-          nearbyBtn.disabled = false;
-          setNearby(null);
-          alert(err.code === 1
-            ? "Du har ikke gitt tilgang til posisjon."
-            : "Kunne ikke hente posisjonen din.");
-        },
-        { enableHighAccuracy: false, timeout: 10000, maximumAge: 5 * 60 * 1000 }
-      );
-    });
-  }
 
   document.getElementById("togglePrice")?.addEventListener("click", (event) => {
     event.preventDefault();
@@ -139,7 +102,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("nsearch").value = "";
 
-    for (const id of ["category", "stores-search-vinmonopolet", "country", "pair", "stores-vinmonopolet", "stores-taxfree", "price", "volume", "alcohol", "year"]) {
+    for (const id of [
+      "category",
+      "stores-search-vinmonopolet",
+      "country",
+      "pair",
+      "stores-vinmonopolet",
+      "stores-taxfree",
+      "price",
+      "volume",
+      "alcohol",
+      "year",
+    ]) {
       clearField(document.getElementById(id));
     }
 

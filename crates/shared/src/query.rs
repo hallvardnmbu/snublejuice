@@ -13,6 +13,7 @@ pub struct Parameters {
     pub favourites: Option<bool>,
     pub latitude: Option<f64>,
     pub longitude: Option<f64>,
+    pub distance: Option<f64>,
     pub category: Option<String>,
     pub country: Option<Vec<String>>,
     pub pair: Option<Vec<String>>,
@@ -40,6 +41,7 @@ impl Parameters {
             && self.favourites.is_none()
             && self.latitude.is_none()
             && self.longitude.is_none()
+            && self.distance.is_none()
             && self.category.is_none()
             && self.country.is_none()
             && self.pair.is_none()
@@ -83,7 +85,7 @@ impl Parameters {
         subdomain: &Subdomain,
         user: &Option<User>,
         prices_updated: bool,
-        nearby_stores: &Vec<String>,
+        nearby_stores: &Option<Vec<String>>,
     ) -> Document {
         let mut filter = doc! {};
 
@@ -139,9 +141,12 @@ impl Parameters {
         }
 
         // Availability.
-        if !nearby_stores.is_empty() {
-            if !taxfree {
-                filter.insert("stores", doc! { "$in": nearby_stores});
+        if !taxfree && let Some(nearby) = nearby_stores {
+            if !nearby.is_empty() {
+                filter.insert("stores", doc! { "$in": nearby.clone() });
+            } else {
+                // Force invalid match.
+                filter.insert("index", doc! { "$eq": 0 });
             }
         } else if let Some(store) = self.store_vinmonopolet.as_ref().filter(|s| !s.is_empty()) {
             if self.storelike.is_none() && !taxfree {
@@ -233,7 +238,7 @@ impl Parameters {
         subdomain: &Subdomain,
         user: &Option<User>,
         prices_updated: bool,
-        nearby_stores: &Vec<String>,
+        nearby_stores: &Option<Vec<String>>,
     ) -> Vec<Document> {
         let mut pipeline: Vec<Document> = Vec::new();
 
@@ -340,6 +345,7 @@ mod tests {
             favourites: None,
             latitude: None,
             longitude: None,
+            distance: None,
             category: None,
             country: None,
             pair: None,
@@ -379,7 +385,7 @@ mod tests {
 
     #[test]
     fn to_filter_includes_base_vinmonopolet_constraints() {
-        let filter = empty_params().to_filter(&Subdomain::Vinmonopolet, &None, true, &Vec::new());
+        let filter = empty_params().to_filter(&Subdomain::Vinmonopolet, &None, true, &None);
         assert_eq!(filter.get_bool("updated"), Ok(true));
         assert_eq!(
             filter.get_document("price").unwrap().get_f64("$gt"),
@@ -390,7 +396,7 @@ mod tests {
 
     #[test]
     fn to_filter_includes_taxfree_constraints() {
-        let filter = empty_params().to_filter(&Subdomain::Taxfree, &None, true, &Vec::new());
+        let filter = empty_params().to_filter(&Subdomain::Taxfree, &None, true, &None);
         assert!(filter.contains_key("taxfree.stores"));
         assert_eq!(
             filter
@@ -407,7 +413,7 @@ mod tests {
         let mut params = empty_params();
         params.category = Some("rødvin".to_string());
         params.country = Some(vec!["Frankrike".to_string()]);
-        let filter = params.to_filter(&Subdomain::Vinmonopolet, &None, true, &Vec::new());
+        let filter = params.to_filter(&Subdomain::Vinmonopolet, &None, true, &None);
         assert_eq!(filter.get_str("category"), Ok("Rødvin"));
         assert_eq!(
             filter
@@ -423,7 +429,7 @@ mod tests {
     fn to_filter_requires_all_selected_pairings() {
         let mut params = empty_params();
         params.pair = Some(vec!["Fisk".to_string(), "Skalldyr".to_string()]);
-        let filter = params.to_filter(&Subdomain::Vinmonopolet, &None, true, &Vec::new());
+        let filter = params.to_filter(&Subdomain::Vinmonopolet, &None, true, &None);
         assert_eq!(
             filter
                 .get_document("pair")
@@ -436,7 +442,7 @@ mod tests {
         params.pair = Some(vec![]);
         params.country = Some(vec![]);
         params.store_vinmonopolet = Some(vec![]);
-        let filter = params.to_filter(&Subdomain::Vinmonopolet, &None, true, &Vec::new());
+        let filter = params.to_filter(&Subdomain::Vinmonopolet, &None, true, &None);
         assert!(!filter.contains_key("pair"));
         assert!(!filter.contains_key("country"));
         assert!(!filter.contains_key("stores"));
@@ -448,7 +454,7 @@ mod tests {
         let mut params = empty_params();
         params.search = Some("cabernet".to_string());
         params.category = Some("rødvin".to_string());
-        let filter = params.to_filter(&Subdomain::Vinmonopolet, &None, true, &Vec::new());
+        let filter = params.to_filter(&Subdomain::Vinmonopolet, &None, true, &None);
         assert!(!filter.contains_key("category"));
     }
 
@@ -457,7 +463,7 @@ mod tests {
         let mut params = empty_params();
         params.favourites = Some(true);
         let user = test_user(vec![1, 2, 3]);
-        let filter = params.to_filter(&Subdomain::Vinmonopolet, &Some(user), true, &Vec::new());
+        let filter = params.to_filter(&Subdomain::Vinmonopolet, &Some(user), true, &None);
         assert_eq!(
             filter
                 .get_document("index")
@@ -500,7 +506,7 @@ mod tests {
     fn to_pipeline_with_search_includes_search_stage() {
         let mut params = empty_params();
         params.search = Some("riesling".to_string());
-        let pipeline = params.to_pipeline(&Subdomain::Vinmonopolet, &None, true, &Vec::new());
+        let pipeline = params.to_pipeline(&Subdomain::Vinmonopolet, &None, true, &None);
         assert!(pipeline[0].contains_key("$search"));
         assert!(pipeline[1].contains_key("$match"));
         assert!(!pipeline.iter().any(|stage| stage.contains_key("$sort")));
@@ -509,7 +515,7 @@ mod tests {
     #[test]
     fn to_pipeline_without_search_uses_match_sort_skip_and_limit() {
         let pipeline =
-            empty_params().to_pipeline(&Subdomain::Vinmonopolet, &None, true, &Vec::new());
+            empty_params().to_pipeline(&Subdomain::Vinmonopolet, &None, true, &None);
         assert_eq!(pipeline.len(), 4);
         assert!(pipeline[0].contains_key("$match"));
         assert!(pipeline[1].contains_key("$sort"));

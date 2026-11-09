@@ -84,6 +84,7 @@ pub fn empty_parameters() -> Parameters {
         favourites: None,
         latitude: None,
         longitude: None,
+        distance: None,
         category: None,
         country: None,
         pair: None,
@@ -128,7 +129,7 @@ pub fn render_product_results(
     max_page: u64,
     parameters: &Parameters,
     prices_updated: bool,
-    nearby_stores: Vec<String>,
+    nearby_stores: Option<Vec<String>>,
 ) -> String {
     let tmpl = get_env().get_template("partials/results.html").unwrap();
     tmpl.render(context! {
@@ -207,7 +208,7 @@ mod tests {
             1,
             &empty_parameters(),
             true,
-            Vec::new(),
+            None,
         );
         assert!(html.contains("Under 3 gram"));
         assert!(html.contains("Skrukork"));
@@ -223,7 +224,7 @@ mod tests {
             1,
             &empty_parameters(),
             true,
-            Vec::new(),
+            None,
         );
         assert!(!html.contains(r#"class="history""#));
     }
@@ -242,7 +243,7 @@ mod tests {
             1,
             &parameters,
             true,
-            Vec::new(),
+            None,
         );
         assert!(html.contains("Bergen"));
         assert!(!html.contains("Oslo"));
@@ -282,7 +283,7 @@ mod tests {
             1,
             &parameters,
             true,
-            Vec::new(),
+            None,
         );
         assert!(vin.contains("<span>KR</span>"));
         assert!(vin.contains("<span>%</span>"));
@@ -297,7 +298,7 @@ mod tests {
             1,
             &parameters,
             true,
-            Vec::new(),
+            None,
         );
         assert!(tax.contains("<span>KR</span>"));
         assert!(tax.contains("<span>%</span>"));
@@ -359,7 +360,7 @@ pub async fn fetch_products(
     let prices_updated = database::metadata::get_prices_updated(&state.db, subdomain.name()).await;
     let page = parameters.page();
 
-    let nearby_stores = database::stores::get_closest_stores(&state.db, &subdomain, &parameters)
+    let nearby_stores: Option<Vec<String>> = database::stores::get_closest_stores(&state.db, &subdomain, &parameters)
         .await
         .filter(|stores| !stores.is_empty())
         .map(|stores| {
@@ -367,8 +368,7 @@ pub async fn fetch_products(
                 .into_iter()
                 .map(|store| store.name)
                 .collect::<Vec<String>>()
-        })
-        .unwrap_or_default();
+        });
 
     let products = database::products::get_products(
         &state.db,

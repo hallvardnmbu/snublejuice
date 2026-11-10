@@ -104,8 +104,7 @@ footer {
 
 #menu,
 #product-results,
-section.landing,
-.message {
+section.landing {
     width: 100%;
 }
 
@@ -556,9 +555,11 @@ nav span {
 }
 
 .message {
+    width: auto;
     display: flex;
     align-items: center;
     justify-content: center;
+    word-wrap: normal;
     font-weight: bold;
     margin: var(--radius-card);
     border-radius: var(--radius-card);

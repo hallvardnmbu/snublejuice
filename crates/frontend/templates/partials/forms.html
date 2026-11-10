@@ -12,7 +12,7 @@
 
     <input type="hidden" name="latitude" value="{{ parameters.latitude if parameters.latitude is not none else '' }}" />
     <input type="hidden" name="longitude" value="{{ parameters.longitude if parameters.longitude is not none else '' }}" />
-    <input type="hidden" name="distance" value="{{ parameters.distance if parameters.distance is not none else '20000' }}" />
+    <input type="hidden" name="distance" value="{{ parameters.distance if parameters.distance is not none else '1000' }}" />
 
     <div>
         <button type="button" id="toggleSort">{{ 'synkende' if parameters.ascending == false else 'stigende' }}</button>

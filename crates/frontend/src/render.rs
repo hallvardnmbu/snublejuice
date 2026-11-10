@@ -362,7 +362,6 @@ pub async fn fetch_products(
 
     let nearby_stores: Option<Vec<String>> = database::stores::get_closest_stores(&state.db, &subdomain, &parameters)
         .await
-        .filter(|stores| !stores.is_empty())
         .map(|stores| {
             stores
                 .into_iter()

@@ -32,7 +32,14 @@
             <p class="description">{{ item.description }}</p>
             {% endif %}
 
-            {% if parameters.storelike %}
+
+            {% if nearby_stores %}
+            <span class="list">
+                {% for store in item.stores | only_in(nearby_stores) %}
+                <p>☖ {{ store }}</p>
+                {% endfor %}
+            </span>
+            {% elif parameters.storelike %}
             <span class="list">
                 {% for store in item.stores | storelike_filter(parameters.storelike) %}
                 <p>☖ {{ store }}</p>

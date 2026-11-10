@@ -247,7 +247,7 @@ header form {
     max-width: var(--layout-max-narrow);
     align-self: center;
 }
-header form div div:not(#advanced),
+header form div div:not(dialog),
 header form button {
     width: 100%;
 }
@@ -312,7 +312,7 @@ form > dialog > div > div {
     flex-direction: column;
     gap: var(--margin);
 }
-main form > #advanced {
+main form > dialog {
     width: min(100vw - 2 * var(--margin), var(--layout-max-narrow));
     max-height: calc(100dvh - 2 * var(--margin));
     padding: 0;
@@ -323,16 +323,16 @@ main form > #advanced {
     bottom: auto;
     top: var(--height-button);
 }
-#advanced::backdrop {
+dialog::backdrop {
     background: var(--semitransparent);
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
 }
-main form > #advanced > div.card,
-main form > #advanced > div.controls > button {
+main form > dialog > div.card,
+main form > dialog > div.controls > button {
     box-shadow: 0 0 1em 1em var(--semitransparent);
 }
-main form > #advanced > div.card {
+main form > dialog > div.card {
     display: flex;
     flex-direction: column;
     overflow-y: auto;
@@ -344,13 +344,14 @@ main form > #advanced > div.card {
 }
 html:has(dialog[open]) {
     overflow: hidden;
+    scrollbar-gutter: stable;
 }
-main form > #advanced > div > div > div {
+main form > dialog > div > div > div {
     display: flex;
     gap: var(--gap-md);
     align-items: center;
 }
-main form > #advanced > div.controls {
+main form > dialog > div.controls {
     display: flex;
     flex-direction: row;
     gap: var(--gap-md);
@@ -358,7 +359,7 @@ main form > #advanced > div.controls {
     justify-content: space-between;
     padding: calc(var(--padding) + var(--gap-md) / 2);
 }
-#applyFilters.changed {
+button.changed {
     background: var(--text-muted);
     border-color: var(--text-muted);
     color: var(--foreground);
@@ -373,7 +374,7 @@ main form > #advanced > div.controls {
     letter-spacing: -0.03em;
 }
 
-main form > #advanced > div > div > div > input {
+main form > dialog > div > div > div > input {
     flex: 1;
     width: 100%;
 }
@@ -499,7 +500,7 @@ input[type="search"]::-webkit-search-results-decoration {
 .singleselect[open] summary {
     border-color: var(--text);
 }
-main form > #advanced > div > div > .multiselect > div,
+main form > dialog > div > div > .multiselect > div,
 .singleselect > div {
     position: absolute;
     top: calc(var(--height-button) + var(--margin));
@@ -722,7 +723,7 @@ section button {
     justify-content: space-between;
     gap: var(--gap-sm);
     margin-top: auto;
-    padding-top:var(--margin);
+    padding-top: var(--margin);
 }
 .product .columns .metadata {
     margin-top: auto;
@@ -762,11 +763,7 @@ a.rating:visited {
 }
 .star {
     color: var(--star);
-    background: linear-gradient(
-        90deg,
-        currentColor var(--fill),
-        var(--border-color) var(--fill)
-    );
+    background: linear-gradient(90deg, currentColor var(--fill), var(--border-color) var(--fill));
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -878,11 +875,7 @@ aside .metadata tbody tr td:last-of-type {
     margin-left: calc(2 * var(--margin));
     padding-left: calc(var(--padding) + var(--margin));
     word-wrap: normal;
-    background: linear-gradient(
-        to right,
-        var(--color) var(--padding),
-        var(--semitransparent) var(--padding)
-    );
+    background: linear-gradient(to right, var(--color) var(--padding), var(--semitransparent) var(--padding));
 }
 aside .fractions tbody tr td:last-of-type {
     margin-left: var(--margin);
@@ -1002,13 +995,13 @@ aside .history .line path {
         cursor: default;
     }
 
-    button:hover:not(:disabled, #applyFilters.changed) {
+    button:hover:not(:disabled, button.changed) {
         background: var(--text);
         border-color: var(--text);
         color: var(--foreground);
         cursor: pointer;
     }
-    button#applyFilters.changed:hover {
+    button.changed:hover {
         background: var(--foreground);
         border-color: var(--text);
         color: var(--text);
@@ -1071,7 +1064,7 @@ section.landing {
     color: var(--text-muted);
     font-size: calc(var(--fontsize) - 1px);
     line-height: 1.5;
-    word-wrap:break-word;
+    word-wrap: break-word;
 }
 .landing h3,
 .landing h4 {
@@ -1109,8 +1102,13 @@ section.landing {
     animation: sk-flicker 1.8s ease-in-out infinite;
 }
 @keyframes sk-flicker {
-    0%, 100% { background-color: color-mix(in srgb, var(--border-color) 10%, transparent); }
-    50%      { background-color: transparent; }
+    0%,
+    100% {
+        background-color: color-mix(in srgb, var(--border-color) 10%, transparent);
+    }
+    50% {
+        background-color: transparent;
+    }
 }
 @media (prefers-reduced-motion: reduce) {
     .skeleton > div {

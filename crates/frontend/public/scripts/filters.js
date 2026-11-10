@@ -1,3 +1,5 @@
+import { initNearby } from "./nearby.js";
+
 function toggleComparator(inputName, buttonId, labels) {
   const input = document.querySelector(`input[name="${inputName}"]`);
   const button = document.getElementById(buttonId);
@@ -18,6 +20,8 @@ function resetComparator(inputName, buttonId, offLabel) {
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("filter");
   if (!form) return;
+
+  const { setNearby } = initNearby(form);
 
   const dialog = document.getElementById("advanced");
   const applyBtn = document.getElementById("applyFilters");
@@ -98,7 +102,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("nsearch").value = "";
 
-    for (const id of ["category", "stores-search-vinmonopolet", "country", "pair", "stores-vinmonopolet", "stores-taxfree", "price", "volume", "alcohol", "year"]) {
+    for (const id of [
+      "category",
+      "stores-search-vinmonopolet",
+      "country",
+      "pair",
+      "stores-vinmonopolet",
+      "stores-taxfree",
+      "price",
+      "volume",
+      "alcohol",
+      "year",
+    ]) {
       clearField(document.getElementById(id));
     }
 
@@ -106,6 +121,8 @@ document.addEventListener("DOMContentLoaded", () => {
     resetComparator("cvolume", "toggleVolume", "over");
     resetComparator("calcohol", "toggleAlcohol", "over");
     resetComparator("cyear", "toggleYear", "før");
+
+    setNearby(null);
 
     applyBtn?.classList.remove("changed");
     dialog?.close();

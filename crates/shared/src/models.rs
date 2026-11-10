@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 pub const PRODUCTS_PER_PAGE: i64 = 15;
 pub const ONE_MONTH: u64 = 60 * 60 * 24 * 30;
 
+pub const MAX_STORES_IN_DISTANCE: usize = 5;
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
     #[serde(rename = "_id")]
@@ -33,6 +35,19 @@ pub struct Index {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Notify {
     pub notify: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Position {
+    pub latitude: f64,
+    pub longitude: f64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Store {
+    pub name: String,
+    pub address: String,
+    pub position: Position,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

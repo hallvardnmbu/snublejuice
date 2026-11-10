@@ -13,6 +13,9 @@ impl Subdomain {
     pub fn is_taxfree(&self) -> bool {
         matches!(self, Self::Taxfree)
     }
+    pub fn is_vinmonopolet(&self) -> bool {
+        matches!(self, Self::Vinmonopolet)
+    }
 
     pub fn name(&self) -> &str {
         match self {

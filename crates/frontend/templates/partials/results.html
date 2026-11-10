@@ -1,18 +1,4 @@
-{% with placement="top" %}{% include "partials/pagination.html" %}{% endwith %}
-{% if not prices_updated %}
-<div class="message">
-    <span>Prisene oppdateres. Produkter som gjenstår er markert, og viser forrige måneds tall.</span>
-</div>
-{% endif %}
-{% if data|length == 0 %}
-<div class="message">
-    <span>Ingen resultater finnes for valgt kominasjon.</span>
-</div>
-{% else %}
-{% for item in data %}
-{% with parameters=parameters, item=item, index=loop.index0, taxfree=is_taxfree %}
-{% include "partials/product.html" %}
-{% endwith %}
-{% endfor %}
-{% endif %}
-{% with placement="bottom" %}{% include "partials/pagination.html" %}{% endwith %}
+{% with placement="top" %}{% include "partials/pagination.html" %}{% endwith %} {% if not prices_updated %} {% with message="Prisene oppdateres. Produkter som gjenstår er markert, og viser forrige måneds tall." %} {% include "partials/message.html"
+%} {% endwith %} {% endif %} {% if nearby_stores is not none and nearby_stores|length == 0 %} {% with message="Fant ingen butikker i nærheten. Forsøk å utvide avstanden." %} {% include "partials/message.html" %} {% endwith %} {% elif data|length == 0
+%} {% with message="Ingen resultater finnes for valgt kominasjon." %} {% include "partials/message.html" %} {% endwith %} {% else %} {% for item in data %} {% with parameters=parameters, item=item, index=loop.index0, taxfree=is_taxfree,
+nearby_stores=nearby_stores %} {% include "partials/product.html" %} {% endwith %} {% endfor %} {% endif %} {% with placement="bottom" %}{% include "partials/pagination.html" %}{% endwith %}

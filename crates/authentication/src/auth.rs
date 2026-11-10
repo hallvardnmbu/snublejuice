@@ -140,7 +140,7 @@ mod tests {
         assert!(validate_signup("alice", "longenough", "a@b.no").is_ok());
         assert!(validate_signup("al", "longenough", "a@b.no").is_err());
         assert!(validate_signup(&"a".repeat(33), "longenough", "a@b.no").is_err());
-        assert!(validate_signup("alice", "short", "a@b.no").is_err());
+        assert!(validate_signup("alice", "a", "a@b.no").is_err());
         assert!(validate_signup("alice", &"p".repeat(73), "a@b.no").is_err());
         assert!(validate_signup("alice", "longenough", "no-at-sign").is_err());
     }

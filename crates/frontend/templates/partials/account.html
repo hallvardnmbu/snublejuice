@@ -48,13 +48,13 @@
 <form id="registerForm" class="hidden">
     <div class="card inset">
         {% call adv_field("Brukernavn") %}
-            <input type="text" id="usernameRegister" name="username" minlength="2" required>
+            <input type="text" id="usernameRegister" name="username" minlength="3" maxlength="32" required>
         {% endcall %}
         {% call adv_field("E-post") %}
-            <input type="email" id="emailRegister" name="email" required>
+            <input type="email" id="emailRegister" name="email" maxlength="254" required>
         {% endcall %}
         {% call adv_field("Passord") %}
-            <input type="password" id="passwordRegister" name="password" minlength="4" required>
+            <input type="password" id="passwordRegister" name="password" minlength="4" maxlength="72" required>
         {% endcall %}
         {% call adv_field("Månedsvarsel") %}
             <input type="checkbox" id="notifyRegister" name="notify" value="true">

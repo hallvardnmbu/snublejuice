@@ -5,20 +5,20 @@ export function initNearby(form) {
   const nearbyRange = document.getElementById("nearbyRange");
   const nearbyValue = document.getElementById("nearbyValue");
   const nearbyApply = document.getElementById("applyNearby");
-  const NEARBY_DEFAULT_KM = 1;
+  const NEARBY_DEFAULT_M = 1000;
 
   const updateNearbyLabel = () => {
-    if (nearbyValue && nearbyRange) nearbyValue.textContent = `${nearbyRange.value} km`;
+    if (nearbyValue && nearbyRange) nearbyValue.textContent = `${Math.round(nearbyRange.value)} m`;
   };
 
   // pos = geolocation position to activate, null to reset
-  const setNearby = (pos, km = NEARBY_DEFAULT_KM) => {
+  const setNearby = (pos, dist = NEARBY_DEFAULT_M) => {
     const active = !!pos;
     if (form.elements.latitude) form.elements.latitude.value = active ? pos.coords.latitude.toFixed(3) : "";
     if (form.elements.longitude) form.elements.longitude.value = active ? pos.coords.longitude.toFixed(3) : "";
-    if (active && form.elements.distance) form.elements.distance.value = String(km * 1000);
+    if (active && form.elements.distance) form.elements.distance.value = String(dist);
     if (!active && nearbyRange) {
-      nearbyRange.value = NEARBY_DEFAULT_KM;
+      nearbyRange.value = NEARBY_DEFAULT_M;
       updateNearbyLabel();
     }
     nearbyBtn?.classList.toggle("changed", active);

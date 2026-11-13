@@ -14,8 +14,8 @@ export function initNearby(form) {
   // pos = geolocation position to activate, null to reset
   const setNearby = (pos, dist = NEARBY_DEFAULT_M) => {
     const active = !!pos;
-    if (form.elements.latitude) form.elements.latitude.value = active ? pos.coords.latitude.toFixed(3) : "";
-    if (form.elements.longitude) form.elements.longitude.value = active ? pos.coords.longitude.toFixed(3) : "";
+    if (form.elements.latitude) form.elements.latitude.value = active ? pos.coords.latitude.toFixed(5) : "";
+    if (form.elements.longitude) form.elements.longitude.value = active ? pos.coords.longitude.toFixed(5) : "";
     if (active && form.elements.distance) form.elements.distance.value = String(dist);
     if (!active && nearbyRange) {
       nearbyRange.value = NEARBY_DEFAULT_M;
@@ -48,12 +48,12 @@ export function initNearby(form) {
       return;
     }
 
-    const km = Number(nearbyRange.value);
+    const distance = Number(nearbyRange.value);
     nearbyApply.disabled = true;
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         nearbyApply.disabled = false;
-        setNearby(pos, km);
+        setNearby(pos, distance);
         nearbyDialog.close();
         window.fetchProducts({ page: 1 });
       },
@@ -63,7 +63,7 @@ export function initNearby(form) {
         nearbyDialog.close();
         alert(err.code === 1 ? "Du har ikke gitt tilgang til posisjon." : "Kunne ikke hente posisjonen din.");
       },
-      { enableHighAccuracy: false, timeout: 10000, maximumAge: 5 * 60 * 1000 },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 5 * 60 * 1000 },
     );
   });
 

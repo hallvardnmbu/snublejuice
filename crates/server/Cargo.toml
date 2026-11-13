@@ -12,6 +12,4 @@ frontend = { path = "../frontend"}
 shared = { path = "../shared" }
 
 axum = { workspace = true, features = ["macros"] }
-dotenv = "0.15.0"
 tokio = { workspace = true, features = ["full"] }
-tower-http = { workspace = true, features = ["cors"] }

@@ -53,7 +53,6 @@ dependencies = [
  "shared",
  "tokio",
  "tower",
- "tower-http",
 ]
 
 [[package]]
@@ -89,8 +88,6 @@ dependencies = [
  "axum",
  "axum-extra",
  "bcrypt",
- "bson 3.1.0",
- "chrono",
  "database",
  "mongodb",
  "serde",
@@ -318,28 +315,6 @@ dependencies = [
  "serde",
  "serde_bytes",
  "serde_json",
- "time",
- "uuid",
-]
-
-[[package]]
-name = "bson"
-version = "3.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b3f109694c4f45353972af96bf97d8a057f82e2d6e496457f4d135b9867a518c"
-dependencies = [
- "ahash",
- "base64 0.22.1",
- "bitvec",
- "chrono",
- "getrandom 0.3.4",
- "hex",
- "indexmap 2.14.2",
- "js-sys",
- "rand 0.9.5",
- "serde_bytes",
- "simdutf8",
- "thiserror 2.0.21",
  "time",
  "uuid",
 ]
@@ -613,8 +588,6 @@ checksum = "4583a4551df46e2792f82ceeac45e850d2e2d5debba0b91f102385cda5b11f06"
 name = "database"
 version = "0.1.0"
 dependencies = [
- "bson 3.1.0",
- "chrono",
  "futures",
  "geo",
  "mongodb",
@@ -678,12 +651,6 @@ dependencies = [
  "quote",
  "syn 3.0.9",
 ]
-
-[[package]]
-name = "dotenv"
-version = "0.15.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "77c90badedccf4105eca100756a0b1289e191f6fcbdadd3cee1d2f614f97da8f"
 
 [[package]]
 name = "dyn-clone"
@@ -1174,12 +1141,6 @@ dependencies = [
  "http-body",
  "pin-project-lite",
 ]
-
-[[package]]
-name = "http-range-header"
-version = "0.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9171a2ea8a68358193d15dd5d70c1c10a2afc3e7e4c5bc92bc9f025cebd7359c"
 
 [[package]]
 name = "httparse"
@@ -1779,7 +1740,7 @@ version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8426a875ded61430d4a811dbfda7633b6b8af0225c547fc6c28b8b0aa7d79a13"
 dependencies = [
- "bson 2.15.0",
+ "bson",
  "mongocrypt-sys",
  "once_cell",
  "serde",
@@ -1799,7 +1760,7 @@ checksum = "6466d4601ff396952e1895d88083d1ab03930b812277180eb8258bbe1a10bb0f"
 dependencies = [
  "base64 0.22.1",
  "bitflags",
- "bson 2.15.0",
+ "bson",
  "derive-where",
  "futures-core",
  "futures-io",
@@ -2501,11 +2462,9 @@ dependencies = [
  "authentication",
  "axum",
  "database",
- "dotenv",
  "frontend",
  "shared",
  "tokio",
- "tower-http",
 ]
 
 [[package]]
@@ -2535,8 +2494,6 @@ name = "shared"
 version = "0.1.0"
 dependencies = [
  "axum",
- "bson 3.1.0",
- "chrono",
  "mongodb",
  "regex",
  "serde",
@@ -2942,31 +2899,6 @@ dependencies = [
  "tower-layer",
  "tower-service",
  "tracing",
-]
-
-[[package]]
-name = "tower-http"
-version = "0.6.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4cfcf7e2740e6fc6d4d688b4ef00650406bb94adf4731e43c096c3a19fe40840"
-dependencies = [
- "bitflags",
- "bytes",
- "futures-core",
- "futures-util",
- "http",
- "http-body",
- "http-body-util",
- "http-range-header",
- "httpdate",
- "mime",
- "mime_guess",
- "percent-encoding",
- "pin-project-lite",
- "tokio",
- "tokio-util",
- "tower-layer",
- "tower-service",
 ]
 
 [[package]]

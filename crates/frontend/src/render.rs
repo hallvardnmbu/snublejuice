@@ -1,4 +1,9 @@
-use axum::{Json, extract::State, http::HeaderMap, response::Html};
+use axum::{
+    Json,
+    extract::State,
+    http::HeaderMap,
+    response::{Html, IntoResponse, Redirect, Response},
+};
 use axum_extra::extract::cookie::{Cookie, CookieJar};
 use minijinja::{Environment, Value, context};
 use regex::Regex;
@@ -9,6 +14,7 @@ use time::Duration as TimeDuration;
 
 use authentication::middle::MaybeAuthenticate;
 use shared::{
+    flash::take_flash,
     models::{Product, User},
     query::Parameters,
     state::AppState,
@@ -64,6 +70,13 @@ fn get_env() -> &'static Environment<'static> {
                 format!("{}…", chars[..max].iter().collect::<String>())
             }
         });
+        env.add_filter("capitalize", |value: String| -> String {
+            let mut chars = value.chars();
+            match chars.next() {
+                None => String::new(),
+                Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+            }
+        });
         env
     })
 }
@@ -73,7 +86,6 @@ pub struct ProductsResponse {
     pub html: String,
     pub page: i64,
     pub max_page: u64,
-    pub favourites: bool,
 }
 
 pub fn empty_parameters() -> Parameters {
@@ -103,26 +115,52 @@ pub fn empty_parameters() -> Parameters {
     }
 }
 
-pub fn render_landing(user: Option<User>) -> String {
-    let tmpl = get_env().get_template("landing.html").unwrap();
-    tmpl.render(context! { user }).unwrap()
+pub fn render_landing(user: Option<User>, message: Option<String>) -> String {
+    let tmpl = get_env().get_template("pages/landing.html").unwrap();
+    tmpl.render(context! { user, message }).unwrap()
 }
 
-pub fn render_products_shell(is_taxfree: bool, user: Option<User>, landing_url: &str) -> String {
-    let parameters = empty_parameters();
-    let tmpl = get_env().get_template("products.html").unwrap();
+pub struct ProductsPageData<'a> {
+    pub data: &'a [Product],
+    pub is_taxfree: bool,
+    pub favourites: bool,
+    pub user: Option<User>,
+    pub landing_url: &'a str,
+    pub message: Option<String>,
+    pub page: i64,
+    pub max_page: u64,
+    pub parameters: &'a Parameters,
+    pub prices_updated: bool,
+    pub stores: &'a [String],
+    pub countries: &'a [String],
+    pub pairs: &'a [String],
+}
+
+pub fn render_products_page(ctx: ProductsPageData<'_>) -> String {
+    let tmpl = get_env().get_template("pages/products.html").unwrap();
     tmpl.render(context! {
-        is_taxfree,
-        user,
-        parameters,
+        data => ctx.data,
+        is_taxfree => ctx.is_taxfree,
+        favourites => ctx.favourites,
+        user => ctx.user,
+        landing_url => ctx.landing_url,
+        message => ctx.message,
+        page => ctx.page,
+        max_page => ctx.max_page,
+        parameters => ctx.parameters,
+        prices_updated => ctx.prices_updated,
+        nearby_stores => Option::<Vec<String>>::None,
+        stores => ctx.stores,
+        countries => ctx.countries,
+        pairs => ctx.pairs,
         landing => false,
-        landing_url,
     })
     .unwrap()
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn render_product_results(
-    data: &Vec<Product>,
+    data: &[Product],
     is_taxfree: bool,
     user: Option<User>,
     page: i64,
@@ -131,7 +169,7 @@ pub fn render_product_results(
     prices_updated: bool,
     nearby_stores: Option<Vec<String>>,
 ) -> String {
-    let tmpl = get_env().get_template("partials/results.html").unwrap();
+    let tmpl = get_env().get_template("components/results.html").unwrap();
     tmpl.render(context! {
         data,
         is_taxfree,
@@ -143,6 +181,165 @@ pub fn render_product_results(
         nearby_stores,
     })
     .unwrap()
+}
+
+async fn render_site_page(
+    state: AppState,
+    subdomain: Subdomain,
+    headers: HeaderMap,
+    jar: CookieJar,
+    user: Option<User>,
+    favourites: bool,
+) -> (CookieJar, Html<String>) {
+    let host = headers
+        .get("host")
+        .and_then(|h| h.to_str().ok())
+        .unwrap_or("snublejuice.no");
+    let landing_url = landing_url_from_host(host);
+
+    let (mut jar, message) = take_flash(jar);
+
+    // One "fresh" visit per visitor per month per subdomain; the cookie holds the month last counted.
+    // No `Domain` attribute, so the cookie is host-only and each subdomain counts the visitor separately.
+    let month = chrono::Local::now().format("%Y-%m").to_string();
+    if is_production() && jar.get("visitor").is_none_or(|c| c.value() != month) {
+        database::metadata::increment_visitor(&state.db, &month, subdomain.name(), true).await;
+        jar = jar.add(
+            Cookie::build(("visitor", month))
+                .path("/")
+                .secure(true)
+                .max_age(TimeDuration::days(35)),
+        );
+    }
+
+    let html = match subdomain {
+        Subdomain::Landing => render_landing(user, message),
+        Subdomain::Vinmonopolet | Subdomain::Taxfree => {
+            let is_taxfree = subdomain.is_taxfree();
+            let store_field = if is_taxfree {
+                "taxfree.stores"
+            } else {
+                "stores"
+            };
+            let mut parameters = empty_parameters();
+            if favourites {
+                parameters.favourites = Some(true);
+            }
+
+            let (prices_updated, stores, countries, mut pairs) = tokio::join!(
+                database::metadata::get_prices_updated(&state.db, subdomain.name()),
+                database::metadata::get_distinct(&state.db, store_field, is_taxfree),
+                database::metadata::get_distinct(&state.db, "country", is_taxfree),
+                database::metadata::get_distinct(&state.db, "pair", is_taxfree),
+            );
+            pairs.sort();
+
+            let pipeline = parameters.to_pipeline(&subdomain, &user, prices_updated, &None);
+            let filter = parameters.to_filter(&subdomain, &user, prices_updated, &None);
+            let (products, max_page) = tokio::join!(
+                database::products::get_products(&state.db, pipeline),
+                database::products::get_max_page(&state.db, filter),
+            );
+
+            render_products_page(ProductsPageData {
+                data: &products,
+                is_taxfree,
+                favourites,
+                user,
+                landing_url: &landing_url,
+                message,
+                page: 1,
+                max_page,
+                parameters: &parameters,
+                prices_updated,
+                stores: &stores,
+                countries: &countries,
+                pairs: &pairs,
+            })
+        }
+    };
+    (jar, Html(html))
+}
+
+pub async fn site(
+    State(state): State<AppState>,
+    subdomain: Subdomain,
+    headers: HeaderMap,
+    jar: CookieJar,
+    MaybeAuthenticate(user): MaybeAuthenticate,
+) -> (CookieJar, Html<String>) {
+    render_site_page(state, subdomain, headers, jar, user, false).await
+}
+
+pub async fn favourites_site(
+    State(state): State<AppState>,
+    subdomain: Subdomain,
+    headers: HeaderMap,
+    jar: CookieJar,
+    MaybeAuthenticate(user): MaybeAuthenticate,
+) -> Response {
+    if matches!(subdomain, Subdomain::Landing) || user.is_none() {
+        return Redirect::to("/").into_response();
+    }
+    render_site_page(state, subdomain, headers, jar, user, true)
+        .await
+        .into_response()
+}
+
+fn is_production() -> bool {
+    std::env::var("ENVIRONMENT").is_ok_and(|e| e == "production")
+}
+
+pub async fn fetch_products(
+    State(state): State<AppState>,
+    subdomain: Subdomain,
+    MaybeAuthenticate(user): MaybeAuthenticate,
+    Json(parameters): Json<Parameters>,
+) -> Json<ProductsResponse> {
+    if is_production() {
+        let month = chrono::Local::now().format("%Y-%m").to_string();
+        database::metadata::increment_visitor(&state.db, &month, subdomain.name(), false).await;
+    }
+
+    let prices_updated = database::metadata::get_prices_updated(&state.db, subdomain.name()).await;
+    let page = parameters.page();
+
+    let nearby_stores: Option<Vec<String>> =
+        database::stores::get_closest_stores(&state.db, &subdomain, &parameters)
+            .await
+            .map(|stores| {
+                stores
+                    .into_iter()
+                    .map(|store| store.name)
+                    .collect::<Vec<String>>()
+            });
+
+    let products = database::products::get_products(
+        &state.db,
+        parameters.to_pipeline(&subdomain, &user, prices_updated, &nearby_stores),
+    )
+    .await;
+    let max_page = database::products::get_max_page(
+        &state.db,
+        parameters.to_filter(&subdomain, &user, prices_updated, &nearby_stores),
+    )
+    .await;
+    let html = render_product_results(
+        &products,
+        subdomain.is_taxfree(),
+        user,
+        page,
+        max_page,
+        &parameters,
+        prices_updated,
+        nearby_stores,
+    );
+
+    Json(ProductsResponse {
+        html,
+        page,
+        max_page,
+    })
 }
 
 #[cfg(test)]
@@ -201,7 +398,7 @@ mod tests {
         product.sukker = Some("Under 3 gram".to_string());
         product.cork = Some("Skrukork".to_string());
         let html = render_product_results(
-            &vec![product],
+            &[product],
             false,
             None,
             1,
@@ -217,7 +414,7 @@ mod tests {
         assert!(html.contains(r#"data-prices="200.0,180.0,150.0""#));
 
         let html = render_product_results(
-            &vec![sample_product()],
+            &[sample_product()],
             false,
             None,
             1,
@@ -235,16 +432,7 @@ mod tests {
         product.stores = Some(vec!["Oslo".into(), "Bergen".into(), "Voss".into()]);
         let mut parameters = empty_parameters();
         parameters.store_vinmonopolet = Some(vec!["Bergen".into()]);
-        let html = render_product_results(
-            &vec![product],
-            false,
-            None,
-            1,
-            1,
-            &parameters,
-            true,
-            None,
-        );
+        let html = render_product_results(&[product], false, None, 1, 1, &parameters, true, None);
         assert!(html.contains("Bergen"));
         assert!(!html.contains("Oslo"));
         assert!(!html.contains("Voss"));
@@ -252,31 +440,84 @@ mod tests {
 
     #[test]
     fn templates_extend_base_and_render() {
-        let landing = render_landing(None);
+        let landing = render_landing(None, Some("Feil brukernavn eller passord.".to_string()));
         assert!(landing.contains("<!doctype html>"));
         assert!(landing.contains(r#"href="/public/stylesheet.css""#));
         assert!(landing.contains("application/ld+json"));
         assert!(landing.contains("landing"));
         assert!(landing.contains("hero"));
         assert!(landing.contains("https://schema.org"));
+        assert!(landing.contains("Feil brukernavn eller passord."));
 
-        let products = render_products_shell(false, None, "https://snublejuice.no");
+        let parameters = empty_parameters();
+        let products_vec = vec![sample_product()];
+        let stores = vec!["oslo".to_string()];
+        let countries = vec!["frankrike".to_string()];
+        let pairs = vec!["storfe".to_string()];
+        let products = render_products_page(ProductsPageData {
+            data: &products_vec,
+            is_taxfree: false,
+            favourites: false,
+            user: None,
+            landing_url: "https://snublejuice.no",
+            message: None,
+            page: 1,
+            max_page: 1,
+            parameters: &parameters,
+            prices_updated: true,
+            stores: &stores,
+            countries: &countries,
+            pairs: &pairs,
+        });
         assert!(products.contains(r#"href="/public/stylesheet.css""#));
-        assert!(products.contains("/public/scripts/dropdowns.js"));
+        assert!(!products.contains("/public/scripts/dropdowns.js"));
         assert!(products.contains("/public/scripts/products.js"));
         assert!(products.contains("/public/scripts/filters.js"));
         assert!(products.contains(r#"id="product-results""#));
         assert!(products.contains(r#"id="nsearch""#));
         assert!(products.contains(r#"id="category""#));
         assert!(products.contains(r#"id="applyFilters""#));
+        assert!(products.contains("Testvin"));
+        assert!(products.contains(">Oslo</label>"));
+        assert!(products.contains(">Frankrike</label>"));
+        assert!(products.contains(">Storfe</label>"));
         assert!(!products.contains("landing"));
+
+        let user = User {
+            user_id: mongodb::bson::oid::ObjectId::new(),
+            username: "alice".to_string(),
+            password: "hash".to_string(),
+            email: "alice@example.com".to_string(),
+            favourites: vec![0],
+            notify: true,
+        };
+        let fav_products = render_products_page(ProductsPageData {
+            data: &products_vec,
+            is_taxfree: false,
+            favourites: true,
+            user: Some(user),
+            landing_url: "https://snublejuice.no",
+            message: Some("Flash melding".to_string()),
+            page: 1,
+            max_page: 1,
+            parameters: &parameters,
+            prices_updated: true,
+            stores: &stores,
+            countries: &countries,
+            pairs: &pairs,
+        });
+        assert!(fav_products.contains("window.location.href='&#x2f;'"));
+        assert!(fav_products.contains("Alle produkter"));
+        assert!(fav_products.contains("Flash melding"));
+        assert!(!fav_products.contains(r#"id="toggleNearby""#));
+        assert!(!fav_products.contains("Butikk eller by"));
     }
 
     #[test]
     fn price_block_renders_vin_and_taxfree() {
         let parameters = empty_parameters();
         let vin = render_product_results(
-            &vec![sample_product()],
+            &[sample_product()],
             false,
             None,
             1,
@@ -291,7 +532,7 @@ mod tests {
         assert!(vin.contains(r#"class="prices""#));
 
         let tax = render_product_results(
-            &vec![sample_product()],
+            &[sample_product()],
             true,
             None,
             1,
@@ -305,96 +546,4 @@ mod tests {
         assert!(tax.contains("strikethrough"));
         assert!(tax.contains("example.com"));
     }
-}
-
-pub async fn site(
-    State(state): State<AppState>,
-    subdomain: Subdomain,
-    headers: HeaderMap,
-    mut jar: CookieJar,
-    MaybeAuthenticate(user): MaybeAuthenticate,
-) -> (CookieJar, Html<String>) {
-    let host = headers
-        .get("host")
-        .and_then(|h| h.to_str().ok())
-        .unwrap_or("snublejuice.no");
-    let landing_url = landing_url_from_host(host);
-
-    // One "fresh" visit per visitor per month per subdomain; the cookie holds the month last counted.
-    // No `Domain` attribute, so the cookie is host-only and each subdomain counts the visitor separately.
-    let month = chrono::Local::now().format("%Y-%m").to_string();
-    if is_production() && jar.get("visitor").is_none_or(|c| c.value() != month) {
-        database::metadata::increment_visitor(&state.db, &month, subdomain.name(), true).await;
-        jar = jar.add(
-            Cookie::build(("visitor", month))
-                .path("/")
-                .secure(true)
-                .max_age(TimeDuration::days(35)),
-        );
-    }
-
-    let html = match subdomain {
-        Subdomain::Landing => render_landing(user),
-        Subdomain::Vinmonopolet | Subdomain::Taxfree => {
-            render_products_shell(subdomain.is_taxfree(), user, &landing_url)
-        }
-    };
-    (jar, Html(html))
-}
-
-fn is_production() -> bool {
-    std::env::var("ENVIRONMENT").is_ok_and(|e| e == "production")
-}
-
-pub async fn fetch_products(
-    State(state): State<AppState>,
-    subdomain: Subdomain,
-    MaybeAuthenticate(user): MaybeAuthenticate,
-    Json(parameters): Json<Parameters>,
-) -> Json<ProductsResponse> {
-    if is_production() {
-        let month = chrono::Local::now().format("%Y-%m").to_string();
-        database::metadata::increment_visitor(&state.db, &month, subdomain.name(), false).await;
-    }
-
-    let prices_updated = database::metadata::get_prices_updated(&state.db, subdomain.name()).await;
-    let page = parameters.page();
-
-    let nearby_stores: Option<Vec<String>> = database::stores::get_closest_stores(&state.db, &subdomain, &parameters)
-        .await
-        .map(|stores| {
-            stores
-                .into_iter()
-                .map(|store| store.name)
-                .collect::<Vec<String>>()
-        });
-
-    let products = database::products::get_products(
-        &state.db,
-        parameters.to_pipeline(&subdomain, &user, prices_updated, &nearby_stores),
-    )
-    .await;
-    let max_page = database::products::get_max_page(
-        &state.db,
-        parameters.to_filter(&subdomain, &user, prices_updated, &nearby_stores),
-    )
-    .await;
-    let favourites = parameters.favourites.unwrap_or(false);
-    let html = render_product_results(
-        &products,
-        subdomain.is_taxfree(),
-        user,
-        page,
-        max_page,
-        &parameters,
-        prices_updated,
-        nearby_stores,
-    );
-
-    Json(ProductsResponse {
-        html,
-        page,
-        max_page,
-        favourites,
-    })
 }

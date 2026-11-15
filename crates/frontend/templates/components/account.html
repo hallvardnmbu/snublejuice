@@ -1,0 +1,141 @@
+{% from "components/macros.html" import adv_field %}
+
+<menu id="menu">
+    <div>
+        {% if not user %}
+            <button onclick="toggleView('loginForm')">Logg inn</button>
+            <button onclick="toggleView('registerForm')">Registrer</button>
+        {% else %}
+            <button onclick="toggleView('profile')" title="{{ user.username }}">
+                {{ user.username | truncate(12) }}
+            </button>
+
+            {% if not landing %}
+                <button type="button" onclick="window.location.href='{{ '/' if favourites else '/favourites' }}'">
+                    {{ 'Alle produkter' if favourites else 'Favoritter' }}
+                </button>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <div>
+        {% if landing_url %}
+            <h1 role="link" onclick="window.location.href='{{ landing_url }}'">
+                Snublejuice
+            </h1>
+        {% else %}
+            <h1>Snublejuice</h1>
+        {% endif %}
+    </div>
+
+    <div>
+        {% if landing_url %}
+            <button type="button" onclick="window.location.href='{{ landing_url }}'">Forside</button>
+        {% endif %}
+        <button type="button" id="toggleTheme">Mørkt</button>
+    </div>
+</menu>
+
+{% if user %}
+    <menu id="profile" class="hidden">
+        <button onclick="toggleView('notifyUserForm')">Varslinger</button>
+        <button onclick="toggleView('deleteUserForm')">Slett meg</button>
+
+        <form action="/account/logout" method="post">
+            <button type="submit">Logg ut</button>
+        </form>
+    </menu>
+{% endif %}
+
+<form id="loginForm" class="hidden" action="/account/login" method="post">
+    <div class="card inset">
+        {% call adv_field("Brukernavn") %}
+            <input type="text" name="username" minlength="3" required>
+        {% endcall %}
+
+        {% call adv_field("Passord") %}
+            <input type="password" name="password" minlength="4" required>
+        {% endcall %}
+
+        <button type="submit">Logg inn</button>
+    </div>
+</form>
+
+<form id="registerForm" class="hidden" action="/account/signup" method="post">
+    <div class="card inset">
+        {% call adv_field("Brukernavn") %}
+            <input type="text" name="username" minlength="3" maxlength="32" required>
+        {% endcall %}
+
+        {% call adv_field("E-post") %}
+            <input type="email" name="email" maxlength="254" required>
+        {% endcall %}
+
+        {% call adv_field("Passord") %}
+            <input type="password" name="password" minlength="4" maxlength="72" required>
+        {% endcall %}
+
+        {% call adv_field("Månedsvarsel") %}
+            <input type="checkbox" name="notify" value="true">
+        {% endcall %}
+
+        <button type="submit">Registrer</button>
+    </div>
+</form>
+
+{% if user %}
+    <form id="notifyUserForm" class="hidden" action="/account/notification" method="post">
+        <div class="card inset">
+            {% call adv_field("E-post") %}
+                <span>{{ user.email }}</span>
+            {% endcall %}
+
+            {% call adv_field("Månedsvarsel") %}
+                <input type="checkbox" name="notify" value="true"
+                    {{ 'checked' if user.notify else '' }}>
+            {% endcall %}
+
+            <button type="submit">Lagre</button>
+        </div>
+    </form>
+
+    <form id="deleteUserForm" class="hidden" action="/account/delete" method="post">
+        <div class="card inset">
+            {% call adv_field("Brukernavn") %}
+                <span>{{ user.username }}</span>
+            {% endcall %}
+
+            {% call adv_field("E-post") %}
+                <span>{{ user.email }}</span>
+            {% endcall %}
+
+            {% call adv_field("Passord") %}
+                <input type="password" name="password" minlength="4" required>
+            {% endcall %}
+
+            <button type="submit">Slett bruker</button>
+        </div>
+    </form>
+{% endif %}
+
+{% if message %}
+    <div class="message"><span>{{ message }}</span></div>
+{% endif %}
+
+<script>
+    function toggleView(modal) {
+        for (const id of [
+            "profile", "loginForm", "registerForm",
+            "notifyUserForm", "deleteUserForm"
+        ]) {
+            if (id !== modal) {
+                document.getElementById(id)?.classList.add("hidden");
+            }
+        }
+
+        document.querySelector(".message")?.classList.add("hidden");
+        document.getElementById(modal)?.classList.toggle("hidden");
+    }
+</script>
+
+<script src="/public/scripts/theme.js"></script>

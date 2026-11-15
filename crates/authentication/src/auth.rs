@@ -1,4 +1,9 @@
-use axum::{Json, extract::State};
+use axum::{
+    Form,
+    extract::State,
+    http::HeaderMap,
+    response::{IntoResponse, Redirect},
+};
 use axum_extra::extract::cookie::{Cookie, CookieJar, SameSite};
 use mongodb::bson::DateTime;
 use std::time::{Duration, SystemTime};
@@ -9,6 +14,7 @@ use crate::middle;
 use database::users;
 use shared::{
     errors::AppError,
+    flash::{cookie_domain, referer_path, set_flash},
     models::{ONE_MONTH, Session, User},
     query::{LoginRequest, SignupRequest},
     state::AppState,
@@ -16,15 +22,22 @@ use shared::{
 
 pub async fn login(
     State(state): State<AppState>,
+    headers: HeaderMap,
     jar: CookieJar,
-    Json(payload): Json<LoginRequest>,
-) -> Result<(CookieJar, Json<&'static str>), AppError> {
-    let user = users::get_user_by_name(&state.db, &payload.username).await;
+    Form(form): Form<LoginRequest>,
+) -> Result<impl IntoResponse, AppError> {
+    let back = referer_path(&headers);
+    let user = users::get_user_by_name(&state.db, &form.username).await;
     let hash = user.as_ref().map_or(middle::dummy_hash(), |u| &u.password);
-    let valid = middle::verify_password(&payload.password, hash);
+    let valid = middle::verify_password(&form.password, hash);
     let user: User = match user {
         Some(user) if valid => user,
-        _ => return Err(AppError::Unauthorized),
+        _ => {
+            return Ok((
+                set_flash(jar, "Feil brukernavn eller passord."),
+                Redirect::to(&back),
+            ));
+        }
     };
 
     users::delete_sessions_for_user(&state.db, &user.user_id).await?;
@@ -41,35 +54,39 @@ pub async fn login(
     };
     users::store_session(&state.db, session).await?;
 
-    let domain =
-        std::env::var("COOKIE_DOMAIN").unwrap_or_else(|_| "snublejuice.localhost".to_string());
-
     let cookie = Cookie::build(("session_id", session_id))
         .path("/")
-        .domain(domain)
+        .domain(cookie_domain())
         .http_only(true)
         .secure(true)
         .same_site(SameSite::Lax)
         .max_age(TimeDuration::seconds(ONE_MONTH as i64))
         .build();
 
-    Ok((jar.add(cookie), Json("ok")))
+    Ok((jar.add(cookie), Redirect::to(&back)))
 }
 
 pub async fn signup(
     State(state): State<AppState>,
+    headers: HeaderMap,
     jar: CookieJar,
-    Json(payload): Json<SignupRequest>,
-) -> Result<(CookieJar, Json<&'static str>), AppError> {
+    Form(payload): Form<SignupRequest>,
+) -> Result<impl IntoResponse, AppError> {
+    let back = referer_path(&headers);
     let username = payload.username.trim().to_string();
-    validate_signup(&username, &payload.password, &payload.email)?;
+    if let Err(AppError::BadRequest(msg)) =
+        validate_signup(&username, &payload.password, &payload.email)
+    {
+        return Ok((set_flash(jar, &msg), Redirect::to(&back)));
+    }
 
     if users::get_user_by_name(&state.db, &username)
         .await
         .is_some()
     {
-        return Err(AppError::BadRequest(
-            "Brukeren finnes allerede.".to_string(),
+        return Ok((
+            set_flash(jar, "Brukeren finnes allerede."),
+            Redirect::to(&back),
         ));
     }
 
@@ -87,7 +104,13 @@ pub async fn signup(
         notify: payload.notify,
     };
 
-    users::create_user(&state.db, &new_user).await?;
+    match users::create_user(&state.db, &new_user).await {
+        Ok(()) => {}
+        Err(AppError::BadRequest(msg)) => {
+            return Ok((set_flash(jar, &msg), Redirect::to(&back)));
+        }
+        Err(err) => return Err(err),
+    }
 
     let session_id = Uuid::new_v4().to_string();
     let expires_after =
@@ -100,19 +123,16 @@ pub async fn signup(
     };
     users::store_session(&state.db, session).await?;
 
-    let domain =
-        std::env::var("COOKIE_DOMAIN").unwrap_or_else(|_| "snublejuice.localhost".to_string());
-
     let cookie = Cookie::build(("session_id", session_id))
         .path("/")
-        .domain(domain)
+        .domain(cookie_domain())
         .http_only(true)
         .secure(true)
         .same_site(SameSite::Lax)
         .max_age(TimeDuration::seconds(ONE_MONTH as i64))
         .build();
 
-    Ok((jar.add(cookie), Json("ok")))
+    Ok((jar.add(cookie), Redirect::to(&back)))
 }
 
 fn validate_signup(username: &str, password: &str, email: &str) -> Result<(), AppError> {

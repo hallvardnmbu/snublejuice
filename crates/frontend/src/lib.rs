@@ -15,6 +15,7 @@ struct Assets;
 pub fn router() -> Router<AppState> {
     Router::new()
         .route("/", get(render::site))
+        .route("/favourites", get(render::favourites_site))
         .route("/data/products", post(render::fetch_products))
         .nest_service("/public", ServeEmbed::<Assets>::new())
 }

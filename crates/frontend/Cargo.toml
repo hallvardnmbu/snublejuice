@@ -17,3 +17,7 @@ rust-embed = "8"
 chrono = { workspace = true }
 regex = { workspace = true }
 serde = { workspace = true }
+tokio = { workspace = true }
+
+[dev-dependencies]
+mongodb = { workspace = true }

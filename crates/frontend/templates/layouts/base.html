@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="nb">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="/public/stylesheet.css" />
+
+        <title>Snublejuice</title>
+        <meta
+            name="description"
+            content="Se prishistorikk og finn skjulte prisendringer hos Vinmonopolet. Sammenlign priser på vin, øl, brennevin og mer mellom Vinmonopolet og tax-free."
+        />
+        <link rel="canonical" href="https://snublejuice.no" />
+
+        <meta name="theme-color" content="#fbfbfb" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#363431" media="(prefers-color-scheme: dark)" />
+
+        <link rel="icon" type="image/png" href="/public/images/favicon.png" />
+        <link rel="apple-touch-icon" href="/public/images/320x320.png" />
+
+        <meta property="og:title" content="Snublejuice" />
+        <meta property="og:description" content="Se prishistorikk og finn skjulte prisendringer hos Vinmonopolet." />
+        <meta property="og:image" content="https://snublejuice.no/public/images/web.png" />
+        <meta property="og:url" content="https://snublejuice.no" />
+        <meta property="og:type" content="website" />
+
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                "name": "Snublejuice",
+                "alternateName": "Snublejuice.no",
+                "description": "Se prishistorikk, finn skjulte prisendringer og spar penger på alkohol. Sammenlign priser på vin, øl, brennevin og mer mellom Vinmonopolet og tax-free.",
+                "url": "https://snublejuice.no",
+                "inLanguage": "nb",
+                "author": {
+                    "@type": "Person",
+                    "name": "Hallvard",
+                    "url": "https://dilettant.no"
+                }
+            }
+        </script>
+
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                "name": "Snublejuice",
+                "url": "https://snublejuice.no",
+                "logo": "https://snublejuice.no/public/images/snublejuice.png",
+                "description": "Norsk prissammenligningstjeneste for Vinmonopolet og tax-free alkohol.",
+                "foundingDate": "2025-01-27",
+                "founder": {
+                    "@type": "Person",
+                    "name": "Hallvard",
+                    "url": "https://dilettant.no"
+                },
+                "areaServed": {
+                    "@type": "Country",
+                    "name": "Norway"
+                },
+                "knowsAbout": [
+                    "Vinmonopolet priser",
+                    "Tax-free priser",
+                    "Alkohol prishistorikk",
+                    "Tax-free sammenligning"
+                ]
+            }
+        </script>
+
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "WebApplication",
+                "name": "Snublejuice Prissammenligning",
+                "url": "https://snublejuice.no",
+                "applicationCategory": "ShoppingApplication",
+                "operatingSystem": "All",
+                "browser": "Requires JavaScript",
+                "offers": {
+                    "@type": "Offer",
+                    "price": "0",
+                    "priceCurrency": "NOK"
+                },
+                "provider": {
+                    "@type": "Person",
+                    "name": "Hallvard"
+                }
+            }
+        </script>
+
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "mainEntity": [
+                    {
+                        "@type": "Question",
+                        "name": "Hva er Snublejuice?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Snublejuice er en nettside hvor Vinmonopolets prisendringer og prishistorikk vises, samt en sammenligning av priser mellom tax-free og Vinmonopolet."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Hvor ofte oppdateres prisene?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Vinmonopolet oppdaterer prisene sine hver måned. Vi gjør det samme, og finner ut hvilke varer som har prisendringer. Tax-free priser oppdateres for enkelhets skyld samtidig."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Hvor ofte oppdateres lagerstatus?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Lagerstatus oppdateres jevnlig. I starten av måneden oppdateres lagerstatusen hyppigere enn mot slutten av måneden."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Kan jeg få varslinger om prisendringer?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Ja! Du kan registrere deg for å motta e-postvarslinger hver gang prisene oppdateres ved månedsskifte. Dette gjøres i profilen din."
+                        }
+                    }
+                ]
+            }
+        </script>
+    </head>
+    <body>
+        <header>{% block header %}{% endblock %}</header>
+        <main>{% block main %}{% endblock %}</main>
+        <footer>{% block footer %}{% endblock %}</footer>
+        {% block scripts %}{% endblock %}
+    </body>
+</html>

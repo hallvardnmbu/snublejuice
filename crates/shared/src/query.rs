@@ -106,14 +106,15 @@ impl Parameters {
         // Must have a price.
         filter.insert("price", doc! { "$gt": 0.0 });
 
-        if let Some(storelike) = &self.storelike {
-            if !favourites && !taxfree {
-                let pattern = format!(
-                    r"(^|[^a-zæøåA-ZÆØÅ]){}([^a-zæøåA-ZÆØÅ]|$)",
-                    regex::escape(storelike)
-                );
-                filter.insert("stores", doc! { "$regex": pattern, "$options": "i" });
-            }
+        if let Some(storelike) = &self.storelike
+            && !favourites
+            && !taxfree
+        {
+            let pattern = format!(
+                r"(^|[^a-zæøåA-ZÆØÅ]){}([^a-zæøåA-ZÆØÅ]|$)",
+                regex::escape(storelike)
+            );
+            filter.insert("stores", doc! { "$regex": pattern, "$options": "i" });
         }
 
         if favourites && let Some(user) = user {
@@ -121,14 +122,14 @@ impl Parameters {
         }
 
         // Early return for searches.
-        if let Some(_) = &self.search {
+        if self.search.is_some() {
             return filter;
         }
 
-        if let Some(category) = &self.category {
-            if let Some(name) = category_name(category) {
-                filter.insert("category", name);
-            }
+        if let Some(category) = &self.category
+            && let Some(name) = category_name(category)
+        {
+            filter.insert("category", name);
         }
 
         if let Some(country) = self.country.as_ref().filter(|c| !c.is_empty()) {
@@ -514,8 +515,7 @@ mod tests {
 
     #[test]
     fn to_pipeline_without_search_uses_match_sort_skip_and_limit() {
-        let pipeline =
-            empty_params().to_pipeline(&Subdomain::Vinmonopolet, &None, true, &None);
+        let pipeline = empty_params().to_pipeline(&Subdomain::Vinmonopolet, &None, true, &None);
         assert_eq!(pipeline.len(), 4);
         assert!(pipeline[0].contains_key("$match"));
         assert!(pipeline[1].contains_key("$sort"));

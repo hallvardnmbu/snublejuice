@@ -1,70 +1,39 @@
-use authentication::middle::Authenticate;
-use axum::{Json, extract::State};
-use axum_extra::extract::cookie::{Cookie, CookieJar};
-use mongodb::bson::oid::ObjectId;
-use serde::Serialize;
+use authentication::middle::{Authenticate, verify_password};
+use axum::{
+    Form, Json,
+    extract::State,
+    http::HeaderMap,
+    response::{IntoResponse, Redirect},
+};
+use axum_extra::extract::cookie::CookieJar;
 
-use authentication::middle::verify_password;
 use database::users;
 use shared::{
     errors::AppError,
+    flash::{clear_session_cookie, referer_path, set_flash},
     models::{Index, Notify, User},
     query::DeleteRequest,
     state::AppState,
 };
 
-/// The user as exposed to clients; never includes the password hash.
-#[derive(Serialize)]
-pub struct PublicUser {
-    #[serde(rename = "_id")]
-    user_id: ObjectId,
-    username: String,
-    email: String,
-    favourites: Vec<i64>,
-    notify: bool,
-}
-
-pub async fn get_user(
-    State(state): State<AppState>,
-    auth: Authenticate,
-) -> Result<Json<PublicUser>, AppError> {
-    let user: User = users::get_user_by_id(&state.db, &auth.id)
-        .await
-        .ok_or(AppError::NotFound)?;
-    Ok(Json(PublicUser {
-        user_id: user.user_id,
-        username: user.username,
-        email: user.email,
-        favourites: user.favourites,
-        notify: user.notify,
-    }))
-}
-
 pub async fn logout(
     State(state): State<AppState>,
     jar: CookieJar,
     auth: Authenticate,
-) -> Result<(CookieJar, Json<String>), AppError> {
+) -> Result<impl IntoResponse, AppError> {
     users::logout(&state.db, &auth.session_id).await?;
-    let jar = jar.remove(Cookie::from("session_id"));
-    Ok((jar, Json("ok".to_string())))
+    Ok((clear_session_cookie(jar), Redirect::to("/")))
 }
 
 pub async fn notification(
     State(state): State<AppState>,
+    headers: HeaderMap,
     auth: Authenticate,
-    Json(payload): Json<Notify>,
-) -> Result<Json<String>, AppError> {
+    Form(payload): Form<Notify>,
+) -> Result<impl IntoResponse, AppError> {
+    let back = referer_path(&headers);
     users::notification(&state.db, &auth.id, payload.notify).await?;
-    Ok(Json("ok".to_string()))
-}
-
-pub async fn favourites(
-    State(state): State<AppState>,
-    auth: Authenticate,
-) -> Result<Json<Vec<i64>>, AppError> {
-    let favourites: Vec<i64> = users::favourites(&state.db, &auth.id).await?;
-    Ok(Json(favourites))
+    Ok(Redirect::to(&back))
 }
 
 pub async fn toggle_favourite(
@@ -78,17 +47,23 @@ pub async fn toggle_favourite(
 
 pub async fn delete(
     State(state): State<AppState>,
+    headers: HeaderMap,
+    jar: CookieJar,
     auth: Authenticate,
-    Json(payload): Json<DeleteRequest>,
-) -> Result<Json<String>, AppError> {
+    Form(payload): Form<DeleteRequest>,
+) -> Result<impl IntoResponse, AppError> {
+    let back = referer_path(&headers);
     let user: User = users::get_user_by_id(&state.db, &auth.id)
         .await
         .ok_or(AppError::NotFound)?;
 
     if !verify_password(&payload.password, &user.password) {
-        return Err(AppError::Unauthorized);
+        return Ok((
+            set_flash(jar, "Feil brukernavn eller passord."),
+            Redirect::to(&back),
+        ));
     }
 
     users::delete_user(&state.db, &auth.id).await?;
-    Ok(Json("ok".to_string()))
+    Ok((clear_session_cookie(jar), Redirect::to("/")))
 }

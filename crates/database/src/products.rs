@@ -17,11 +17,10 @@ pub async fn get_products(db: &Database, pipeline: Vec<Document>) -> Vec<Product
     match collection.aggregate(pipeline).await {
         Ok(mut cursor) => {
             while let Some(result) = cursor.next().await {
-                if let Ok(document) = result {
-                    if let Ok(product) = from_document(document) {
+                if let Ok(document) = result
+                    && let Ok(product) = from_document(document) {
                         documents.push(product);
                     }
-                }
             }
         }
         Err(error) => {

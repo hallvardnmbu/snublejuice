@@ -9,10 +9,7 @@ database = { path = "../database" }
 authentication = { path = "../authentication" }
 shared = { path = "../shared" }
 
-serde = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 axum = { workspace = true }
 axum-extra = { workspace = true }
-tower = "0.5.3"
-mongodb = { workspace = true }
 regex = { workspace = true }

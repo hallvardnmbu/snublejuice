@@ -1,5 +1,6 @@
 :root {
     --fontsize: 0.85rem;
+    --scale: 0.85;
 
     --margin: 0.25rem;
     --padding: 0.625rem;
@@ -348,6 +349,10 @@ main form > dialog > div > div > div {
     gap: var(--gap-md);
     align-items: center;
 }
+main form > dialog > div > div > div:has(> input) {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+}
 main form > dialog > div.controls {
     display: flex;
     flex-direction: row;
@@ -369,11 +374,6 @@ button.changed {
     font-weight: 500;
     font-size: var(--fontsize-label);
     letter-spacing: -0.03em;
-}
-
-main form > dialog > div > div > div > input {
-    flex: 1;
-    width: 100%;
 }
 
 div:has(> select) {
@@ -422,19 +422,23 @@ select {
     cursor: pointer;
     font-weight: 500;
 }
+/* Render inputs at 1rem (16px) and scale down to prevent mobile auto-zoom on focus. */
 input[type="number"],
 input[type="text"],
 input[type="password"],
 input[type="email"],
 input[type="search"] {
-    padding: 0 var(--gap-lp);
-}
-input[type="text"],
-input[type="password"],
-input[type="email"],
-input[type="search"] {
-    width: 100%;
+    display: block;
+    font-size: 1rem;
+    width: calc(100% / var(--scale));
+    height: calc(var(--height-button) / var(--scale));
+    padding: 0 calc(var(--gap-lp) / var(--scale));
+    border: calc(var(--border-size) / var(--scale)) solid var(--border-color);
+    border-radius: calc(var(--radius-button) / var(--scale));
     box-sizing: border-box;
+    transform: scale(var(--scale));
+    transform-origin: left top;
+    margin: 0 calc(100% - 100% / var(--scale)) calc(var(--height-button) - var(--height-button) / var(--scale)) 0;
 }
 input[type="number"]:focus,
 input[type="text"]:focus,
@@ -936,6 +940,8 @@ aside .history .line path {
     :root {
         --image: 4.5rem;
         --fontsize: 0.6875rem;
+        --scale: 0.6875;
+
         --fontsize-tag: 0.5rem;
 
         --height-button: 1.375rem;

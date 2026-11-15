@@ -1,5 +1,55 @@
 import { initNearby } from "./nearby.js";
 
+function updateMultiselectSummary(details) {
+  const summary = details.querySelector("summary");
+  const [first, ...rest] = [...details.querySelectorAll("input:checked")].map(
+    (input) => input.parentElement.textContent,
+  );
+  summary.textContent = !first
+    ? summary.dataset.default
+    : rest.length
+      ? `${first} +${rest.length}`
+      : first;
+}
+
+function updateSingleselectSummary(details) {
+  const checked = details.querySelector("input:checked");
+  if (checked) details.querySelector("summary").textContent = checked.parentElement.textContent;
+}
+
+function clearField(element) {
+  if (!element) return;
+  if (element.classList?.contains("singleselect")) {
+    const first = element.querySelector("input");
+    if (first) first.checked = true;
+    element.open = false;
+    updateSingleselectSummary(element);
+  } else if (element.tagName === "DETAILS") {
+    element.querySelectorAll("input:checked").forEach((input) => (input.checked = false));
+    element.open = false;
+    updateMultiselectSummary(element);
+  } else {
+    element.value = "";
+  }
+}
+
+document.addEventListener("change", (event) => {
+  const single = event.target.closest?.("details.singleselect");
+  if (single) {
+    updateSingleselectSummary(single);
+    single.open = false;
+  }
+
+  const details = event.target.closest?.("details.multiselect");
+  if (details) updateMultiselectSummary(details);
+});
+
+document.addEventListener("click", (event) => {
+  document.querySelectorAll("details.multiselect[open], details.singleselect[open]").forEach((details) => {
+    if (!details.contains(event.target)) details.open = false;
+  });
+});
+
 function toggleComparator(inputName, buttonId, labels) {
   const input = document.querySelector(`input[name="${inputName}"]`);
   const button = document.getElementById(buttonId);
@@ -20,6 +70,9 @@ function resetComparator(inputName, buttonId, offLabel) {
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("filter");
   if (!form) return;
+
+  document.querySelectorAll("details.singleselect").forEach(updateSingleselectSummary);
+  document.querySelectorAll("details.multiselect").forEach(updateMultiselectSummary);
 
   const { setNearby } = initNearby(form);
 
@@ -126,13 +179,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     applyBtn?.classList.remove("changed");
     dialog?.close();
-    window.fetchProducts({ page: 1 });
-  });
-
-  document.getElementById("toggleFavourites")?.addEventListener("click", () => {
-    const input = document.querySelector('input[name="favourites"]');
-    const active = input.value === "true";
-    input.value = active ? "" : "true";
     window.fetchProducts({ page: 1 });
   });
 });

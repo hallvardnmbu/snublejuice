@@ -1,0 +1,51 @@
+{% extends "layouts/base.html" %} {% block header %} {% with user=user, landing=true, message=message %} {% include
+"components/account.html" %} {% endwith %} {% endblock %} {% block main %}
+<section class="landing">
+    <div class="hero">
+        <h1>Snubl over og gjør et kupp.</h1>
+        <p>
+            Snublejuice følger prishistorikken til Vinmonopolet og tax-free-butikkene måned for måned, så du får med deg
+            hva som er på tilbud.
+        </p>
+    </div>
+
+    <img src="/public/images/snublejuice.png" />
+
+    <div class="routes">
+        <div class="card" role="link" onclick="window.location.href = 'https://vinmonopolet.snublejuice.no'">
+            <h3>Vinmonopolet</h3>
+            <p>Finn skjulte tilbud fra Vinmonopolet hvert månedsskifte.</p>
+            <p><a href="https://vinmonopolet.snublejuice.no">vinmonopolet.snublejuice.no</a></p>
+        </div>
+
+        <div class="card" role="link" onclick="window.location.href = 'https://taxfree.snublejuice.no'">
+            <h3>Tax-free</h3>
+            <p>Hva lønner seg mest å kjøpe på tax-free?</p>
+            <p><a href="https://taxfree.snublejuice.no">taxfree.snublejuice.no</a></p>
+        </div>
+    </div>
+
+    <div>
+        <h3>Lagerbeholdning</h3>
+        <p>
+            Lagerbeholdning oppdateres innimellom, så avvik kan forekomme. Alltid dobbeltsjekk på produktets egen side
+            før du handler.
+        </p>
+    </div>
+    <div>
+        <h3>Varslinger</h3>
+        <p>
+            Kryss av for e-postvarsel hver gang prisene oppdateres. Aktiveres under Profil, Varslinger når du er logget
+            inn.
+        </p>
+    </div>
+    <div>
+        <h3>Affiliasjon</h3>
+        <p>
+            Denne siden er på ingen måte tilknyttet Vinmonopolet eller Tax-free. Feil kan og vil forekomme. Dette er et
+            hobby-prosjekt som verken har inntekter eller garanti for stabilitet.
+        </p>
+    </div>
+</section>
+{% endblock %} {% block footer %} {% with landing=true %} {% include "components/footer.html" %} {% endwith %} {%
+endblock %}

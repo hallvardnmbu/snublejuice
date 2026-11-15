@@ -2,10 +2,6 @@ use axum::Router;
 use axum::serve;
 use std::net::SocketAddr;
 
-use api;
-use authentication;
-use database;
-use frontend;
 use shared::state::AppState;
 
 static _DATABASE_KEY: &str = "MONGODB";

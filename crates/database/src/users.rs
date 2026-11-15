@@ -20,14 +20,11 @@ pub async fn get_user_by_name(db: &Database, username: &str) -> Option<User> {
         .strength(CollationStrength::Secondary)
         .build();
 
-    match collection
+    collection
         .find_one(doc! { "username": username })
         .collation(collation)
         .await
-    {
-        Ok(user) => return user,
-        Err(_) => return None,
-    }
+        .unwrap_or_default()
 }
 
 pub async fn create_user(db: &Database, user: &User) -> Result<(), AppError> {
@@ -53,17 +50,10 @@ pub async fn create_user(db: &Database, user: &User) -> Result<(), AppError> {
 pub async fn get_user_by_id(db: &Database, user_id: &ObjectId) -> Option<User> {
     let collection: Collection<User> = db.collection("users");
 
-    match collection.find_one(doc! { "_id": user_id }).await {
-        Ok(user) => return user,
-        Err(_) => return None,
-    }
-}
-
-pub async fn favourites(db: &Database, user_id: &ObjectId) -> Result<Vec<i64>, AppError> {
-    match get_user_by_id(db, user_id).await {
-        Some(user) => return Ok(user.favourites),
-        None => return Err(AppError::NotFound),
-    }
+    collection
+        .find_one(doc! { "_id": user_id })
+        .await
+        .unwrap_or_default()
 }
 
 pub async fn toggle_favourite(
@@ -137,8 +127,8 @@ pub async fn get_user_by_session_id(db: &Database, session_id: &str) -> Result<S
         .find_one(doc! { "session_id": session_id })
         .await?
     {
-        Some(session) => return Ok(session),
-        None => return Err(AppError::NotFound),
+        Some(session) => Ok(session),
+        None => Err(AppError::NotFound),
     }
 }
 

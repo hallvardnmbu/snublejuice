@@ -236,7 +236,7 @@ menu div:nth-child(2) h1[role="link"] {
     pointer-events: auto;
     cursor: pointer;
 }
-header form {
+header > form {
     display: flex;
     flex-direction: column;
     padding: var(--padding);
@@ -246,25 +246,25 @@ header form {
     max-width: var(--layout-max-narrow);
     align-self: center;
 }
-header form div div:not(dialog),
-header form button {
+header > form div div:not(dialog),
+header > form button {
     width: 100%;
 }
 
-header form > div:first-of-type {
+header > form > div:first-of-type {
     display: flex;
     flex-direction: column;
     padding: var(--padding);
     gap: var(--gap-md);
     align-items: center;
 }
-header form > div:first-of-type > div:not(:has(input)) {
+header > form > div:first-of-type > div:not(:has(input)) {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
     gap: var(--padding);
 }
-header form > div:first-of-type > div:not(:has(input)) span:last-of-type {
+header > form > div:first-of-type > div:not(:has(input)) span:last-of-type {
     font-family: var(--font-mono);
     font-size: 0.6875rem;
     letter-spacing: 0.04em;

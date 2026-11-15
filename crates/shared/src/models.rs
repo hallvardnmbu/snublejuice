@@ -34,6 +34,7 @@ pub struct Index {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Notify {
+    #[serde(default)]
     pub notify: bool,
 }
 
@@ -164,7 +165,7 @@ where
             })
         })
         .collect();
-    v.sort_by(|a, b| b.percentage.cmp(&a.percentage));
+    v.sort_by_key(|a| std::cmp::Reverse(a.percentage));
     Ok(v)
 }
 

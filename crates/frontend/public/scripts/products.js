@@ -72,33 +72,6 @@ function updateFilterBadge() {
   }
 }
 
-function syncFavouritesButton(favourites) {
-  const btn = document.getElementById("toggleFavourites");
-  const input = document.querySelector('input[name="favourites"]');
-  if (!btn || !input) return;
-
-  btn.textContent = favourites ? "Alle produkter" : "Favoritter";
-  input.value = favourites ? "true" : "";
-}
-
-function updateStoreFieldVisibility(favourites) {
-  const taxfreeSelect = document.getElementById("stores-taxfree");
-  const isTaxfree = taxfreeSelect?.tagName === "DETAILS";
-  const storelikeField = document.getElementById("storelike-field");
-  const vinField = document.getElementById("store-vinmonopolet-field");
-  if (!storelikeField || !vinField) return;
-
-  const hide = favourites || isTaxfree;
-  storelikeField.classList.toggle("hidden", hide);
-  vinField.classList.toggle("hidden", hide);
-
-  if (hide) {
-    const storelike = document.querySelector('[name="storelike"]');
-    if (storelike) storelike.value = "";
-    clearField(document.getElementById("stores-vinmonopolet"));
-  }
-}
-
 function bindPagination() {
   const container = document.getElementById("product-results");
   if (!container) return;
@@ -199,13 +172,12 @@ async function fetchProducts(overrides = {}) {
     }
 
     const data = await response.json();
+    results.removeAttribute("aria-busy");
     results.innerHTML = data.html;
     lastAppliedParams = params;
     document.querySelector('input[name="page"]').value = data.page;
 
     updateFilterBadge();
-    syncFavouritesButton(data.favourites);
-    updateStoreFieldVisibility(data.favourites);
     bindPagination();
     bindProductInteractions();
   } catch (error) {
@@ -218,5 +190,6 @@ window.fetchProducts = fetchProducts;
 window.readParameters = readParameters;
 
 document.addEventListener("DOMContentLoaded", () => {
-  fetchProducts();
+  bindPagination();
+  bindProductInteractions();
 });

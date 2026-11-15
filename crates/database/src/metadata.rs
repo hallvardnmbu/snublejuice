@@ -43,7 +43,7 @@ pub async fn get_distinct(db: &Database, field: &str, is_taxfree: bool) -> Vec<S
     match collection.distinct(field, filter).await {
         Ok(cursor) => cursor
             .into_iter()
-            .map(|bson| from_bson::<String>(bson))
+            .map(from_bson::<String>)
             .collect::<Result<Vec<String>, _>>()
             .unwrap_or_else(|e| {
                 eprintln!("Deserialization error: {:?}", e);

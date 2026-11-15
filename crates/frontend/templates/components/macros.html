@@ -5,11 +5,17 @@
 </div>
 {% endmacro %}
 
-{# Checkbox list styled as a select; options are filled in by dropdowns.js. #}
-{% macro multiselect(id, name, default) %}
+{# Checkbox list styled as a select; options are rendered server-side. #}
+{% macro multiselect(id, name, default, options) %}
 <details class="multiselect" id="{{ id }}" data-name="{{ name }}">
     <summary data-default="{{ default }}">{{ default }}</summary>
-    <div class="card"></div>
+    <div class="card">
+        {% for item in options %}
+        {% if item %}
+        <label><input type="checkbox" name="{{ name }}" value="{{ item }}">{{ item | capitalize }}</label>
+        {% endif %}
+        {% endfor %}
+    </div>
 </details>
 {% endmacro %}
 

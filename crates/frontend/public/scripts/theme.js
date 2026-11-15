@@ -29,3 +29,18 @@ prefersDarkScheme.addEventListener("change", (e) => {
     setTheme(e.matches ? "Mørkt" : "Lyst");
   }
 });
+
+// Lock viewport scale on first touch to prevent mobile auto-zoom on input focus.
+const viewport = document.querySelector('meta[name="viewport"]');
+if (viewport) {
+  document.addEventListener(
+    "touchstart",
+    () => {
+      viewport.setAttribute(
+        "content",
+        "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no",
+      );
+    },
+    { passive: true, once: true },
+  );
+}

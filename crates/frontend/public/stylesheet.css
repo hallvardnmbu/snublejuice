@@ -334,8 +334,6 @@ main form > dialog > div.controls > button {
 main form > dialog > div.card {
     display: flex;
     flex-direction: column;
-    overflow-y: auto;
-    overscroll-behavior: contain;
     gap: var(--gap-md);
     width: 100%;
     padding: var(--padding-lg);
@@ -527,7 +525,7 @@ main form > dialog > div > div > .multiselect > div,
 .singleselect label:hover {
     background: var(--semitransparent);
 }
-.multiselect input {
+input[type="checkbox"] {
     accent-color: var(--text-muted);
     margin: 0;
 }

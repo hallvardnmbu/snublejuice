@@ -16,12 +16,12 @@ pub async fn get_image(Path(index): Path<String>) -> Result<impl IntoResponse, A
 
     let image_dir = env::var("IMAGE_DIR").map_err(|_| AppError::InternalServerError)?;
 
-    let file_path = PathBuf::from(&image_dir).join(format!("{}.png", index));
+    let file_path = PathBuf::from(&image_dir).join(format!("{}.webp", index));
     if file_path.exists()
         && file_path.is_file()
         && let Ok(contents) = fs::read(&file_path).await
     {
-        return Ok(([(header::CONTENT_TYPE, "image/png")], contents));
+        return Ok(([(header::CONTENT_TYPE, "image/webp")], contents));
     }
 
     Ok(serve_fallback().await)

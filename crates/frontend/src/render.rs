@@ -153,7 +153,6 @@ pub fn render_products_page(ctx: ProductsPageData<'_>) -> String {
         stores => ctx.stores,
         countries => ctx.countries,
         pairs => ctx.pairs,
-        landing => false,
     })
     .unwrap()
 }

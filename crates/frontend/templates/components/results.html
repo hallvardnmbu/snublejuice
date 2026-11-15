@@ -2,7 +2,7 @@
 message="Prisene oppdateres. Produkter som gjenstår er markert, og viser forrige måneds tall." %} {% include
 "components/message.html" %} {% endwith %} {% endif %} {% if nearby_stores is not none and nearby_stores|length == 0 %}
 {% with message="Fant ingen butikker i nærheten. Forsøk å utvide avstanden." %} {% include "components/message.html" %}
-{% endwith %} {% elif data|length == 0 %} {% with message="Ingen resultater finnes for valgt kominasjon." %} {% include
+{% endwith %} {% elif data|length == 0 %} {% with message="Ingen resultater finnes for valgt kombinasjon." %} {% include
 "components/message.html" %} {% endwith %} {% else %} {% for item in data %} {% with parameters=parameters, item=item,
 index=loop.index0, taxfree=is_taxfree, nearby_stores=nearby_stores %} {% include "components/product.html" %} {% endwith
 %} {% endfor %} {% endif %} {% with placement="bottom" %}{% include "components/pagination.html" %}{% endwith %}

@@ -148,9 +148,7 @@ pub async fn update_expiration(db: Database, session_id: String) -> Result<(), A
 }
 
 pub async fn delete_user(db: &Database, user_id: &ObjectId) -> Result<(), AppError> {
-    db.collection::<Session>("sessions")
-        .delete_one(doc! { "user_id": user_id })
-        .await?;
+    delete_sessions_for_user(db, user_id).await?;
     db.collection::<User>("users")
         .delete_one(doc! { "_id": user_id })
         .await?;

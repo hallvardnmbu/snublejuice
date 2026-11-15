@@ -16,8 +16,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let app = Router::<AppState>::new()
         .merge(frontend::router())
         .merge(authentication::router())
-        .merge(api::router(state.clone()))
-        .with_state(state.clone());
+        .merge(api::router())
+        .with_state(state);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], _PORT));
 

@@ -28,7 +28,7 @@ pub async fn get_image(Path(index): Path<String>) -> Result<impl IntoResponse, A
 }
 
 async fn serve_fallback() -> ([(header::HeaderName, &'static str); 1], Vec<u8>) {
-    let fallback_path = PathBuf::from("/public/images/snublejuice.png");
+    let fallback_path = PathBuf::from("/public/images/150x150.png");
     let contents = fs::read(fallback_path).await.unwrap_or_else(|_| Vec::new());
     ([(header::CONTENT_TYPE, "image/png")], contents)
 }

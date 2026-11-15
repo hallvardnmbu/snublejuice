@@ -129,7 +129,7 @@ function showSkeletons(results) {
   <section class="product card skeleton" aria-hidden="true">
       <div>
           <a class="img-wrap">
-              <img class="fallback" src="/public/images/snublejuice.png" alt="" />
+              <img class="fallback" src="/public/images/150x150.png" alt="Flaske" />
           </a>
           <div>
           </div>

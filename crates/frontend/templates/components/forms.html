@@ -33,7 +33,7 @@
             ("literprice", "Literpris"), ("alcoholprice", "Alkoholpris"), ("alcohol", "Alkoholprosent")],
             parameters.sort or "discount") }}
         </div>
-        <button type="button" id="toggleAdvanced" aria-haspopup="dialog">
+        <button type="button" id="toggleAdvanced" aria-haspopup="dialog" aria-label="Avansert filtrering">
             <svg
                 width="14"
                 height="14"
@@ -54,6 +54,7 @@
             type="button"
             id="toggleNearby"
             class="{{ 'changed' if parameters.latitude and parameters.longitude else '' }}"
+            aria-label="nearby-stores"
             aria-haspopup="dialog"
             aria-pressed="{{ 'true' if parameters.latitude and parameters.longitude else 'false' }}"
         >

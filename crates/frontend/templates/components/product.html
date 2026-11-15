@@ -21,7 +21,7 @@
         <div>
             <h2>
                 {% if user %}
-                <button aria-label="Favoritt" data-index="{{ item.index }}" class="favourite-toggle">
+                <button aria-label="Favoritt" data-index="{{ item.index }}" class="favourite-toggle" aria-label="Favoritter">
                     {{ '★' if item.index in user.favourites else '☆' }}
                 </button>
                 {% endif %}

@@ -6,7 +6,7 @@
             <button onclick="toggleView('loginForm')">Logg inn</button>
             <button onclick="toggleView('registerForm')">Registrer</button>
         {% else %}
-            <button onclick="toggleView('profile')" title="{{ user.username }}">
+            <button onclick="toggleView('profile')" title="{{ user.username }}" aria-label="Brukerprofil">
                 {{ user.username | truncate(12) }}
             </button>
 
@@ -32,7 +32,7 @@
         {% if landing_url %}
             <button type="button" onclick="window.location.href='{{ landing_url }}'">Forside</button>
         {% endif %}
-        <button type="button" id="toggleTheme">Mørkt</button>
+        <button type="button" id="toggleTheme" aria-label="Fargetema">Mørkt</button>
     </div>
 </menu>
 

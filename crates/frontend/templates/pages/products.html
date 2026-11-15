@@ -3,7 +3,7 @@ landing_url=landing_url, message=message %} {% include "components/account.html"
 block main %} {% with parameters=parameters, taxfree=is_taxfree, favourites=favourites, stores=stores,
 countries=countries, pairs=pairs %} {% include "components/forms.html" %} {% endwith %}
 <div id="product-results" aria-live="polite">{% include "components/results.html" %}</div>
-{% endblock %} {% block footer %} {% with landing=false %} {% include "components/footer.html" %} {% endwith %} {%
+{% endblock %} {% block footer %} {% include "components/footer.html" %} {%
 endblock %} {% block scripts %}
 <script src="/public/scripts/products.js"></script>
 <script type="module" src="/public/scripts/filters.js"></script>

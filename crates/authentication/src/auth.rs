@@ -141,8 +141,8 @@ fn validate_signup(username: &str, password: &str, email: &str) -> Result<(), Ap
     if !(3..=32).contains(&username.chars().count()) {
         return Err(invalid("Brukernavnet må være mellom 3 og 32 tegn."));
     }
-    // bcrypt only uses the first 72 bytes.
-    if !(4..=72).contains(&password.len()) {
+    // Minimum 4 characters, and at most 72 bytes (bcrypt's input limit).
+    if password.chars().count() < 4 || password.len() > 72 {
         return Err(invalid("Passordet må være mellom 4 og 72 tegn."));
     }
     if email.len() > 254 || !email.contains('@') {
@@ -161,6 +161,7 @@ mod tests {
         assert!(validate_signup("al", "longenough", "a@b.no").is_err());
         assert!(validate_signup(&"a".repeat(33), "longenough", "a@b.no").is_err());
         assert!(validate_signup("alice", "a", "a@b.no").is_err());
+        assert!(validate_signup("alice", "æø", "a@b.no").is_err());
         assert!(validate_signup("alice", &"p".repeat(73), "a@b.no").is_err());
         assert!(validate_signup("alice", "longenough", "no-at-sign").is_err());
     }

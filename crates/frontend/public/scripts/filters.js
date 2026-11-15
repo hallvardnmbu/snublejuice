@@ -85,8 +85,8 @@ document.addEventListener("DOMContentLoaded", () => {
     window.fetchProducts({ page: 1 });
   });
 
-  dialog.addEventListener("input", markChanged);
-  dialog.addEventListener("change", markChanged);
+  dialog?.addEventListener("input", markChanged);
+  dialog?.addEventListener("change", markChanged);
 
   for (const id of ["sort"]) {
     document.getElementById(id)?.addEventListener("change", () => {

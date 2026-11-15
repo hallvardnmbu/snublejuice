@@ -1,4 +1,4 @@
-use authentication::middle::{Authenticate, verify_password};
+use authentication::middle::{Authenticate, MaybeAuthenticate, verify_password};
 use axum::{
     Form, Json,
     extract::State,
@@ -11,7 +11,7 @@ use database::users;
 use shared::{
     errors::AppError,
     flash::{clear_session_cookie, referer_path, set_flash},
-    models::{Index, Notify, User},
+    models::{Index, Notify},
     query::DeleteRequest,
     state::AppState,
 };
@@ -19,20 +19,24 @@ use shared::{
 pub async fn logout(
     State(state): State<AppState>,
     jar: CookieJar,
-    auth: Authenticate,
 ) -> Result<impl IntoResponse, AppError> {
-    users::logout(&state.db, &auth.session_id).await?;
+    if let Some(session_id) = jar.get("session_id").map(|c| c.value().to_string()) {
+        users::logout(&state.db, &session_id).await?;
+    }
     Ok((clear_session_cookie(jar), Redirect::to("/")))
 }
 
 pub async fn notification(
     State(state): State<AppState>,
     headers: HeaderMap,
-    auth: Authenticate,
+    MaybeAuthenticate(user): MaybeAuthenticate,
     Form(payload): Form<Notify>,
 ) -> Result<impl IntoResponse, AppError> {
     let back = referer_path(&headers);
-    users::notification(&state.db, &auth.id, payload.notify).await?;
+    let Some(user) = user else {
+        return Ok(Redirect::to(&back));
+    };
+    users::notification(&state.db, &user.user_id, payload.notify).await?;
     Ok(Redirect::to(&back))
 }
 
@@ -49,21 +53,21 @@ pub async fn delete(
     State(state): State<AppState>,
     headers: HeaderMap,
     jar: CookieJar,
-    auth: Authenticate,
+    MaybeAuthenticate(user): MaybeAuthenticate,
     Form(payload): Form<DeleteRequest>,
 ) -> Result<impl IntoResponse, AppError> {
     let back = referer_path(&headers);
-    let user: User = users::get_user_by_id(&state.db, &auth.id)
-        .await
-        .ok_or(AppError::NotFound)?;
+    let Some(user) = user else {
+        return Ok((clear_session_cookie(jar), Redirect::to("/")));
+    };
 
     if !verify_password(&payload.password, &user.password) {
         return Ok((
-            set_flash(jar, "Feil brukernavn eller passord."),
+            set_flash(jar, "Feil passord."),
             Redirect::to(&back),
         ));
     }
 
-    users::delete_user(&state.db, &auth.id).await?;
+    users::delete_user(&state.db, &user.user_id).await?;
     Ok((clear_session_cookie(jar), Redirect::to("/")))
 }

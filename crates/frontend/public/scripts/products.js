@@ -172,7 +172,6 @@ async function fetchProducts(overrides = {}) {
     }
 
     const data = await response.json();
-    results.removeAttribute("aria-busy");
     results.innerHTML = data.html;
     lastAppliedParams = params;
     document.querySelector('input[name="page"]').value = data.page;
@@ -183,6 +182,8 @@ async function fetchProducts(overrides = {}) {
   } catch (error) {
     console.error("Error fetching products:", error);
     results.innerHTML = "<span>Kunne ikke laste produkter.</span>";
+  } finally {
+    results.removeAttribute("aria-busy");
   }
 }
 
